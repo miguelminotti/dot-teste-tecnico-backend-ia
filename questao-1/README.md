@@ -10,7 +10,7 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 | Consulta de livros por título ou autor | pendente |
 | Implementação com Django, Flask ou FastAPI | FastAPI (pendente) |
 | Endpoints claros e bem documentados | pendente |
-| Armazenamento em SQLite | repositório pronto, testes pendentes |
+| Armazenamento em SQLite | repositório pronto e testado |
 | Testes unitários dos endpoints | pendente |
 
 ## Como rodar
@@ -55,7 +55,9 @@ src/library/
     ├── database.py                  conexão e schema do SQLite
     └── sqlite_book_repository.py    SqliteBookRepository, implementação da porta
 tests/
-└── domain/                          testes unitários do domínio
+├── conftest.py                      fixture make_book, compartilhada entre as suítes
+├── domain/                          testes unitários do domínio
+└── infrastructure/                  testes do repositório contra SQLite real
 docs/adr/                            decisões de arquitetura desta questão
 ```
 
@@ -87,15 +89,23 @@ Decisão de produto, fora das ADRs: o **resumo é obrigatório**, porque o enunc
 
 ## Testes
 
-O que a suíte do domínio (`tests/domain/`) cobre:
+O que cada suíte cobre:
 
 | Arquivo | Regras protegidas |
 | --- | --- |
 | `test_clock.py` | relógio sempre em UTC; conversão que vira o dia (22h em São Paulo, 8h em Tóquio); recusa de instante sem fuso, inclusive o fuso que existe mas não informa offset |
 | `test_publication_date.py` | o dia do lançamento já conta como publicado; data futura aceita (pré-cadastro); recusa de `datetime` como data de publicação e como dia de referência |
 | `test_book.py` | título, autor e resumo em branco recusados (inclusive espaço não quebrável e caracteres invisíveis); espaços e invisíveis das pontas removidos, os do meio preservados; `created_at` sempre em UTC; identidade pelo `id` |
+| `test_sqlite_book_repository.py` | cadastro sobrevive ao fechar a conexão (commit); ida e volta preserva todos os campos, inclusive data futura e horário de São Paulo; datas gravadas em UTC de largura fixa e dia puro; `id` duplicado vira erro de domínio sem sobrescrever o original; erro não deixa transação aberta; oito cadastros simultâneos do mesmo livro gravam um só; recriar o schema não apaga o acervo; banco recusa datas fora da política; busca sem caixa e acento, com `%`, `_` e `\` como texto, filtros combinados com E, ordem alfabética e desempate por `id` |
 
-**Os testes protegem de verdade:** é necessário garantir que um teste fica vermelho se sua regra for quebrada, seguindo os padrões de RED -> GREEN. Cada regra do domínio foi quebrada de propósito, uma por vez (trocar `<=` por `<` no `is_published`, tirar o `strip`, tirar a checagem de offset, trocar `utc_now()` por `datetime.now()`, desligar a igualdade por `id`, aceitar `datetime` como data de publicação, pular a conversão do `created_at`), e em todas a suíte falhou.
+Os testes da infraestrutura rodam contra SQLite real, sem fake: em memória quando basta uma conexão, num arquivo temporário quando precisam de mais de uma (persistência e concorrência).
+
+**Os testes protegem de verdade:** é necessário garantir que um teste fica vermelho se sua regra for quebrada, seguindo os padrões de RED -> GREEN. Cada regra foi quebrada de propósito, uma por vez, e em todas a suíte falhou:
+
+- **Domínio:** trocar `<=` por `<` no `is_published`, tirar o `strip`, tirar a checagem de offset, trocar `utc_now()` por `datetime.now()`, desligar a igualdade por `id`, aceitar `datetime` como data de publicação, pular a conversão do `created_at`.
+- **Repositório:** tirar o commit, trocar por `INSERT OR REPLACE`, não escapar `%`, buscar sem normalizar, ordenar pela coluna original, tirar o desempate por `id`, gravar `created_at` sem largura fixa, combinar filtros com OU, recriar a tabela no `create_schema`, tirar o `CHECK` de UTC, e trocar a chave primária por um "já existe?" antes do insert (check-then-act). Este último depende de corrida entre threads, então foi rodado 20 vezes: a suíte falhou nas 20.
+
+**Deixado de fora:** teste de N+1. A busca é uma consulta só, e a reidratação do `Book` não consulta o banco; com uma tabela e nenhuma relação, não existe N+1 possível. O teste entra junto com a primeira relação (autor como tabela própria, por exemplo), contando as consultas com `connection.set_trace_callback`.
 
 ### Bugs registrados
 
