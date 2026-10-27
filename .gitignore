@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Ambientes virtuais
+.venv
+
+# Caches de ferramentas
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Banco SQLite local
+*.db
+*.sqlite3
+
+# Segredos
+.env
+/docs
