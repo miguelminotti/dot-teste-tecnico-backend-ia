@@ -1,5 +1,6 @@
 """Entidade Book, o centro do domínio da biblioteca."""
 
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
@@ -48,8 +49,30 @@ class Book:
 
 
 def _required_text(value: str, field_name: str) -> str:
-    """Remove espaços das pontas e recusa texto vazio."""
-    cleaned = value.strip()
+    """Remove caracteres invisíveis das pontas e recusa texto vazio."""
+    cleaned = _strip_invisible(value)
     if not cleaned:
         raise InvalidBookError(f"{field_name} não pode ser vazio")
     return cleaned
+
+
+def _strip_invisible(value: str) -> str:
+    """Como `str.strip()`, mas também remove caracteres de formatação invisíveis das pontas.
+
+    O `strip()` só conhece espaço em branco. Caracteres da categoria Unicode "Cf" (espaço de
+    largura zero U+200B, BOM U+FEFF, hífen suave U+00AD) não ocupam espaço na tela, mas passam
+    por ele: um título só com U+200B era aceito e entrava invisível no acervo.
+
+    No meio do texto eles ficam, porque lá têm função (o U+200D compõe emojis e a escrita de
+    idiomas como persa e hindi).
+    """
+    start, end = 0, len(value)
+    while start < end and _is_invisible(value[start]):
+        start += 1
+    while end > start and _is_invisible(value[end - 1]):
+        end -= 1
+    return value[start:end]
+
+
+def _is_invisible(char: str) -> bool:
+    return char.isspace() or unicodedata.category(char) == "Cf"
