@@ -48,8 +48,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 def _book_already_exists(_: Request, error: Exception) -> JSONResponse:
+    # Defesa, fora do contrato: o `id` é gerado no domínio, então nenhuma requisição produz um
+    # livro duplicado. Se acontecer (colisão de UUID), a resposta é 409, não 500.
     return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(error)})
 
 
 def _domain_error(_: Request, error: Exception) -> JSONResponse:
-    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": str(error)})
+    # Mesmo formato do 422 do pydantic (`HTTPValidationError`): o cliente trata um formato só, venha
+    # o erro do schema ("" num campo) ou do domínio ("   " no mesmo campo).
+    field = error.field if isinstance(error, DomainError) else None
+    loc = ["body", field] if field else ["body"]
+    detail = [{"type": "domain_error", "loc": loc, "msg": str(error)}]
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": detail})

@@ -6,7 +6,15 @@ consigam distinguir "regra de negócio violada" de "bug no código" e responder 
 
 
 class DomainError(Exception):
-    """Base de todo erro que o domínio levanta de propósito."""
+    """Base de todo erro que o domínio levanta de propósito.
+
+    `field` diz qual campo violou a regra, quando ela é de um campo só, para quem estiver fora do
+    domínio apontar o erro no lugar certo (a API o devolve no `loc` do 422).
+    """
+
+    def __init__(self, message: str, *, field: str | None = None) -> None:
+        super().__init__(message)
+        self.field = field
 
 
 class InvalidBookError(DomainError):
@@ -17,7 +25,6 @@ class InvalidBookError(DomainError):
     """
 
 
-# Not provided UTC error
 class NotProvidedTimezoneError(DomainError):
     """Erro levantado quando um valor de data/hora com fuso horário obrigatório não é fornecido."""
 

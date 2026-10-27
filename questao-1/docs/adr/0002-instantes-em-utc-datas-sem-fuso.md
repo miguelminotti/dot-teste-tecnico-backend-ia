@@ -18,7 +18,7 @@ Há dois tipos de data no domínio, com naturezas diferentes:
 - `clock.utc_now()` é o único ponto do projeto que lê o relógio. Ninguém chama `datetime.now()` sem fuso.
 - `clock.to_utc()` converte qualquer instante com fuso para UTC e recusa instante sem fuso (naive), inclusive o `tzinfo` que não informa offset, em vez de adivinhar de onde ele é.
 - Dia do calendário é `date`, nunca `datetime`, e não passa por conversão de fuso.
-- Clientes com outro relógio são atendidos na borda (entrada e saída da API), com um tradutor de fuso. Domínio e banco continuam em UTC.
+- A API devolve os instantes em UTC. Se um cliente precisar deles em outro fuso, a conversão deve acontecer na borda (entrada e saída da API), nunca no domínio ou no banco. Esse tradutor não foi implementado porque nenhum cliente o pede.
 
 ## Alternativas consideradas
 
@@ -28,5 +28,5 @@ Há dois tipos de data no domínio, com naturezas diferentes:
 ## Consequências
 
 - O SQLite não tem tipo de data; instantes serão gravados em ISO 8601 com `+00:00` explícito. O adaptador padrão de `datetime` do `sqlite3` está deprecado desde o Python 3.12 e grava sem fuso, então não deve ser usado.
-- Ao introduzir `ZoneInfo` (no tradutor de fuso), o Windows exige o pacote `tzdata`.
+- O fuso da biblioteca, que define o "hoje" de `is_published` ([ADR 0009](0009-camada-de-aplicacao-com-dtos.md)), usa `ZoneInfo`. Por isso o `tzdata` é dependência: o Windows não traz a base de fusos.
 - "Que dia é hoje" depende do fuso; quem precisa do dia atual decide qual fuso vale (ver [ADR 0005](0005-publication-date-como-fonte-unica.md)).

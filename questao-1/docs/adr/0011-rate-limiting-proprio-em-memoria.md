@@ -14,7 +14,7 @@ Sem autenticação, a única barreira contra um cliente em laço ou abusivo é l
 ## Decisão
 
 - `FixedWindowRateLimiter` próprio (`api/rate_limit.py`): até `N` requisições por cliente a cada janela de `S` segundos (padrão 60 por minuto), com contadores em memória protegidos por lock, porque as rotas síncronas rodam num pool de threads.
-- Aplicado como dependência do router de livros: as duas rotas dividem o mesmo limite por cliente, e requisições inválidas também contam.
+- Aplicado como dependência do router de livros: as duas rotas dividem o mesmo limite por cliente. Requisições com parâmetros ou campos inválidos também contam; corpo que nem é JSON válido não, porque o FastAPI o recusa antes de rodar as dependências. Um limite que contasse tudo precisaria de middleware, o que não compensa para esse caso.
 - O cliente é o IP da conexão (`request.client.host`). O `X-Forwarded-For` é ignorado; atrás de um proxy, quem reescreve o IP é o servidor (`uvicorn --forwarded-allow-ips`).
 - Acima do limite: 429 com `Retry-After` (segundos até a janela virar).
 - Os contadores são descartados quando a janela vira, então a memória acompanha os clientes ativos.

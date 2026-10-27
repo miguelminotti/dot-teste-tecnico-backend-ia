@@ -82,7 +82,7 @@ class BookPageResponse(BaseModel):
     items: list[BookResponse]
     limit: int = Field(description="Tamanho máximo da página pedida.")
     offset: int = Field(description="Quantos resultados foram pulados.")
-    has_more: bool = Field(description="Se existe próxima página (`offset + limit`).")
+    has_more: bool = Field(description="Se existe próxima página; para pedi-la, use `offset` igual a `offset + limit`.")
 
 
 class ErrorResponse(BaseModel):

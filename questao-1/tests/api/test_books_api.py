@@ -128,25 +128,52 @@ def test_invalid_payload_is_rejected_and_nothing_is_saved(client: TestClient, ov
     assert all_books(client) == []
 
 
-def test_domain_rejection_says_which_field_is_wrong(client: TestClient) -> None:
-    # Erro de domínio sai como 422 com mensagem útil, não como 500.
-    response = client.post("/books", json=book_payload(title="   "))
+@pytest.mark.parametrize(
+    "title",
+    ["", "   "],
+    ids=["vazio-barrado-pelo-schema", "em-branco-barrado-pelo-dominio"],
+)
+def test_validation_errors_have_one_shape_and_point_to_the_field(client: TestClient, title: str) -> None:
+    # Bug: o schema devolvia uma lista de erros e o domínio devolvia um texto, então o cliente
+    # precisava tratar dois formatos conforme o título viesse vazio ou só com espaços.
+    response = client.post("/books", json=book_payload(title=title))
 
     assert response.status_code == 422
-    assert "title" in response.json()["detail"]
+    [error] = response.json()["detail"]
+    assert error["loc"] == ["body", "title"]
+    assert error["msg"]
+
+
+def test_openapi_documents_only_the_errors_the_api_can_return(client: TestClient) -> None:
+    # Bug: o 409 aparecia no contrato sem que nenhuma requisição o produzisse (o `id` é gerado no
+    # domínio), e o 422 do cadastro estava sem schema.
+    responses = client.get("/openapi.json").json()["paths"]["/books"]["post"]["responses"]
+
+    assert set(responses) == {"201", "422", "429"}
+    assert responses["422"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/HTTPValidationError"
+    }
 
 
 # --- Busca ----------------------------------------------------------------------------------------
 
 
-def test_search_by_author_ignores_case_and_accents(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    ("params", "expected"),
+    [({"author": "JOSE"}, ["Iracema"]), ({"title": "casmúrro"}, ["Dom Casmurro"])],
+    ids=["por-autor", "por-titulo"],
+)
+def test_search_by_title_or_author_ignores_case_and_accents(
+    client: TestClient, params: dict[str, str], expected: list[str]
+) -> None:
+    # As duas consultas que o enunciado pede. Livro que não aparece na busca não é encontrado.
     register(client, title="Iracema", author="José de Alencar")
     register(client, title="Dom Casmurro", author="Machado de Assis")
 
-    response = client.get("/books", params={"author": "JOSE"})
+    response = client.get("/books", params=params)
 
     assert response.status_code == 200
-    assert [book["title"] for book in response.json()["items"]] == ["Iracema"]
+    assert [book["title"] for book in response.json()["items"]] == expected
 
 
 @pytest.mark.parametrize(
@@ -197,6 +224,11 @@ def test_search_rejects_parameters_that_would_bypass_pagination(client: TestClie
     # `LIMIT -1` no SQLite é "sem limite", e um filtro em branco vira "contém vazio": os dois
     # devolveriam o acervo inteiro.
     assert client.get("/books", params=params).status_code == 422
+
+
+def test_search_rejects_offset_beyond_the_ceiling(client: TestClient) -> None:
+    # Bug: sem teto, um offset acima do inteiro de 64 bits estourava no sqlite3 e virava 500.
+    assert client.get("/books", params={"offset": 10**20}).status_code == 422
 
 
 # --- Rate limiting --------------------------------------------------------------------------------

@@ -1,8 +1,7 @@
 """Casos de uso do acervo: cadastrar e buscar livros."""
 
 from collections.abc import Callable
-from datetime import date
-from zoneinfo import ZoneInfo
+from datetime import date, tzinfo
 
 from library.application.dtos import BookDTO, BookPage, RegisterBookCommand
 from library.domain.book import Book
@@ -11,7 +10,7 @@ from library.domain.publication_date import PublicationDate
 from library.domain.repository import BookRepository
 
 
-def today_in(timezone: ZoneInfo) -> Callable[[], date]:
+def today_in(timezone: tzinfo) -> Callable[[], date]:
     """Fábrica do "hoje" da biblioteca: o dia do calendário no fuso em que ela opera.
 
     O instante vem do relógio do domínio (UTC) e só aqui vira dia, no fuso escolhido. Às 22h de
@@ -52,6 +51,8 @@ class BookService:
         # Uma linha a mais que o limite responde "tem próxima página?" sem um COUNT, que no
         # LIKE '%trecho%' percorreria a tabela outra vez.
         found = self._repository.search(title=title, author=author, limit=limit + 1, offset=offset)
+        # Um "hoje" por página: todos os livros da resposta usam o mesmo dia, mesmo que a
+        # meia-noite passe no meio da montagem.
         today = self._today()
         return BookPage(
             items=[self._to_dto(book, today) for book in found[:limit]],
@@ -62,8 +63,6 @@ class BookService:
 
     @staticmethod
     def _to_dto(book: Book, today: date) -> BookDTO:
-        # Um "hoje" por chamada: todos os livros de uma mesma página usam o mesmo dia, mesmo que a
-        # meia-noite passe no meio da montagem da resposta.
         return BookDTO(
             id=book.id,
             title=book.title,

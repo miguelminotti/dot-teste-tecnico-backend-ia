@@ -34,10 +34,12 @@ class FixedWindowRateLimiter:
         Devolve `None` se ela está dentro do limite, ou quantos segundos faltam para a janela
         virar, se o limite estourou.
         """
-        now = self._clock()
-        window = int(now // self._window_seconds)
         with self._lock:
-            if window != self._current_window:
+            # O relógio é lido dentro do lock: lido fora, uma requisição atrasada da janela
+            # anterior podia entrar depois de uma da janela nova e fazer a janela voltar.
+            now = self._clock()
+            window = int(now // self._window_seconds)
+            if window > self._current_window:
                 # Janela nova: os contadores antigos não valem mais. Descartá-los aqui mantém a
                 # memória proporcional aos clientes ativos, não a todos que já passaram.
                 self._counters.clear()
@@ -45,6 +47,6 @@ class FixedWindowRateLimiter:
 
             count = self._counters.get(client, 0)
             if count >= self._max_requests:
-                return (window + 1) * self._window_seconds - now
+                return max((self._current_window + 1) * self._window_seconds - now, 0.0)
             self._counters[client] = count + 1
             return None

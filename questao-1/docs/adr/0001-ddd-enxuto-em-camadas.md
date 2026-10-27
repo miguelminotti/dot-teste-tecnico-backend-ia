@@ -16,7 +16,7 @@ Domain-Driven Design na medida do problema, com quatro camadas, cada uma numa pa
 - `infrastructure`: repositório SQLite.
 - `api`: rotas FastAPI e schemas pydantic.
 
-As dependências apontam para dentro: a API conhece a aplicação e o domínio; o domínio não conhece nenhuma outra camada.
+As dependências apontam para dentro: as rotas da API conhecem só a aplicação, e o domínio não conhece nenhuma outra camada. A exceção é o ponto de montagem da API (`app.py` e `dependencies.py`), que importa a infraestrutura para ligar o `BookService` ao SQLite e os erros do domínio para traduzi-los em HTTP.
 
 Value object só onde há regra e comportamento a proteger (ver [ADR 0005](0005-publication-date-como-fonte-unica.md)); campos simples como `title` e `author` ficam como `str`.
 

@@ -1,10 +1,11 @@
 """Política de tempo do projeto: todo instante (data + hora) vive em UTC.
 
 Datas puras (`date`, como a de `PublicationDate`) não passam por aqui: um dia do calendário não tem
-fuso, e convertê-lo desloca o dia. Ver a seção de datas no README.
+fuso, e convertê-lo desloca o dia. Ver a ADR 0002.
 
-Se um cliente trabalhar com outro relógio (America/Sao_Paulo, por exemplo), a conversão acontece
-na borda do sistema (entrada e saída da API), nunca no domínio ou no banco.
+Se um cliente precisar dos instantes em outro fuso (America/Sao_Paulo, por exemplo), a conversão
+deve acontecer na borda do sistema (entrada e saída da API), nunca no domínio ou no banco. Hoje
+nenhum cliente pede isso, e a API devolve os instantes em UTC.
 """
 
 from datetime import UTC, datetime

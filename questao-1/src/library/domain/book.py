@@ -20,7 +20,7 @@ class Book:
 
     title: str
     author: str
-    # Dia do calendário, passado ou futuro (pré-cadastro). Ver a seção de datas no README.
+    # Dia do calendário, passado ou futuro (pré-cadastro). Ver as ADRs 0002 e 0005.
     publication_date: PublicationDate
     summary: str
     # Identidade gerada no próprio domínio, sem depender do banco para existir.
@@ -37,7 +37,7 @@ class Book:
         try:
             self.created_at = to_utc(self.created_at)
         except NotProvidedTimezoneError as error:
-            raise InvalidBookError(f"created_at: {error}") from error
+            raise InvalidBookError(f"created_at: {error}", field="created_at") from error
 
     # Entidades se comparam pela identidade, não pelos atributos: dois livros com o mesmo título
     # e autor continuam sendo livros diferentes se os ids forem diferentes.
@@ -49,22 +49,26 @@ class Book:
 
 
 def _required_text(value: str, field_name: str) -> str:
-    """Remove caracteres invisíveis das pontas e recusa texto vazio."""
+    """Remove caracteres invisíveis das pontas e recusa texto sem nenhuma letra ou número."""
     cleaned = _strip_invisible(value)
-    if not cleaned:
-        raise InvalidBookError(f"{field_name} não pode ser vazio")
+    # "Não vazio" é pouco: acento solto, caractere de controle e os "brancos" de outras escritas
+    # (braille em branco, por exemplo) não somem no strip e deixariam o título invisível. Exigir
+    # uma letra ou um número cobre todos eles sem listar caso a caso.
+    if not any(_is_letter_or_digit(char) for char in cleaned):
+        raise InvalidBookError(f"{field_name} precisa ter pelo menos uma letra ou número", field=field_name)
     return cleaned
 
 
 def _strip_invisible(value: str) -> str:
-    """Como `str.strip()`, mas também remove caracteres de formatação invisíveis das pontas.
+    """Como `str.strip()`, mas também remove das pontas o que não aparece na tela.
 
-    O `strip()` só conhece espaço em branco. Caracteres da categoria Unicode "Cf" (espaço de
-    largura zero U+200B, BOM U+FEFF, hífen suave U+00AD) não ocupam espaço na tela, mas passam
-    por ele: um título só com U+200B era aceito e entrava invisível no acervo.
+    O `strip()` só conhece espaço em branco. Caracteres de formatação (categoria Unicode "Cf",
+    como o espaço de largura zero e o BOM) e de controle ("Cc", como o NUL) não ocupam espaço,
+    mas passam por ele.
 
-    No meio do texto eles ficam, porque lá têm função (o U+200D compõe emojis e a escrita de
-    idiomas como persa e hindi).
+    No meio do texto eles ficam, porque lá podem ter função (o zero width joiner compõe emojis e
+    a escrita de idiomas como persa e hindi). Acentos combinantes também não são removidos das
+    pontas: no fim do texto, eles fazem parte da última letra.
     """
     start, end = 0, len(value)
     while start < end and _is_invisible(value[start]):
@@ -74,5 +78,14 @@ def _strip_invisible(value: str) -> str:
     return value[start:end]
 
 
+# Letras do alfabeto coreano que não desenham nada (preenchedores). Para o Unicode são letras
+# ("Lo"), então precisam ser tratadas à parte.
+_HANGUL_FILLERS = frozenset({chr(0x115F), chr(0x1160), chr(0x3164), chr(0xFFA0)})
+
+
 def _is_invisible(char: str) -> bool:
-    return char.isspace() or unicodedata.category(char) == "Cf"
+    return char.isspace() or unicodedata.category(char) in {"Cf", "Cc"} or char in _HANGUL_FILLERS
+
+
+def _is_letter_or_digit(char: str) -> bool:
+    return unicodedata.category(char)[0] in {"L", "N"} and char not in _HANGUL_FILLERS

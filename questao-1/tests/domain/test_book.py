@@ -54,6 +54,43 @@ def test_keeps_invisible_characters_inside_the_text(make_book: Callable[..., Boo
     assert book.title == "Família \U0001f468\u200d\U0001f469\u200d\U0001f467"
 
 
+@pytest.mark.parametrize("field_name", ["title", "author", "summary"])
+@pytest.mark.parametrize(
+    "no_letter_or_digit",
+    [
+        "\N{NULL}",
+        "\N{START OF HEADING}\N{START OF TEXT}",
+        "\N{COMBINING ACUTE ACCENT}",
+        "\N{BRAILLE PATTERN BLANK}",
+        "\N{HANGUL FILLER}",
+    ],
+    ids=["nul", "controle", "acento-solto", "braille-em-branco", "preenchedor-hangul"],
+)
+def test_rejects_text_without_any_letter_or_digit(
+    field_name: str, no_letter_or_digit: str, make_book: Callable[..., Book]
+) -> None:
+    # Bug: a correção do caractere invisível (bug 1) só olhava espaço e formatação ("Cf"). Caractere
+    # de controle, acento solto e os "brancos" de outras escritas passavam, e o livro entrava com
+    # título invisível do mesmo jeito.
+    with pytest.raises(InvalidBookError, match=field_name):
+        make_book(**{field_name: no_letter_or_digit})
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("1984", "1984"),
+        ("Cafe\N{COMBINING ACUTE ACCENT}", "Cafe\N{COMBINING ACUTE ACCENT}"),
+        ("\N{NULL}Dom Casmurro\N{HANGUL FILLER}", "Dom Casmurro"),
+    ],
+    ids=["so-numeros", "acento-combinado-no-fim", "controle-e-preenchedor-nas-pontas"],
+)
+def test_keeps_real_text_and_strips_invisible_edges(text: str, expected: str, make_book: Callable[..., Book]) -> None:
+    # A regra não pode ir longe demais: título só com números existe, e o acento combinado no fim
+    # ("e" + acento, como o "Café" vindo de alguns sistemas) faz parte da última letra.
+    assert make_book(title=text).title == expected
+
+
 def test_accepts_book_not_yet_published(make_book: Callable[..., Book]) -> None:
     # Pré-cadastro: o livro entra no acervo antes do lançamento.
     book = make_book(publication_date=PublicationDate(date(2099, 1, 1)))

@@ -7,8 +7,7 @@ testes fixam o dia de referência, coisa que pela API dependeria do relógio rea
 import sqlite3
 from collections.abc import Callable, Iterator
 from contextlib import closing
-from datetime import UTC, date, datetime
-from zoneinfo import ZoneInfo
+from datetime import UTC, date, datetime, timedelta, timezone
 
 import pytest
 
@@ -18,6 +17,9 @@ from library.infrastructure.database import connect, create_schema
 from library.infrastructure.sqlite_book_repository import SqliteBookRepository
 
 RELEASE_DAY = date(2026, 10, 28)
+# Offsets fixos, não `ZoneInfo`: o que está em teste é a conversão, não a base de fusos (ADR 0006).
+SAO_PAULO = timezone(timedelta(hours=-3))
+TOKYO = timezone(timedelta(hours=9))
 
 
 @pytest.fixture
@@ -54,23 +56,23 @@ def test_is_published_uses_the_library_day_given_to_the_service(
 
 
 @pytest.mark.parametrize(
-    ("timezone", "expected_day"),
+    ("library_timezone", "expected_day"),
     [
         # 01h UTC de 28/10 ainda é 22h de 27/10 em São Paulo.
-        ("America/Sao_Paulo", date(2026, 10, 27)),
+        (SAO_PAULO, date(2026, 10, 27)),
         # Em Tóquio já são 10h de 28/10.
-        ("Asia/Tokyo", date(2026, 10, 28)),
+        (TOKYO, date(2026, 10, 28)),
     ],
     ids=["sao-paulo-ainda-e-ontem", "toquio-ja-e-hoje"],
 )
 def test_today_in_converts_the_utc_instant_to_the_library_day(
-    monkeypatch: pytest.MonkeyPatch, timezone: str, expected_day: date
+    monkeypatch: pytest.MonkeyPatch, library_timezone: timezone, expected_day: date
 ) -> None:
     # O "hoje" tirado direto do UTC adiantaria em três horas, em São Paulo, todo lançamento
     # marcado para o dia seguinte (ADR 0005).
     monkeypatch.setattr("library.application.book_service.utc_now", lambda: datetime(2026, 10, 28, 1, 0, tzinfo=UTC))
 
-    assert today_in(ZoneInfo(timezone))() == expected_day
+    assert today_in(library_timezone)() == expected_day
 
 
 def test_all_books_in_a_page_share_the_same_day(connection: sqlite3.Connection) -> None:

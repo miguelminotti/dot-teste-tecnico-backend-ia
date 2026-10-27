@@ -16,6 +16,11 @@ _RATE_LIMITED: dict[int | str, dict[str, Any]] = {
 # viraria "contém vazio" e casaria com o acervo inteiro.
 _NOT_BLANK = r"\S"
 
+# Teto do offset: sem ele, um valor acima do inteiro de 64 bits estoura no sqlite3 e vira 500. Um
+# milhão de livros pulados já é mais do que paginação por offset atende bem; além disso, o caminho
+# seria paginação por cursor.
+_MAX_OFFSET = 1_000_000
+
 router = APIRouter(prefix="/books", tags=["books"], dependencies=[Depends(enforce_rate_limit)])
 
 
@@ -23,11 +28,9 @@ router = APIRouter(prefix="/books", tags=["books"], dependencies=[Depends(enforc
     "",
     status_code=status.HTTP_201_CREATED,
     summary="Cadastra um livro",
-    responses={
-        status.HTTP_409_CONFLICT: {"model": ErrorResponse, "description": "Livro já cadastrado"},
-        status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Dados inválidos (campo vazio, data fora do formato)"},
-        **_RATE_LIMITED,
-    },
+    # O 422 não é declarado aqui de propósito: o FastAPI o documenta com o schema
+    # `HTTPValidationError`, que é o mesmo formato devolvido pelos erros de domínio.
+    responses=_RATE_LIMITED,
 )
 def register_book(payload: BookCreate, service: BookServiceDep) -> BookResponse:
     """Cadastra um livro no acervo e devolve o livro com `id` e `created_at` gerados.
@@ -54,7 +57,7 @@ def search_books(
         str | None, Query(max_length=200, pattern=_NOT_BLANK, description="Trecho do nome do autor.")
     ] = None,
     limit: Annotated[int, Query(ge=1, le=100, description="Tamanho da página.")] = 20,
-    offset: Annotated[int, Query(ge=0, description="Quantos resultados pular.")] = 0,
+    offset: Annotated[int, Query(ge=0, le=_MAX_OFFSET, description="Quantos resultados pular.")] = 0,
 ) -> BookPageResponse:
     """Busca por trecho do título e/ou do autor, sem diferenciar maiúsculas nem acentos.
 

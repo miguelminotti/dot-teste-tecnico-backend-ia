@@ -29,4 +29,4 @@ O enunciado pede SQLite. O sistema tem uma tabela, uma escrita (cadastro) e uma 
 - Nenhuma dependência nova.
 - Os testes da infraestrutura rodam contra SQLite real em memória, sem simular o banco.
 - Uma operação que precise de várias escritas atômicas vai exigir controle de transação acima do repositório (unit of work), hoje deixado de fora.
-- A busca sem filtro devolve o acervo inteiro, sem paginação; limitar fica com a API.
+- A busca é sempre paginada: a porta exige `limit`, e o repositório recusa `limit < 1` e `offset < 0`, porque no SQLite `LIMIT -1` significa "sem limite" ([ADR 0010](0010-contrato-http-e-validacao-na-borda.md)).
