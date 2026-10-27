@@ -11,7 +11,7 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 | Implementação com Django, Flask ou FastAPI | FastAPI |
 | Endpoints claros e bem documentados | OpenAPI em `/docs`, com descrição, exemplos e respostas de erro |
 | Armazenamento em SQLite | repositório pronto e testado |
-| Testes unitários dos endpoints | pendente |
+| Testes unitários dos endpoints | `tests/api/`, de ponta a ponta com SQLite real |
 
 ## Como rodar
 
@@ -97,7 +97,8 @@ src/library/
 tests/
 ├── conftest.py                      fixture make_book, compartilhada entre as suítes
 ├── domain/                          testes unitários do domínio
-└── infrastructure/                  testes do repositório contra SQLite real
+├── infrastructure/                  testes do repositório contra SQLite real
+└── api/                             testes HTTP dos endpoints e do rate limiter
 docs/adr/                            decisões de arquitetura desta questão
 ```
 
@@ -125,7 +126,7 @@ Cada decisão de arquitetura tem uma ADR com contexto, alternativas descartadas 
 - **Persistência com `sqlite3` da stdlib, num repositório único.** Porta no domínio, implementação na infraestrutura, SQL explícito e sem ORM. Leitura e escrita no mesmo repositório: CQRS seria exagero para um endpoint de cada. Tabela `STRICT` com `CHECK`s que repetem a política de datas no banco. [ADR 0007](docs/adr/0007-persistencia-sqlite3-com-repositorio-unico.md)
 - **Busca parcial, sem diferenciar maiúsculas nem acentos.** "jose" acha "José de Alencar"; `%` e `_` digitados são texto, não curinga. [ADR 0008](docs/adr/0008-busca-sem-caixa-e-sem-acento.md)
 - **Camada de aplicação como única porta da API.** `BookService` recebe o repositório pela porta do domínio e devolve DTOs; a entidade nunca sai da aplicação. `is_published` é calculado no "hoje" do fuso da biblioteca. [ADR 0009](docs/adr/0009-camada-de-aplicacao-com-dtos.md)
-- **Contrato HTTP com paginação obrigatória e validação estrita na borda.** `limit` (até 100) e `offset` com `has_more`; data só como `AAAA-MM-DD`; campo desconhecido é erro; tetos de tamanho dos textos; 409 para livro duplicado e 422 para regra de domínio violada. Sem autenticação, como pede o enunciado. [ADR 0010](docs/adr/0010-contrato-http-e-validacao-na-borda.md)
+- **Contrato HTTP com paginação obrigatória e validação estrita na borda.** `limit` (até 100) e `offset` com `has_more`; data só como `AAAA-MM-DD`; campo desconhecido é erro; tetos de tamanho dos textos; 409 para livro duplicado e 422 para regra de domínio violada. Sem autenticação, porque o enunciado não pede; isso pressupõe uso em ambiente controlado. [ADR 0010](docs/adr/0010-contrato-http-e-validacao-na-borda.md)
 - **Proteção básica por rate limiting.** Limite simples por IP, com 429 e `Retry-After`, porque a API roda sem proxy na frente. [ADR 0011](docs/adr/0011-rate-limiting-proprio-em-memoria.md)
 
 Decisão de produto, fora das ADRs: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
@@ -140,15 +141,22 @@ O que cada suíte cobre:
 | `test_publication_date.py` | o dia do lançamento já conta como publicado; data futura aceita (pré-cadastro); recusa de `datetime` como data de publicação e como dia de referência |
 | `test_book.py` | título, autor e resumo em branco recusados (inclusive espaço não quebrável e caracteres invisíveis); espaços e invisíveis das pontas removidos, os do meio preservados; `created_at` sempre em UTC; identidade pelo `id` |
 | `test_sqlite_book_repository.py` | cadastro sobrevive ao fechar a conexão (commit); ida e volta preserva todos os campos, inclusive data futura e horário de São Paulo; datas gravadas em UTC de largura fixa e dia puro; `id` duplicado vira erro de domínio sem sobrescrever o original; erro não deixa transação aberta; oito cadastros simultâneos do mesmo livro gravam um só; recriar o schema não apaga o acervo; banco recusa datas fora da política; busca sem caixa e acento, com `%`, `_` e `\` como texto, filtros combinados com E, ordem alfabética e desempate por `id` |
+| `test_books_api.py` | cadastro devolve o livro com os campos do contrato e o grava de fato; `is_published` segue a data (pré-cadastro sai como não publicado); payload inválido é recusado com 422 e nada é gravado (data numérica, com hora, em outro formato ou inexistente; `id` ou `is_published` mandados pelo cliente; campo faltando ou nulo; texto acima do limite; texto em branco ou invisível); erro de domínio diz o campo; busca sem caixa e acento; paginação devolve cada livro exatamente uma vez, inclusive com total múltiplo do `limit`; página padrão de 20; parâmetros que anulariam a paginação recusados; 429 com `Retry-After`; `X-Forwarded-For` forjado não burla o limite |
+| `test_rate_limit.py` | permite exatamente o limite e informa quanto falta para a janela virar; o limite reinicia na janela seguinte; cada cliente tem o seu contador |
 
-Os testes da infraestrutura rodam contra SQLite real, sem fake: em memória quando basta uma conexão, num arquivo temporário quando precisam de mais de uma (persistência e concorrência).
+Os testes da infraestrutura e da API rodam contra SQLite real, sem fake: em memória quando basta uma conexão, num arquivo temporário quando precisam de mais de uma (persistência e concorrência) e um banco próprio por teste na API. Os testes da API sobem a aplicação com `create_app` e o `TestClient`, que executa o lifespan como na subida real.
 
 **Os testes protegem de verdade:** é necessário garantir que um teste fica vermelho se sua regra for quebrada, seguindo os padrões de RED -> GREEN. Cada regra foi quebrada de propósito, uma por vez, e em todas a suíte falhou:
 
 - **Domínio:** trocar `<=` por `<` no `is_published`, tirar o `strip`, tirar a checagem de offset, trocar `utc_now()` por `datetime.now()`, desligar a igualdade por `id`, aceitar `datetime` como data de publicação, pular a conversão do `created_at`.
 - **Repositório:** tirar o commit, trocar por `INSERT OR REPLACE`, não escapar `%`, buscar sem normalizar, ordenar pela coluna original, tirar o desempate por `id`, gravar `created_at` sem largura fixa, combinar filtros com OU, recriar a tabela no `create_schema`, tirar o `CHECK` de UTC, e trocar a chave primária por um "já existe?" antes do insert (check-then-act). Este último depende de corrida entre threads, então foi rodado 20 vezes: a suíte falhou nas 20.
+- **API e aplicação:** limiter com `>` no lugar de `>=`, sem reset de janela, com contador global e identificando o cliente pelo `X-Forwarded-For`; data sem a validação estrita; campos extras ignorados; `limit` máximo de 1000 e padrão de 100; filtro em branco aceito; `has_more` com `>=`; busca sem a linha extra; `is_published` fixo; sem o handler de `DomainError`.
 
-**Deixado de fora:** teste de N+1. A busca é uma consulta só, e a reidratação do `Book` não consulta o banco; com uma tabela e nenhuma relação, não existe N+1 possível. O teste entra junto com a primeira relação (autor como tabela própria, por exemplo), contando as consultas com `connection.set_trace_callback`.
+**Deixado de fora:**
+
+- **Concorrência no rate limiter.** O teste com 64 threads disputando o mesmo contador passou com e sem o lock nas 10 rodadas: com o GIL do CPython, a corrida entre ler e gravar o contador quase nunca acontece num trecho tão curto. Um teste que não falha com a regra quebrada não protege nada, então saiu. O lock continua no código, porque a corrida existe.
+- **409 pela API.** O `id` é gerado no domínio, então nenhum corpo de requisição produz um livro duplicado. O caso está coberto no repositório (`BookAlreadyExistsError`).
+- **Teste de N+1.** A busca é uma consulta só, e a reidratação do `Book` não consulta o banco; com uma tabela e nenhuma relação, não existe N+1 possível. O teste entra junto com a primeira relação (autor como tabela própria, por exemplo), contando as consultas com `connection.set_trace_callback`.
 
 ### Bugs registrados
 
