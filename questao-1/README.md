@@ -35,6 +35,12 @@ uv run ruff format --check .
 uv run mypy
 ```
 
+Testes:
+
+```bash
+uv run pytest
+```
+
 ## Decisões
 
 ### Um repositório para a prova, um projeto uv por questão
@@ -68,7 +74,7 @@ O ruff faz lint e formatação numa ferramenta só, substituindo flake8, isort e
 
 ### mypy em modo `strict` desde o início
 
-O `strict` exige anotação de tipos em todas as funções e recusa `Any` implícito, que ajuda bastante com a tipagem fraca da linguagem. Ele roda sobre `src/`.
+O `strict` exige anotação de tipos em todas as funções e recusa `Any` implícito, que ajuda bastante com a tipagem fraca da linguagem. Ele roda sobre `src/` e `tests/`.
 
 ### Código em inglês, documentação em português
 
@@ -94,12 +100,12 @@ As próximas camadas entram quando forem necessárias, uma pasta cada: `applicat
 ### A entidade `Book`
 
 - **dataclass, não pydantic.** O domínio fica em Python puro, sem depender de biblioteca de serialização. O pydantic entra na camada da API, nos schemas de entrada e saída, que convertem para a entidade.
-- **Toda instância nasce válida.** As invariantes rodam no `__post_init__`: título, autor e resumo sem espaços nas pontas e não vazios, data de cadastro com fuso. Uma violação levanta `InvalidBookError`, que a API vai traduzir em resposta 422.
+- **Toda instância nasce válida.** As invariantes rodam no `__post_init__`: título, autor e resumo sem espaços nem caracteres invisíveis nas pontas e não vazios, data de cadastro com fuso. Uma violação levanta `InvalidBookError`, que a API vai traduzir em resposta 422.
 - **Resumo obrigatório.** O enunciado lista o resumo junto dos outros campos sem marcá-lo como opcional.
 - **Identidade por UUID gerado no domínio.** O livro nasce com `id` antes de tocar o banco, então não existe `id: int | None` espalhando checagens de `None` pelo código. O UUID também não expõe quantos livros existem, como faria `/livros/42`.
 - **Igualdade pela identidade.** Dois livros com o mesmo título e autor continuam sendo livros diferentes se os ids forem diferentes. Por isso o `__eq__` gerado pela dataclass foi desligado e a comparação é só pelo `id`. Isso abre espaço para campos como editora e versão no futuro.
 
-**Deixado de fora do domínio:** limite de tamanho para os textos. A diferença para a checagem de vazio está na origem da regra. Livro sem título, autor ou resumo não existe no domínio, e por isso essa regra mora na entidade e vale para qualquer porta de entrada (API, importação em lote, script). Já um teto como "título até 255 caracteres" não vem do negócio, porque nenhuma regra de biblioteca diz quanto um título pode medir. Ele seria um número arbitrário, e esse tipo de teto costuma nascer de duas preocupações de fora do domínio: o tipo de coluna do banco (`VARCHAR(255)`; no SQLite, `TEXT` não tem limite) e a proteção contra payloads abusivos. As duas pertencem à borda, então o teto entra no schema da API, com o motivo explícito. Se aparecer uma regra de negócio de verdade, como um padrão de catálogo que limita o título, ela passa a ser invariante da entidade.
+**Deixado de fora do domínio:** limite de tamanho para os textos. A diferença para a checagem de vazio está na origem da regra. Livro sem título, autor ou resumo não existe no domínio, e por isso essa regra mora na entidade e vale para qualquer porta de entrada (API, importação em lote, script). Já um teto como "título até 255 caracteres" não vem do negócio, porque nenhuma regra de biblioteca diz quanto um título pode medir. Ele seria um número arbitrário, e esse tipo de teto costuma nascer de duas preocupações de fora do domínio: o tipo de coluna do banco (`VARCHAR(255)`, no SQLite `TEXT` não tem limite) e a proteção contra payloads abusivos. As duas pertencem à borda, então o teto entra no schema da API, com o motivo explícito. Se aparecer uma regra de negócio de verdade, como um padrão de catálogo que limita o título, ela passa a ser invariante da entidade.
 
 ### O value object `PublicationDate`
 
@@ -125,3 +131,32 @@ Duas regras sustentam o padrão, em `domain/clock.py`:
 - `to_utc()` recusa instante sem fuso (naive) em vez de adivinhar o fuso dele, e converte qualquer instante com fuso para UTC.
 
 **Clientes com outro relógio:** se a aplicação que consome a API trabalhar em America/Sao_Paulo, a conversão acontece na borda (entrada e saída da API), com um tradutor de fuso. O domínio e o banco continuam em UTC, e cada cliente vê o horário no seu fuso. Isso ainda não foi implementado porque nenhum cliente pede, mas o ponto de encaixe já está definido. No Windows, o `zoneinfo` do Python precisa do pacote `tzdata` para conhecer os fusos, detalhe que costuma aparecer só em produção.
+
+### Testes: regras de negócio e casos de borda
+
+Teste existe para impedir que uma mudança futura quebre um comportamento que não pode variar, principalmente os que custam dinheiro quando quebram: livro que some da busca, lançamento que aparece antes da hora, horário gravado com três horas de diferença. Por isso cada teste protege uma regra de negócio ou um caso de borda conhecido, e o comentário dentro dele diz qual estrago ele evita.
+
+O que a suíte do domínio (`tests/domain/`) cobre:
+
+| Arquivo | Regras protegidas |
+| --- | --- |
+| `test_clock.py` | relógio sempre em UTC; conversão que vira o dia (22h em São Paulo, 8h em Tóquio); recusa de instante sem fuso, inclusive o fuso que existe mas não informa offset |
+| `test_publication_date.py` | o dia do lançamento já conta como publicado; data futura aceita (pré-cadastro); recusa de `datetime` como data de publicação e como dia de referência |
+| `test_book.py` | título, autor e resumo em branco recusados (inclusive espaço não quebrável e caracteres invisíveis); espaços e invisíveis das pontas removidos, os do meio preservados; `created_at` sempre em UTC; identidade pelo `id` |
+
+**Todo bug vira teste.** Quando um bug aparecer, o primeiro passo é um teste que o reproduz e falha; a correção vem depois e o teste fica na suíte para sempre. O caso fica registrado e protegido.
+
+Bugs registrados até aqui:
+
+**1. Texto só com caractere invisível era aceito**
+
+- **Bug:** título, autor ou resumo só com espaço de largura zero (U+200B) ou BOM (U+FEFF) passava pela validação, e o livro entrava com título invisível. Com o caractere nas pontas, "Machado de Assis" e "Machado de Assis" + U+200B viravam autores diferentes na busca.
+- **Como apareceu:** escrevendo a suíte do domínio. O `str.strip()` só remove o que o Python considera espaço, e esses caracteres são da categoria Unicode "Cf" (formatação). Chegam colados de sites, PDFs e planilhas.
+- **Testes que o protegem:** `test_rejects_blank_required_text` (casos `largura-zero`, `bom` e `misturado`) e `test_strips_invisible_characters_from_the_edges`.
+- **Correção:** `_strip_invisible`, em `book.py`, remove espaços e caracteres "Cf" só das pontas. No meio do texto eles ficam, porque lá compõem emojis e a escrita de idiomas como persa e hindi. `test_keeps_invisible_characters_inside_the_text` impede que a correção vá longe demais.
+
+**Como saber se os testes protegem de verdade:** cada regra do domínio foi quebrada de propósito, uma por vez (trocar `<=` por `<` no `is_published`, tirar o `strip`, tirar a checagem de offset, trocar `utc_now()` por `datetime.now()`, desligar a igualdade por `id`, aceitar `datetime` como data de publicação, pular a conversão do `created_at`), e em todas a suíte falhou. É necessário garantir que um teste fica vermelho se sua regra de proteção for quebrada, seguindo os padrões de RED -> GREEN.
+
+**Fusos com offset fixo:** os testes usam `timezone(timedelta(hours=-3))` em vez de `ZoneInfo("America/Sao_Paulo")`. O que está em teste é a conversão, não a base de fusos do sistema, que no Windows depende do pacote `tzdata` e muda com regras de horário de verão.
+
+**Deixado de fora:** testes da mecânica da dataclass (imutabilidade do `PublicationDate`, `repr`, igualdade por valor). Eles testariam o Python, não uma regra nossa; entram se alguma dessas propriedades passar a sustentar uma regra de negócio.
