@@ -164,7 +164,9 @@ def test_paging_through_the_results_returns_every_book_exactly_once(
 
     seen: list[str] = []
     offset, pages = 0, 0
-    while True:
+    # Teto de páginas: se o `has_more` nunca virar falso (OFFSET ignorado, por exemplo), o teste
+    # falha em vez de pedir páginas para sempre.
+    while pages <= expected_pages:
         page = client.get("/books", params={"limit": 2, "offset": offset}).json()
         seen.extend(book["id"] for book in page["items"])
         pages += 1
@@ -172,8 +174,8 @@ def test_paging_through_the_results_returns_every_book_exactly_once(
             break
         offset += page["limit"]
 
-    assert sorted(seen) == sorted(created_ids)
     assert pages == expected_pages
+    assert sorted(seen) == sorted(created_ids)
 
 
 def test_search_without_limit_returns_the_default_page(client: TestClient) -> None:

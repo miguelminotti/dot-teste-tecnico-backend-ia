@@ -269,10 +269,39 @@ def test_search_orders_alphabetically_ignoring_case_and_accents(
 
 def test_search_breaks_ties_by_id(repository: SqliteBookRepository, make_book: MakeBook) -> None:
     # Duas edições com mesmo título e autor: sem desempate, a ordem pode variar entre consultas,
-    # e uma paginação futura repetiria ou pularia livros.
+    # e a paginação repetiria ou pularia livros.
     later_id = UUID("ffffffff-ffff-4fff-bfff-ffffffffffff")
     earlier_id = UUID("00000000-0000-4000-8000-000000000000")
     repository.add(make_book(id=later_id))
     repository.add(make_book(id=earlier_id))
 
     assert [book.id for book in repository.search(limit=LIMIT)] == [earlier_id, later_id]
+
+
+# --- Paginação ------------------------------------------------------------------------------------
+
+
+def test_search_returns_the_requested_slice_of_the_ordered_result(
+    repository: SqliteBookRepository, make_book: MakeBook
+) -> None:
+    # `limit` e `offset` trocados, ou o OFFSET ignorado, devolveriam outra fatia sem erro nenhum.
+    for title in ["E", "C", "A", "D", "B"]:
+        repository.add(make_book(title=title))
+
+    assert _titles(repository.search(limit=2, offset=1)) == ["B", "C"]
+
+
+@pytest.mark.parametrize(
+    ("limit", "offset"),
+    [(0, 0), (-1, 0), (10, -1)],
+    ids=["limit-zero", "limit-negativo", "offset-negativo"],
+)
+def test_search_rejects_pagination_that_sqlite_would_misread(
+    repository: SqliteBookRepository, make_book: MakeBook, limit: int, offset: int
+) -> None:
+    # No SQLite, `LIMIT -1` é "sem limite": sem esta barreira, um limite negativo vindo de qualquer
+    # porta de entrada devolveria o acervo inteiro.
+    repository.add(make_book())
+
+    with pytest.raises(ValueError, match="paginação inválida"):
+        repository.search(limit=limit, offset=offset)
