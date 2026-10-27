@@ -57,9 +57,13 @@ class SqliteBookRepository:
                 raise BookAlreadyExistsError(f"livro {book.id} já cadastrado") from error
             raise
 
-    def search(self, *, title: str | None = None, author: str | None = None) -> list[Book]:
+    def search(self, *, title: str | None = None, author: str | None = None, limit: int, offset: int = 0) -> list[Book]:
+        # No SQLite, LIMIT negativo significa "sem limite" e anularia a paginação em silêncio.
+        if limit < 1 or offset < 0:
+            raise ValueError(f"paginação inválida: limit={limit}, offset={offset}")
+
         conditions: list[str] = []
-        params: dict[str, str] = {}
+        params: dict[str, str | int] = {"limit": limit, "offset": offset}
         if title is not None:
             conditions.append(f"title_search LIKE :title ESCAPE '{_LIKE_ESCAPE}'")
             params["title"] = _contains_pattern(title)
@@ -68,9 +72,14 @@ class SqliteBookRepository:
             params["author"] = _contains_pattern(author)
 
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        # Ordem alfabética e estável: o `id` desempata livros com mesmo título e autor.
+        # Ordem alfabética e estável: o `id` desempata livros com mesmo título e autor, para que a
+        # paginação não repita nem pule livros entre uma página e outra.
         rows = self._connection.execute(
-            f"SELECT {_COLUMNS} FROM books {where} ORDER BY title_search, author_search, id",
+            f"""
+            SELECT {_COLUMNS} FROM books {where}
+            ORDER BY title_search, author_search, id
+            LIMIT :limit OFFSET :offset
+            """,
             params,
         ).fetchall()
         return [_to_book(row) for row in rows]

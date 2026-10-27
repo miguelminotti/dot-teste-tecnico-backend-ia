@@ -6,10 +6,10 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 
 | Requisito do enunciado | Status |
 | --- | --- |
-| Cadastro de livros com título, autor, data de publicação e resumo | entidade pronta, endpoint pendente |
-| Consulta de livros por título ou autor | pendente |
-| Implementação com Django, Flask ou FastAPI | FastAPI (pendente) |
-| Endpoints claros e bem documentados | pendente |
+| Cadastro de livros com título, autor, data de publicação e resumo | `POST /books` |
+| Consulta de livros por título ou autor | `GET /books?title=&author=`, paginado |
+| Implementação com Django, Flask ou FastAPI | FastAPI |
+| Endpoints claros e bem documentados | OpenAPI em `/docs`, com descrição, exemplos e respostas de erro |
 | Armazenamento em SQLite | repositório pronto e testado |
 | Testes unitários dos endpoints | pendente |
 
@@ -20,6 +20,31 @@ Pré-requisito: [uv](https://docs.astral.sh/uv/). O uv baixa o Python 3.12 sozin
 ```bash
 uv sync
 ```
+
+Subir a API (em `http://127.0.0.1:8000`, documentação interativa em `/docs`):
+
+```bash
+uv run library
+```
+
+Exemplos:
+
+```bash
+curl -X POST http://127.0.0.1:8000/books -H "Content-Type: application/json" -d '{"title": "Dom Casmurro", "author": "Machado de Assis", "publication_date": "1899-01-01", "summary": "Bentinho narra o ciúme que sente de Capitu."}'
+```
+
+```bash
+curl "http://127.0.0.1:8000/books?author=machado&limit=20&offset=0"
+```
+
+Configuração por variável de ambiente:
+
+| Variável | Padrão | Para que serve |
+| --- | --- | --- |
+| `LIBRARY_DATABASE_PATH` | `library.db` | arquivo do SQLite |
+| `LIBRARY_TIMEZONE` | `America/Sao_Paulo` | fuso da biblioteca, que define o "hoje" de `is_published` |
+| `LIBRARY_RATE_LIMIT_REQUESTS` | `60` | requisições permitidas por cliente a cada janela |
+| `LIBRARY_RATE_LIMIT_WINDOW_SECONDS` | `60` | tamanho da janela do rate limiting |
 
 Validação de estilo e de tipos:
 
@@ -51,9 +76,20 @@ src/library/
 │   ├── repository.py                porta BookRepository (o que o domínio precisa do banco)
 │   ├── clock.py                     política de tempo (UTC)
 │   └── errors.py                    erros de domínio
-└── infrastructure/
-    ├── database.py                  conexão e schema do SQLite
-    └── sqlite_book_repository.py    SqliteBookRepository, implementação da porta
+├── infrastructure/
+│   ├── database.py                  conexão e schema do SQLite
+│   └── sqlite_book_repository.py    SqliteBookRepository, implementação da porta
+├── application/
+│   ├── book_service.py              casos de uso (cadastrar, buscar) e o "hoje" da biblioteca
+│   └── dtos.py                      comando de entrada, BookDTO e BookPage
+└── api/
+    ├── app.py                       create_app, lifespan e erros de domínio → HTTP
+    ├── routes.py                    POST /books e GET /books
+    ├── schemas.py                   contrato HTTP (pydantic) e validação da borda
+    ├── dependencies.py              conexão por requisição, BookService e rate limiting
+    ├── rate_limit.py                FixedWindowRateLimiter
+    ├── settings.py                  configuração por variável de ambiente
+    └── main.py                      ponto de entrada (uv run library)
 tests/
 ├── conftest.py                      fixture make_book, compartilhada entre as suítes
 ├── domain/                          testes unitários do domínio
@@ -61,7 +97,7 @@ tests/
 docs/adr/                            decisões de arquitetura desta questão
 ```
 
-As camadas `application` e `api` entram quando forem usadas ([ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md)).
+As dependências apontam para dentro: `api` → `application` → `domain` ← `infrastructure` ([ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md)). A API só conhece a aplicação; quem liga o `BookService` ao repositório SQLite é `dependencies.py`.
 
 ## Decisões
 
@@ -84,6 +120,9 @@ Cada decisão de arquitetura tem uma ADR com contexto, alternativas descartadas 
 - **Testes protegem regras de negócio; todo bug vira teste.** [ADR 0006](docs/adr/0006-testes-protegem-regras-de-negocio.md)
 - **Persistência com `sqlite3` da stdlib, num repositório único.** Porta no domínio, implementação na infraestrutura, SQL explícito e sem ORM. Leitura e escrita no mesmo repositório: CQRS seria exagero para um endpoint de cada. Tabela `STRICT` com `CHECK`s que repetem a política de datas no banco. [ADR 0007](docs/adr/0007-persistencia-sqlite3-com-repositorio-unico.md)
 - **Busca parcial, sem diferenciar maiúsculas nem acentos.** "jose" acha "José de Alencar"; `%` e `_` digitados são texto, não curinga. [ADR 0008](docs/adr/0008-busca-sem-caixa-e-sem-acento.md)
+- **Camada de aplicação como única porta da API.** `BookService` recebe o repositório pela porta do domínio e devolve DTOs; a entidade nunca sai da aplicação. `is_published` é calculado no "hoje" do fuso da biblioteca. [ADR 0009](docs/adr/0009-camada-de-aplicacao-com-dtos.md)
+- **Contrato HTTP com paginação obrigatória e validação estrita na borda.** `limit` (até 100) e `offset` com `has_more`; data só como `AAAA-MM-DD`; campo desconhecido é erro; tetos de tamanho dos textos; 409 para livro duplicado e 422 para regra de domínio violada. Sem autenticação, como pede o enunciado. [ADR 0010](docs/adr/0010-contrato-http-e-validacao-na-borda.md)
+- **Proteção básica por rate limiting.** Limite simples por IP, com 429 e `Retry-After`, porque a API roda sem proxy na frente. [ADR 0011](docs/adr/0011-rate-limiting-proprio-em-memoria.md)
 
 Decisão de produto, fora das ADRs: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
 

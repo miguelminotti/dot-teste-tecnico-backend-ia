@@ -1,0 +1,55 @@
+"""Montagem da aplicação FastAPI."""
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, closing
+
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+
+from library.api.rate_limit import FixedWindowRateLimiter
+from library.api.routes import router
+from library.api.settings import Settings
+from library.domain.errors import BookAlreadyExistsError, DomainError
+from library.infrastructure.database import connect, create_schema
+
+_DESCRIPTION = """
+Cadastro e consulta de livros de uma biblioteca virtual.
+
+- **Sem autenticação**: o enunciado não pede; use em ambiente controlado.
+- **Rate limiting** por IP: acima do limite, a resposta é `429` com o cabeçalho `Retry-After`.
+- **Datas**: `publication_date` é um dia (`AAAA-MM-DD`); `created_at` é um instante em UTC.
+"""
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    """Cria a aplicação; os testes passam a própria configuração (banco temporário, limite baixo)."""
+    settings = settings or Settings.from_env()
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        # O schema é garantido a cada subida; `CREATE TABLE IF NOT EXISTS` não apaga o acervo.
+        with closing(connect(settings.database_path)) as connection:
+            create_schema(connection)
+        yield
+
+    app = FastAPI(title="Biblioteca virtual", version="0.1.0", description=_DESCRIPTION, lifespan=lifespan)
+    app.state.settings = settings
+    app.state.rate_limiter = FixedWindowRateLimiter(
+        max_requests=settings.rate_limit_requests, window_seconds=settings.rate_limit_window_seconds
+    )
+    app.include_router(router)
+    app.add_exception_handler(BookAlreadyExistsError, _book_already_exists)
+    app.add_exception_handler(DomainError, _domain_error)
+    return app
+
+
+# Erros de domínio viram respostas HTTP aqui, num lugar só, para as rotas não precisarem de
+# try/except. O Starlette escolhe o handler da classe mais específica, então o 409 vence o 422.
+
+
+def _book_already_exists(_: Request, error: Exception) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(error)})
+
+
+def _domain_error(_: Request, error: Exception) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": str(error)})

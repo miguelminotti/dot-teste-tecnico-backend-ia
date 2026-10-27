@@ -30,9 +30,14 @@ CREATE TABLE IF NOT EXISTS books (
 """
 
 
-def connect(database: str | Path) -> sqlite3.Connection:
-    """Abre uma conexão com linhas acessíveis por nome de coluna."""
-    connection = sqlite3.connect(database)
+def connect(database: str | Path, *, check_same_thread: bool = True) -> sqlite3.Connection:
+    """Abre uma conexão com linhas acessíveis por nome de coluna.
+
+    `check_same_thread=False` é para a API: o FastAPI pode abrir a conexão (na dependency) numa
+    thread do pool e usá-la (na rota) em outra. É seguro porque cada requisição tem a sua conexão,
+    que nunca é usada por duas threads ao mesmo tempo.
+    """
+    connection = sqlite3.connect(database, check_same_thread=check_same_thread)
     connection.row_factory = sqlite3.Row
     return connection
 

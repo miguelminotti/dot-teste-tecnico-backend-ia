@@ -20,10 +20,11 @@ class BookRepository(Protocol):
         """Guarda um livro novo. Levanta `BookAlreadyExistsError` se o `id` já existir."""
         ...
 
-    def search(self, *, title: str | None = None, author: str | None = None) -> list[Book]:
+    def search(self, *, title: str | None = None, author: str | None = None, limit: int, offset: int = 0) -> list[Book]:
         """Busca livros por trecho do título e/ou do autor, sem diferenciar maiúsculas nem acentos.
 
-        Com os dois filtros, o livro precisa casar com ambos. Sem filtro nenhum, devolve o acervo
-        inteiro; cabe a quem chama decidir se isso é permitido.
+        Com os dois filtros, o livro precisa casar com ambos; sem filtro, considera o acervo inteiro.
+        `limit` é obrigatório para que nenhuma chamada devolva o acervo inteiro de uma vez: quem
+        chama decide o tamanho da página. Levanta `ValueError` para `limit < 1` ou `offset < 0`.
         """
         ...

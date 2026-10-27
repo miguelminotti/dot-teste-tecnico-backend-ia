@@ -27,6 +27,8 @@ from library.infrastructure.sqlite_book_repository import SqliteBookRepository
 
 SAO_PAULO = timezone(timedelta(hours=-3))
 MakeBook = Callable[..., Book]
+# Página maior que qualquer acervo montado nestes testes.
+LIMIT = 100
 
 
 @pytest.fixture
@@ -64,7 +66,7 @@ def test_added_book_survives_closing_the_connection(database_file: Path, make_bo
         SqliteBookRepository(writer).add(book)
 
     with closing(connect(database_file)) as reader:
-        assert [found.id for found in SqliteBookRepository(reader).search()] == [book.id]
+        assert [found.id for found in SqliteBookRepository(reader).search(limit=LIMIT)] == [book.id]
 
 
 def test_round_trip_preserves_every_field(repository: SqliteBookRepository, make_book: MakeBook) -> None:
@@ -76,7 +78,7 @@ def test_round_trip_preserves_every_field(repository: SqliteBookRepository, make
     )
     repository.add(original)
 
-    [loaded] = repository.search()
+    [loaded] = repository.search(limit=LIMIT)
 
     assert (loaded.id, loaded.title, loaded.author, loaded.summary) == (
         original.id,
@@ -117,7 +119,7 @@ def test_duplicate_id_raises_domain_error_and_keeps_the_original(
     with pytest.raises(BookAlreadyExistsError):
         repository.add(make_book(id=original.id, title="Outro título"))
 
-    assert _titles(repository.search()) == ["Dom Casmurro"]
+    assert _titles(repository.search(limit=LIMIT)) == ["Dom Casmurro"]
 
 
 def test_failed_add_does_not_leave_a_transaction_open(database_file: Path, make_book: MakeBook) -> None:
@@ -132,7 +134,7 @@ def test_failed_add_does_not_leave_a_transaction_open(database_file: Path, make_
         repository.add(make_book(title="Iracema"))
 
     with closing(connect(database_file)) as reader:
-        assert _titles(SqliteBookRepository(reader).search()) == ["Dom Casmurro", "Iracema"]
+        assert _titles(SqliteBookRepository(reader).search(limit=LIMIT)) == ["Dom Casmurro", "Iracema"]
 
 
 def test_concurrent_adds_of_the_same_book_persist_it_exactly_once(database_file: Path, make_book: MakeBook) -> None:
@@ -158,7 +160,7 @@ def test_concurrent_adds_of_the_same_book_persist_it_exactly_once(database_file:
 
     assert sorted(outcomes) == ["added"] + ["duplicate"] * (attempts - 1)
     with closing(connect(database_file)) as reader:
-        assert len(SqliteBookRepository(reader).search()) == 1
+        assert len(SqliteBookRepository(reader).search(limit=LIMIT)) == 1
 
 
 def test_create_schema_twice_keeps_existing_books(
@@ -169,7 +171,7 @@ def test_create_schema_twice_keeps_existing_books(
 
     create_schema(connection)
 
-    assert len(repository.search()) == 1
+    assert len(repository.search(limit=LIMIT)) == 1
 
 
 @pytest.mark.parametrize(
@@ -225,7 +227,9 @@ def test_search_ignores_case_and_accents(
     catalog: SqliteBookRepository, field: str, query: str, expected: list[str]
 ) -> None:
     # Livro que não aparece na busca é livro que não é encontrado nem emprestado.
-    assert _titles(catalog.search(**{field: query})) == expected
+    found = catalog.search(title=query, limit=LIMIT) if field == "title" else catalog.search(author=query, limit=LIMIT)
+
+    assert _titles(found) == expected
 
 
 @pytest.mark.parametrize(
@@ -244,12 +248,12 @@ def test_search_treats_like_wildcards_as_plain_text(
     for title in ["100% Python", "snake_case na prática", "C:\\livros"]:
         catalog.add(make_book(title=title))
 
-    assert _titles(catalog.search(title=query)) == expected
+    assert _titles(catalog.search(title=query, limit=LIMIT)) == expected
 
 
 def test_search_with_title_and_author_requires_both(catalog: SqliteBookRepository) -> None:
-    assert _titles(catalog.search(title="dom", author="assis")) == ["Dom Casmurro"]
-    assert catalog.search(title="dom", author="alencar") == []
+    assert _titles(catalog.search(title="dom", author="assis", limit=LIMIT)) == ["Dom Casmurro"]
+    assert catalog.search(title="dom", author="alencar", limit=LIMIT) == []
 
 
 def test_search_orders_alphabetically_ignoring_case_and_accents(
@@ -260,7 +264,7 @@ def test_search_orders_alphabetically_ignoring_case_and_accents(
     for title in ["Abelha", "Ábaco", "abacate"]:
         repository.add(make_book(title=title))
 
-    assert _titles(repository.search()) == ["abacate", "Ábaco", "Abelha"]
+    assert _titles(repository.search(limit=LIMIT)) == ["abacate", "Ábaco", "Abelha"]
 
 
 def test_search_breaks_ties_by_id(repository: SqliteBookRepository, make_book: MakeBook) -> None:
@@ -271,4 +275,4 @@ def test_search_breaks_ties_by_id(repository: SqliteBookRepository, make_book: M
     repository.add(make_book(id=later_id))
     repository.add(make_book(id=earlier_id))
 
-    assert [book.id for book in repository.search()] == [earlier_id, later_id]
+    assert [book.id for book in repository.search(limit=LIMIT)] == [earlier_id, later_id]

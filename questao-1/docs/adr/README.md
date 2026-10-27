@@ -12,3 +12,6 @@ Decisões de arquitetura da API de biblioteca. As que valem para o repositório 
 | [0006](0006-testes-protegem-regras-de-negocio.md) | Testes protegem regras de negócio; todo bug vira teste | Aceita |
 | [0007](0007-persistencia-sqlite3-com-repositorio-unico.md) | Persistência com `sqlite3` da stdlib, num repositório único | Aceita |
 | [0008](0008-busca-sem-caixa-e-sem-acento.md) | Busca parcial, sem diferenciar maiúsculas nem acentos | Aceita |
+| [0009](0009-camada-de-aplicacao-com-dtos.md) | Camada de aplicação como única porta da API, devolvendo DTOs | Aceita |
+| [0010](0010-contrato-http-e-validacao-na-borda.md) | Contrato HTTP com paginação obrigatória e validação estrita na borda | Aceita |
+| [0011](0011-rate-limiting-proprio-em-memoria.md) | Rate limiting próprio, por IP, em janela fixa e em memória | Aceita |

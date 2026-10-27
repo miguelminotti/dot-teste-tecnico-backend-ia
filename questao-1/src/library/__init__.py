@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from library!")
+"""Biblioteca virtual: cadastro e consulta de livros (Questão 1)."""
