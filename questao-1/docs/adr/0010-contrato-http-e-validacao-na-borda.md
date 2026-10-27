@@ -20,7 +20,7 @@ O enunciado não pede autenticação, e ela ficou de fora. Isso pressupõe uso e
 - **Erros de domínio viram HTTP num lugar só** (handlers em `app.py`): `BookAlreadyExistsError` → 409, qualquer outro `DomainError` → 422, com `{"detail": "..."}`.
 - **Conexão por requisição**, aberta numa dependência e fechada ao fim, mesmo com erro. Ela é criada com `check_same_thread=False`, porque o FastAPI pode abrir a conexão numa thread do pool e usá-la em outra; é seguro porque a conexão nunca é compartilhada entre requisições.
 - **Schema garantido na subida** (lifespan), com `CREATE TABLE IF NOT EXISTS`.
-- **Configuração por variável de ambiente** (`LIBRARY_DATABASE_PATH`, `LIBRARY_TIMEZONE`, `LIBRARY_RATE_LIMIT_REQUESTS`, `LIBRARY_RATE_LIMIT_WINDOW_SECONDS`), com `create_app(settings)` para os testes passarem a sua.
+- **Configuração por variável de ambiente** (`LIBRARY_DATABASE_PATH`, `LIBRARY_TIMEZONE`, `LIBRARY_RATE_LIMIT_REQUESTS`, `LIBRARY_RATE_LIMIT_WINDOW_SECONDS`), com `create_app(settings)` para os testes passarem a sua. O `Settings` lê só o ambiente do processo; o arquivo `.env` é carregado pelo próprio uv (`uv run --env-file .env`), sem `python-dotenv` nem `pydantic-settings`. Em produção as variáveis vêm do ambiente, como hoje. O `.env.example` documenta as variáveis e vai para o git; o `.env`, onde entrarão chaves e segredos, fica fora.
 
 ## Alternativas consideradas
 

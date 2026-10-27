@@ -37,7 +37,11 @@ curl -X POST http://127.0.0.1:8000/books -H "Content-Type: application/json" -d 
 curl "http://127.0.0.1:8000/books?author=machado&limit=20&offset=0"
 ```
 
-Configuração por variável de ambiente:
+Configuração por variável de ambiente. Todas são opcionais; sem nenhuma, valem os padrões e `uv run library` basta. Para mudar algum valor, copie o [`.env.example`](.env.example) para `.env` (que fica fora do git) e rode com o arquivo:
+
+```bash
+uv run --env-file .env library
+```
 
 | Variável | Padrão | Para que serve |
 | --- | --- | --- |
