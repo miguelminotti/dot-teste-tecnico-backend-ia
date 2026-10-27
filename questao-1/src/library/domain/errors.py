@@ -24,3 +24,11 @@ class NotProvidedTimezoneError(DomainError):
 
 class InvalidPublicationDateError(DomainError):
     """A data de publicação não é um dia do calendário válido (por exemplo, veio com hora)."""
+
+
+class BookAlreadyExistsError(DomainError):
+    """Já existe um livro com o mesmo `id` no acervo.
+
+    Fica no domínio, e não como erro do banco, para que a aplicação não precise conhecer o
+    `sqlite3.IntegrityError` (ou o equivalente de outro banco) para tratar o caso.
+    """

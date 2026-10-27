@@ -10,7 +10,7 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 | Consulta de livros por título ou autor | pendente |
 | Implementação com Django, Flask ou FastAPI | FastAPI (pendente) |
 | Endpoints claros e bem documentados | pendente |
-| Armazenamento em SQLite | pendente |
+| Armazenamento em SQLite | repositório pronto, testes pendentes |
 | Testes unitários dos endpoints | pendente |
 
 ## Como rodar
@@ -45,17 +45,21 @@ uv run pytest
 
 ```
 src/library/
-└── domain/
-    ├── book.py               entidade Book e suas invariantes
-    ├── publication_date.py   value object PublicationDate
-    ├── clock.py              política de tempo (UTC)
-    └── errors.py             erros de domínio
+├── domain/
+│   ├── book.py                      entidade Book e suas invariantes
+│   ├── publication_date.py          value object PublicationDate
+│   ├── repository.py                porta BookRepository (o que o domínio precisa do banco)
+│   ├── clock.py                     política de tempo (UTC)
+│   └── errors.py                    erros de domínio
+└── infrastructure/
+    ├── database.py                  conexão e schema do SQLite
+    └── sqlite_book_repository.py    SqliteBookRepository, implementação da porta
 tests/
-└── domain/                   testes unitários do domínio
-docs/adr/                     decisões de arquitetura desta questão
+└── domain/                          testes unitários do domínio
+docs/adr/                            decisões de arquitetura desta questão
 ```
 
-As camadas `application`, `infrastructure` e `api` entram quando forem usadas ([ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md)).
+As camadas `application` e `api` entram quando forem usadas ([ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md)).
 
 ## Decisões
 
@@ -76,6 +80,8 @@ Cada decisão de arquitetura tem uma ADR com contexto, alternativas descartadas 
 - **Entidade válida por construção.** Invariantes no `__post_init__`, erros de domínio próprios. Regra que vem do negócio fica no domínio; proteção técnica, como limite de tamanho dos textos, fica no schema da API. [ADR 0004](docs/adr/0004-entidade-valida-por-construcao.md)
 - **`PublicationDate` como fonte única do estado de publicação.** Aceita data futura (pré-cadastro) e deriva `is_published(as_of)` em vez de guardar uma flag; o dia de referência vem de quem chama. [ADR 0005](docs/adr/0005-publication-date-como-fonte-unica.md)
 - **Testes protegem regras de negócio; todo bug vira teste.** [ADR 0006](docs/adr/0006-testes-protegem-regras-de-negocio.md)
+- **Persistência com `sqlite3` da stdlib, num repositório único.** Porta no domínio, implementação na infraestrutura, SQL explícito e sem ORM. Leitura e escrita no mesmo repositório: CQRS seria exagero para um endpoint de cada. Tabela `STRICT` com `CHECK`s que repetem a política de datas no banco. [ADR 0007](docs/adr/0007-persistencia-sqlite3-com-repositorio-unico.md)
+- **Busca parcial, sem diferenciar maiúsculas nem acentos.** "jose" acha "José de Alencar"; `%` e `_` digitados são texto, não curinga. [ADR 0008](docs/adr/0008-busca-sem-caixa-e-sem-acento.md)
 
 Decisão de produto, fora das ADRs: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
 

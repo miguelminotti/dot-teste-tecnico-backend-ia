@@ -10,3 +10,5 @@ Decisões de arquitetura da API de biblioteca. As que valem para o repositório 
 | [0004](0004-entidade-valida-por-construcao.md) | Entidade válida por construção; regra de negócio no domínio, proteção na borda | Aceita |
 | [0005](0005-publication-date-como-fonte-unica.md) | `PublicationDate` como fonte única do estado de publicação | Aceita |
 | [0006](0006-testes-protegem-regras-de-negocio.md) | Testes protegem regras de negócio; todo bug vira teste | Aceita |
+| [0007](0007-persistencia-sqlite3-com-repositorio-unico.md) | Persistência com `sqlite3` da stdlib, num repositório único | Aceita |
+| [0008](0008-busca-sem-caixa-e-sem-acento.md) | Busca parcial, sem diferenciar maiúsculas nem acentos | Aceita |
