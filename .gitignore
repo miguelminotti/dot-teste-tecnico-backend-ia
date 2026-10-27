@@ -20,4 +20,6 @@ wheels/
 
 # Segredos
 .env
-/docs
+# Enunciado da prova fica fora do repositório; as ADRs da raiz entram
+/docs/*
+!/docs/adr/
