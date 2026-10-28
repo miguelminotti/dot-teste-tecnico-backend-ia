@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from chatbot!")
+"""Chatbot de dúvidas de Python. O ponto de entrada é `chatbot.cli:main`."""
