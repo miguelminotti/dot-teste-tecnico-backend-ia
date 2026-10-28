@@ -39,10 +39,35 @@ uv run semantic-search-embed --model intfloat/multilingual-e5-base
 | `multilingual-e5-base` | |
 | --- | --- |
 | Vetores | 5.398 × 768, 16,6 MB em float32 |
-| Tempo | 987 s na CPU (Intel i7-10700K, 16 threads), cerca de 5,5 pedaços por segundo |
+| Tempo | 987 s na CPU (Intel i7-10700K, 16 threads), cerca de 5,5 pedaços por segundo; 50 s na GPU (NVIDIA RTX 3060, 12 GB) |
 
-A geração roda na CPU porque o PyTorch instalado pelo PyPI no Windows é só para CPU. Os modelos candidatos têm 2 a 3 vezes mais parâmetros e devem levar de 40 minutos a 1 hora cada nessa máquina. Para a comparação, vale testar a versão com CUDA do PyTorch na GPU disponível (GTX 1050 Ti, 4 GB).
+**CPU por padrão, GPU opcional.** O `uv.lock` fixa o PyTorch do PyPI, que no Windows é só para CPU: o projeto roda em qualquer máquina, sem CUDA. Com uma GPU NVIDIA, a versão com CUDA entra só no `.venv`, sem mudar o projeto, e os comandos passam a usar `--no-sync`, porque um `uv run` comum sincroniza o ambiente com o `uv.lock` e volta o PyTorch para a versão de CPU. O índice sai igual nos dois casos: 5.398 × 768, com norma 1.
+
+```bash
+uv pip install --reinstall-package torch "torch==2.15.0" --index-url https://download.pytorch.org/whl/cu132
+uv run --no-sync semantic-search-embed --model intfloat/multilingual-e5-base
+```
 
 ## 3. Vector store
 
-Próxima etapa.
+O código está em `src/semantic_search/vector_store.py`.
+
+```bash
+uv run semantic-search-store --model intfloat/multilingual-e5-base
+```
+
+- **FAISS, e não Milvus.** O enunciado aceita os dois. O FAISS é uma biblioteca: roda no mesmo processo da busca e grava o índice num arquivo. O Milvus é um banco de vetores, feito para rodar como serviço, que se paga com milhões de vetores, filtros por metadado e escrita concorrente. Nada disso existe aqui: são 5,4 mil vetores, gravados uma vez e só lidos depois.
+- **Busca exata (`IndexFlatIP`).** A consulta é comparada com todos os vetores pelo produto interno, que, com vetores de norma 1, é a similaridade de cosseno. O livro (cap. 6) apresenta os índices aproximados (HNSW, IVF, PQ) como uma troca de recall por velocidade, que compensa em escala. Com 5,4 mil vetores, a busca exata leva poucos milissegundos (tabela abaixo) e devolve os vizinhos certos, sem parâmetro para ajustar.
+- **Vetores sem norma 1 são recusados.** Sem ela, o produto interno deixa de ser o cosseno, e um vetor longo venceria a busca por ser longo. A consulta não precisa da checagem: a norma dela multiplica todas as notas pelo mesmo fator e não muda a ordem.
+- **Os pedaços ficam fora do FAISS.** O índice guarda só os vetores, e o resultado é a posição: o vetor *i* é a linha *i* do `chunks.jsonl`. Ao carregar, o número de vetores é conferido com o de pedaços, o que pega um `faiss.index` velho ao lado de pedaços regerados.
+- **Com menos pedaços que o `k` pedido, a busca devolve só os que existem.** O FAISS completa as vagas com a posição -1, que em Python apontaria para o último pedaço.
+- **O índice é gravado como `faiss.index`** na pasta do modelo, ao lado dos pedaços, fora do git, e o comando acima o refaz em menos de 1 segundo. No índice exato, o arquivo é a própria matriz de vetores, do mesmo tamanho do `embeddings.npy`.
+
+| `IndexFlatIP` sobre o `multilingual-e5-base` | |
+| --- | --- |
+| Montagem | 0,14 s |
+| Tamanho | 16,6 MB, o mesmo da matriz em float32 |
+| Busca dos 10 mais próximos, uma consulta por vez | mediana de 2,5 ms e p95 de 4,7 ms na CPU (Intel i7-4790K, 8 threads) |
+| Busca das 198 consultas de avaliação (99 em inglês e 99 em português) em lote | 48 ms |
+| Embedding de uma consulta | 12,9 ms na GPU (RTX 3060) |
+| Conferência com numpy (produto interno com todos os vetores, ordenado) | os mesmos 10 pedaços, na mesma ordem, em 197 das 198 consultas; na outra, dois pedaços com o mesmo texto e a mesma nota trocam de lugar |
