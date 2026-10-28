@@ -77,6 +77,32 @@ class Section:
     paragraphs: tuple[str, ...]
 
 
+@dataclass(frozen=True, slots=True, kw_only=True)
+class Document:
+    """Um artigo do corpus, como as etapas de busca e avaliação o leem."""
+
+    id: str
+    title: str
+    abstract: str
+    sections: tuple[Section, ...]
+    url: str = ""
+
+
+def load_documents(path: Path) -> list[Document]:
+    """Artigos do corpus em JSONL, na ordem do arquivo."""
+    documents = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        raw = json.loads(line)
+        sections = tuple(
+            Section(heading=section["heading"], level=section["level"], paragraphs=tuple(section["paragraphs"]))
+            for section in raw["sections"]
+        )
+        documents.append(
+            Document(id=raw["id"], title=raw["title"], abstract=raw["abstract"], sections=sections, url=raw["url"])
+        )
+    return documents
+
+
 def parse_oai_records(page: bytes) -> tuple[list[ArxivRecord], str | None]:
     """Registros de uma página do OAI-PMH e o token da página seguinte (None na última)."""
     root = ET.fromstring(page)

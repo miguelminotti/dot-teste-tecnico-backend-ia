@@ -21,4 +21,8 @@ Pré-requisito: [uv](https://docs.astral.sh/uv/). O uv baixa o Python 3.12 sozin
 uv sync
 ```
 
-Os comandos de qualidade (ruff, mypy) e as convenções do código estão no [README da raiz](../README.md).
+Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estão no [README da raiz](../README.md).
+
+## Avaliação
+
+A busca é desenvolvida guiada por avaliação: as consultas de teste, com os artigos e trechos relevantes, vieram antes da escolha do modelo de embeddings. São 99 consultas em inglês e português, de quatro tipos (pelo nome, por paráfrase, por detalhe e por tema), geradas por um LLM, rotuladas por um juiz sobre o corpus inteiro e revisadas uma a uma. O conjunto, como foi feito e as limitações estão em [`docs/avaliacao.md`](docs/avaliacao.md).

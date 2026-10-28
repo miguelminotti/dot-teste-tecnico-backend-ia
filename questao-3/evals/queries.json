@@ -1,0 +1,1858 @@
+{
+  "metadata": {
+    "query_model": "gpt-5.4-mini",
+    "judge_model": "gpt-5.4",
+    "seed": 7,
+    "corpus": "data\\corpus.jsonl",
+    "removed": [
+      {
+        "id": "q036",
+        "reason": "consulta sobre a seção de trabalhos relacionados: o trecho lista trabalhos de outros autores, e o artigo de origem não trata do que a pergunta pede; reescrita, o juiz a ligou a artigos que só têm 'explicação' em comum"
+      }
+    ]
+  },
+  "queries": [
+    {
+      "id": "q001",
+      "type": "named",
+      "query": {
+        "en": "SpecGuardBench benchmark for coding agents",
+        "pt": "benchmark SpecGuardBench para agentes de programação"
+      },
+      "relevant": [
+        "2610.16870"
+      ],
+      "source": "2610.16870",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.16870 is directly about SpecGuardBench, a benchmark evaluating whether coding agents can construct reliable validation harnesses from natural language specifications."
+    },
+    {
+      "id": "q002",
+      "type": "paraphrase",
+      "query": {
+        "en": "Can coding agents build reliable validation harnesses from specifications?",
+        "pt": "Agentes de programação conseguem construir harnesses de validação confiáveis a partir de especificações?"
+      },
+      "relevant": [
+        "2610.16859",
+        "2610.16870"
+      ],
+      "source": "2610.16870",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.16870] is directly about whether coding agents can construct reliable validation harnesses from natural-language specifications, introducing SpecGuardBench and showing current agents often fail to build faithful checks.\n[2610.16859] is relevant because it evaluates repository-grounded coding agents on compliance with naturalistic developer constraints and trajectory-grounded checklists, which substantially concerns validation of agent behavior against specifications/constraints."
+    },
+    {
+      "id": "q003",
+      "type": "detail",
+      "query": {
+        "en": "Why separate executable checks from test scenarios in validation harnesses?",
+        "pt": "Por que separar verificações executáveis de cenários de teste em harnesses de validação?"
+      },
+      "relevant": [
+        "2610.16859",
+        "2610.16870"
+      ],
+      "source": "2610.16870",
+      "evidence": {
+        "paper": "2610.16870",
+        "section": "Introduction",
+        "paragraph": 1,
+        "quote": "Expressing specifications as reusable executable checks decoupled from test scenarios lets the same checks assess newly generated test scenarios and real-world executions, supporting continued validation beyond the initial test suite and after deployment."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.16870] is directly about agents constructing validation harnesses from natural-language specifications, and its abstract explicitly distinguishes executable checks from test scenarios, explaining that checks establish specification faithfulness while scenarios exercise the code thoroughly—exactly addressing why to separate the two.\n[2610.16859] is relevant because it evaluates coding agents against distinct kinds of constraints over both code diffs and execution trajectories, supporting the broader motivation that different validation dimensions must be assessed separately rather than collapsed into one harness component."
+    },
+    {
+      "id": "q004",
+      "type": "named",
+      "query": {
+        "en": "AccentCL class-incremental accent classification",
+        "pt": "classificação incremental de sotaque AccentCL"
+      },
+      "relevant": [
+        "2610.07426"
+      ],
+      "source": "2610.07426",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.07426 is directly about class-incremental learning for English accent classification, introducing AccentCL and evaluating incremental addition of new accent categories under imbalance and domain shift."
+    },
+    {
+      "id": "q005",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to keep adding new speech accent categories without retraining from scratch",
+        "pt": "Como continuar adicionando novas categorias de sotaque na fala sem retreinar do zero"
+      },
+      "relevant": [
+        "2610.07426"
+      ],
+      "source": "2610.07426",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about adding new speech accent categories incrementally without full retraining. Paper 2610.07426 is directly about class-incremental English accent classification: it proposes AccentCL, explicitly expands the label space with replay-based continual learning, and demonstrates adding new accent categories while preserving performance on existing ones."
+    },
+    {
+      "id": "q006",
+      "type": "detail",
+      "query": {
+        "en": "What accent groups are in the dataset built for incremental English accent classification?",
+        "pt": "Quais grupos de sotaque estão no dataset construído para classificação incremental de sotaques do inglês?"
+      },
+      "relevant": [
+        "2610.07426"
+      ],
+      "source": "2610.07426",
+      "evidence": {
+        "paper": "2610.07426",
+        "section": "Datasets",
+        "paragraph": 25,
+        "quote": "The full dataset includes North American (NA), British Isles (BI), Australasian (AUS), South Asian (SA), Southeast Asian (SEA), Spanish (SPA), and Chinese (CHN) accent groups."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.07426 is directly about incremental English accent classification and explicitly states the two accent categories added incrementally to the base five-class setup: Spanish-accented English and Chinese-accented English; this is the dataset/query target.",
+      "revision": {
+        "original": {
+          "en": "What accent groups are included in the constructed dataset?",
+          "pt": "Quais grupos de sotaque estão incluídos no conjunto de dados construído?"
+        },
+        "original_relevant": [
+          "2610.07426"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q007",
+      "type": "named",
+      "query": {
+        "en": "What is the answer-clarification correspondence for estimating model-dependent input ambiguity?",
+        "pt": "O que é a correspondência entre respostas e esclarecimentos para estimar a ambiguidade de entrada dependente do modelo?"
+      },
+      "relevant": [
+        "2610.20052"
+      ],
+      "source": "2610.20052",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.20052] This paper directly formalizes clarifications via uniqueness, faithfulness, and answer equivalence, proves a one-to-one correspondence between valid answers and equivalence classes of clarifications, and uses it to estimate model-dependent input ambiguity.",
+      "revision": {
+        "original": {
+          "en": "What is circleclar for model-dependent ambiguity detection?",
+          "pt": "O que é circleclar para detecção de ambiguidade dependente do modelo?"
+        },
+        "original_relevant": [
+          "2610.20052"
+        ],
+        "reason": "o nome 'circleclar' é a macro do LaTeX (\\circleclar{}) que o resumo do arXiv traz sem expandir; o método não tem nome legível, então a consulta usa o termo mais específico do artigo"
+      }
+    },
+    {
+      "id": "q008",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to estimate which interpretations a model can actually answer?",
+        "pt": "Como estimar quais interpretações um modelo realmente consegue responder?"
+      },
+      "relevant": [
+        "2610.20052"
+      ],
+      "source": "2610.20052",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "O artigo 2610.20052 é diretamente sobre ambiguidade dependente do modelo: distingue world ambiguity de model ambiguity, formaliza clarificações e propõe um método black-box para estimar o conjunto de respostas/interpretações acessíveis a um modelo, exatamente o que a consulta pede."
+    },
+    {
+      "id": "q009",
+      "type": "detail",
+      "query": {
+        "en": "How does ambiguity differ across language models?",
+        "pt": "Como a ambiguidade difere entre modelos de linguagem?"
+      },
+      "relevant": [
+        "2610.20052"
+      ],
+      "source": "2610.20052",
+      "evidence": {
+        "paper": "2610.20052",
+        "section": "Why Input Ambiguity Should be Model Dependent",
+        "paragraph": 8,
+        "quote": "We formalize this distinction below and empirically show that it varies substantially across models (Figure 2), motivating our model-dependent framework for characterizing ambiguity."
+      },
+      "needs_review": false,
+      "judge_reasoning": "2610.20052 is directly about model-dependent ambiguity, distinguishing world ambiguity from ambiguity accessible to a particular language model and proposing a method to estimate the set of answers available to a model for ambiguous inputs."
+    },
+    {
+      "id": "q010",
+      "type": "named",
+      "query": {
+        "en": "AI-generated language processing difficulty features",
+        "pt": "feições de dificuldade de processamento em linguagem gerada por IA"
+      },
+      "relevant": [
+        "2610.29162"
+      ],
+      "source": "2610.29162",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.29162 is directly about why AI-generated language is hard to understand, analyzing psycholinguistic features known to correlate with human processing difficulty and showing these features are overused in AI-generated text."
+    },
+    {
+      "id": "q011",
+      "type": "paraphrase",
+      "query": {
+        "en": "Why do machine-written texts feel harder for people to process?",
+        "pt": "Por que textos escritos por máquina parecem mais difíceis para as pessoas processarem?"
+      },
+      "relevant": [
+        "2610.08208",
+        "2610.26181",
+        "2610.29162"
+      ],
+      "source": "2610.29162",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.29162] is directly about why AI-generated language is hard to understand, analyzing psycholinguistic features that increase human processing difficulty and proposing an information-density explanation.\n[2610.26181] is relevant because it models human reading time and word-skipping behavior using language-model-based predictability measures, which bears on what makes text harder for people to process.\n[2610.08208] is relevant because it provides controlled human reading-time data on sentence processing difficulty and compares language-model predictions to human integration costs, informing mechanisms of processing difficulty."
+    },
+    {
+      "id": "q012",
+      "type": "detail",
+      "query": {
+        "en": "How were linguistic features of AI-generated text identified when studying why it is hard to understand?",
+        "pt": "Como as características linguísticas de textos gerados por IA foram identificadas ao estudar por que eles são difíceis de entender?"
+      },
+      "relevant": [
+        "2610.29162"
+      ],
+      "source": "2610.29162",
+      "evidence": {
+        "paper": "2610.29162",
+        "section": "Linguistic features of interest",
+        "paragraph": 9,
+        "quote": "All features are identified from spaCy dependency parses (Honnibal et al., 2020); for denominal verbs and inanimate subjects, parser-generated candidates are then judged by an automated classifier (Section B.1)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.29162 is directly about why AI-generated language is hard to understand and states that it investigates psycholinguistic features correlated with human processing difficulty, comparing AI-generated text with human writing and round-trip paraphrases to identify overused difficult linguistic features.",
+      "revision": {
+        "original": {
+          "en": "How were the linguistic features in the first experiment identified?",
+          "pt": "Como as feições linguísticas no primeiro experimento foram identificadas?"
+        },
+        "original_relevant": [
+          "2610.29162"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q013",
+      "type": "named",
+      "query": {
+        "en": "cross-model review in LLM verification",
+        "pt": "cross-model review na verificação de LLM"
+      },
+      "relevant": [
+        "2610.01471"
+      ],
+      "source": "2610.01471",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01471] is directly about cross-model review in LLM verification, experimentally testing when a second review by a different model helps versus same-model review."
+    },
+    {
+      "id": "q014",
+      "type": "paraphrase",
+      "query": {
+        "en": "when does a different reviewer model improve verification quality",
+        "pt": "quando um modelo revisor diferente melhora a qualidade da verificação"
+      },
+      "relevant": [
+        "2610.01471"
+      ],
+      "source": "2610.01471",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01471] is directly about cross-model review in LLM verification, explicitly asking when a second review by a different model helps and comparing same-model versus cross-model reviewers under controlled conditions."
+    },
+    {
+      "id": "q015",
+      "type": "detail",
+      "query": {
+        "en": "Which artifact type favors same-model review over cross-model review?",
+        "pt": "Qual tipo de artefato favorece a revisão pelo mesmo modelo em vez da revisão por outro modelo?"
+      },
+      "relevant": [
+        "2610.01471"
+      ],
+      "source": "2610.01471",
+      "evidence": {
+        "paper": "2610.01471",
+        "section": "Domain Specialization (H5)",
+        "paragraph": 57,
+        "quote": "For code artifacts, CCR outperforms all XMR conditions; one possible explanation is that the generating model shares an understanding of programming patterns and code structure that an external model lacks. For documents, the pattern reverses, and it holds for every condition, not only those in the table: all six cross-model conditions (F1 30.1–42.1%) score above all four same-model conditions (17.4–24.5%)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.01471 is directly about comparing same-model review (CCR) versus cross-model review, including conditions over different reviewed artifacts; it is the only paper that substantially addresses when same-model review helps more than cross-model review."
+    },
+    {
+      "id": "q016",
+      "type": "named",
+      "query": {
+        "en": "SBERT2S1 biomedical sentence encoders",
+        "pt": "SBERT2S1 codificadores de frases biomédicas"
+      },
+      "relevant": [
+        "2610.02486"
+      ],
+      "source": "2610.02486",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.02486] is directly about SBERT2S1, a method that converts biomedical Sentence-Transformers sentence encoders into typed decision models, exactly matching the query terms 'SBERT2S1' and 'biomedical sentence encoders'."
+    },
+    {
+      "id": "q017",
+      "type": "paraphrase",
+      "query": {
+        "en": "calibrated one-pass decision models from retrieval encoders",
+        "pt": "modelos de decisão calibrados em uma passada a partir de encoders de recuperação"
+      },
+      "relevant": [
+        "2610.02486",
+        "2610.07109",
+        "2610.32318",
+        "2610.32955"
+      ],
+      "source": "2610.02486",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.02486] Directly studies typed decision models built from biomedical sentence/retrieval encoders, compares decision heads, and evaluates calibration after temperature scaling, which closely matches calibrated one-pass decision models from retrieval encoders.\n[2610.32955] Evaluates typed decision models as one-pass classifiers for inbox routing, relevant as an application of decision models though not specifically about retrieval encoders.\n[2610.32318] Studies System One/decision models as one-forward-pass calibrated probability models, relevant to the 'one-pass decision models' part though not focused on retrieval encoders.\n[2610.07109] Proposes distributional aggregation for LLM-as-a-judge and discusses score calibration/aggregation for judging, relevant only peripherally to calibrated decision-style outputs."
+    },
+    {
+      "id": "q018",
+      "type": "detail",
+      "query": {
+        "en": "How does the RLCD reward update normalize noisy rewards and logits?",
+        "pt": "Como o update de recompensa do RLCD normaliza as recompensas ruidosas e os logits?"
+      },
+      "relevant": [
+        "2610.02486"
+      ],
+      "source": "2610.02486",
+      "evidence": {
+        "paper": "2610.02486",
+        "section": "Training objectives and the RLCD estimator",
+        "paragraph": 12,
+        "quote": "The reward part of the update for one item is \\hat{g}=\\frac{1}{G\\sigma^{2}}\\sum_{g=1}^{G}\\frac{R^{(g)}-\\bar{R}}{d}\\,\\varepsilon^{(g)}, where \\varepsilon^{(g)} is the g -th noise draw, \\sigma its scale (annealed from 0.4 to 0.1), R^{(g)} its reward, \\bar{R} the mean reward of the item’s G draws, and d the standard deviation of the centred rewards in the minibatch."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about RLCD’s specific reward-update mechanism and how it normalizes noisy rewards and logits. Paper 2610.02486 directly discusses the released RLCD recipe for open System One models, analyzes its reward normalization, and explains that this normalization inflates the noisy score-function term; this is the only paper that substantially addresses RLCD reward updates."
+    },
+    {
+      "id": "q019",
+      "type": "named",
+      "query": {
+        "en": "SPARC speaker and demographic-attribute verification benchmark",
+        "pt": "benchmark de verificação de falante e atributos demográficos SPARC"
+      },
+      "relevant": [
+        "2610.25265"
+      ],
+      "source": "2610.25265",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.25265 is directly relevant because it introduces SPARC (Spoken Profile Authorship Recognition Corpus) and explicitly evaluates pairwise speaker verification and demographic-attribute verification from transcribed speech, exactly matching the query."
+    },
+    {
+      "id": "q020",
+      "type": "paraphrase",
+      "query": {
+        "en": "Can transcribed words reveal who is speaking and their demographics?",
+        "pt": "As palavras transcritas revelam quem está falando e seus dados demográficos?"
+      },
+      "relevant": [
+        "2610.13550",
+        "2610.25265"
+      ],
+      "source": "2610.25265",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.25265] SPARC is directly about whether speaker identity and demographic attributes (sex, age, accent) can be inferred or verified from transcribed speech alone, introducing a benchmark and showing LLMs can do above-chance identity and some demographic verification from text. [2610.13550] BASIS-Bench is relevant for the demographic side because it evaluates whether speech LLMs recognize demographic cues from speech and use them in personalization, including demographic classification capabilities, though it is less directly about transcribed words alone."
+    },
+    {
+      "id": "q021",
+      "type": "detail",
+      "query": {
+        "en": "What does cross-series control change in the SPoRC speaker protocol?",
+        "pt": "O que o controle entre séries muda no protocolo de falante do SPoRC?"
+      },
+      "relevant": [
+        "2610.25265"
+      ],
+      "source": "2610.25265",
+      "evidence": {
+        "paper": "2610.25265",
+        "section": "Scope of Topic Control",
+        "paragraph": 40,
+        "quote": "In the original SPoRC speaker protocol, 81.4% of positive trials are within-series whereas all negatives cross series; the additional cross-series control reduces this imbalance and yields higher EERs."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Nenhum artigo do conjunto trata do protocolo SPoRC speaker ou da noção específica de \"cross-series control\" nesse contexto; os papéis sobre fala/áudio abordam ASR, emoção, acento, avaliação conversacional e autoria, mas não esse protocolo específico nem a mudança perguntada.",
+      "review_note": "revisada: o juiz lê só os resumos, e o protocolo SPoRC aparece no corpo do artigo de origem; a consulta e o rótulo estão certos"
+    },
+    {
+      "id": "q022",
+      "type": "named",
+      "query": {
+        "en": "Grounding Probe hallucination detection",
+        "pt": "Grounding Probe detecção de alucinação"
+      },
+      "relevant": [
+        "2610.04642"
+      ],
+      "source": "2610.04642",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.04642] is directly about hallucination detection via a \"Grounding Probe,\" proposing a generator-independent detector from observer-model hidden states for checking whether responses are grounded in context."
+    },
+    {
+      "id": "q023",
+      "type": "paraphrase",
+      "query": {
+        "en": "hidden-state detector for unsupported retrieval-augmented answers",
+        "pt": "detector em hidden state para respostas de recuperação aumentada sem suporte"
+      },
+      "relevant": [
+        "2610.04642"
+      ],
+      "source": "2610.04642",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.04642] is directly about hallucination detection for retrieval-augmented generation using hidden-state probes, specifically a generator-independent detector built from an observer model's hidden states to identify responses not grounded in the provided context."
+    },
+    {
+      "id": "q024",
+      "type": "detail",
+      "query": {
+        "en": "Which internal methods detect truthfulness without relying on the generator model?",
+        "pt": "Quais métodos internos detectam veracidade sem depender do modelo gerador?"
+      },
+      "relevant": [
+        "2610.04642"
+      ],
+      "source": "2610.04642",
+      "evidence": {
+        "paper": "2610.04642",
+        "section": "Probing model internals.",
+        "paragraph": 10,
+        "quote": "Applied to truthfulness the technique has been productive. SAPLMA (Azaria and Mitchell, 2023) classifies statement truth from hidden states; semantic entropy probes (Kossen et al., 2024) predict a sampled uncertainty measure from one pass, extracting at the second-last response token or the last prompt token; HalluRAG (Ridder and Schilling, 2024) trains multi-layer classifiers for RAG and reports a sharp cross-dataset drop. MIND (Su et al., 2024) detects during generation, HaloScope (Du et al., 2024) without labels. ReDeEP (Sun et al., 2025) and LUMINA (Yeh et al., 2026) go further into mechanism, scoring how much a response draws on retrieved context against parametric knowledge, and report the strongest RAGTruth numbers among internals-based methods."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.04642] is directly about hallucination/truthfulness detection using hidden states of an observer model rather than the generating model itself, proposing generator-independent grounding probes that do not rely on the generator’s internal activations."
+    },
+    {
+      "id": "q025",
+      "type": "named",
+      "query": {
+        "en": "DualView multi-output text regression",
+        "pt": "DualView regressão de texto com múltiplas saídas"
+      },
+      "relevant": [
+        "2610.19206"
+      ],
+      "source": "2610.19206",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.19206 is directly about DualView, a method for LLM-based multi-output text regression, exactly matching the query."
+    },
+    {
+      "id": "q026",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to predict several text regression scores with one frozen language model",
+        "pt": "Como prever vários escores de regressão textual com um modelo de linguagem congelado"
+      },
+      "relevant": [
+        "2610.19206"
+      ],
+      "source": "2610.19206",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.19206 is directly about multi-output text regression with a frozen LLM, proposing DualView to extract broad and output-specific representations and predict the full score vector efficiently."
+    },
+    {
+      "id": "q027",
+      "type": "detail",
+      "query": {
+        "en": "How many fitted parameters does DualView require compared with strong baselines?",
+        "pt": "Quantos parâmetros ajustados o DualView exige em comparação com baselines fortes?"
+      },
+      "relevant": [
+        "2610.19206"
+      ],
+      "source": "2610.19206",
+      "evidence": {
+        "paper": "2610.19206",
+        "section": "Trainable Footprint",
+        "paragraph": 29,
+        "quote": "Table 2 shows that DualView requires only 5.1K–57.4K fitted parameters, compared with 1.84M–20.98M for the three strongest supervised baselines (82–1842 \\times more)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "2610.19206 is directly relevant because its abstract states that DualView outperforms strong supervised regression baselines while requiring 82–1842 times fewer fitted parameters than the three strongest baselines, exactly answering the query about fitted-parameter requirements relative to baselines."
+    },
+    {
+      "id": "q028",
+      "type": "named",
+      "query": {
+        "en": "LoRA adaptation grid for Tibetan ASR",
+        "pt": "grade de adaptação LoRA para ASR tibetano"
+      },
+      "relevant": [
+        "2610.27002"
+      ],
+      "source": "2610.27002",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.27002] is directly about Tibetan ASR and explicitly studies target-corpus adaptation while varying LoRA rank and training-data size, which matches a query for a LoRA adaptation grid for Tibetan ASR."
+    },
+    {
+      "id": "q029",
+      "type": "paraphrase",
+      "query": {
+        "en": "How does low-rank adaptation perform with different data sizes and ranks in speech recognition?",
+        "pt": "Como a adaptação de baixo posto se sai com diferentes tamanhos de dados e ranks em reconhecimento de fala?"
+      },
+      "relevant": [
+        "2610.26888",
+        "2610.27002"
+      ],
+      "source": "2610.27002",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.27002] is directly about Tibetan ASR and explicitly studies adaptation regimes by varying both LoRA rank and training-data size, reporting how these affect recognition metrics and failure modes. [2610.26888] is directly about low-rank adaptation for accented English speech recognition, comparing a LoRA-based method against baselines and discussing adaptation performance in ASR, though it does not emphasize multiple data sizes as strongly as the Tibetan paper."
+    },
+    {
+      "id": "q030",
+      "type": "detail",
+      "query": {
+        "en": "What decoding setup was used after training the LoRA adapters?",
+        "pt": "Qual configuração de decoding foi usada depois de treinar os adapters LoRA?"
+      },
+      "relevant": [
+        "2610.27002"
+      ],
+      "source": "2610.27002",
+      "evidence": {
+        "paper": "2610.27002",
+        "section": "C. Four complementary experiments",
+        "paragraph": 36,
+        "quote": "We merge each trained adapter into the shared pretrained Whisper Small model before decoding."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks for a specific experimental detail: the decoding setup used after training LoRA adapters. Among the listed papers, only the Tibetan ASR paper explicitly studies LoRA-rank adaptation regimes, so it is the only plausible paper where such a decoding detail would be reported in the full text. The other papers may mention LoRA, but not in the context of adapter training followed by decoding setup as a central experimental procedure."
+    },
+    {
+      "id": "q031",
+      "type": "named",
+      "query": {
+        "en": "LLM annotation and auditing of bioassay metadata",
+        "pt": "anotação e auditoria de metadados de bioensaios com LLM"
+      },
+      "relevant": [
+        "2610.01616"
+      ],
+      "source": "2610.01616",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01616] is directly about using LLMs to predict, curate, and audit bioassay metadata fields from assay text, including reliability analysis and human-curator review."
+    },
+    {
+      "id": "q032",
+      "type": "paraphrase",
+      "query": {
+        "en": "automated curation of assay metadata from text with language models",
+        "pt": "curadoria automatizada de metadados de ensaios a partir de texto com modelo de linguagem"
+      },
+      "relevant": [
+        "2610.01616"
+      ],
+      "source": "2610.01616",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01616] is directly about using open-source and proprietary LLMs to predict, curate, and audit bioassay metadata annotations from assay text, exactly matching automated curation of assay metadata from text with language models."
+    },
+    {
+      "id": "q033",
+      "type": "detail",
+      "query": {
+        "en": "How should LLMs handle inconsistent bioassay records before downstream use?",
+        "pt": "Como os LLMs devem lidar com registros inconsistentes de bioensaios antes do uso downstream?"
+      },
+      "relevant": [
+        "2610.01616"
+      ],
+      "source": "2610.01616",
+      "evidence": {
+        "paper": "2610.01616",
+        "section": "Discussion and Conclusion",
+        "paragraph": 42,
+        "quote": "LLMs flag inconsistent records, surface the textual evidence behind a disagreement, and route ambiguous cases to human curators, with per-class reliability estimates attached before any label is allowed to enter a downstream ML pipeline."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.01616] is directly about missing, inconsistent, or conflated bioassay metadata, evaluates whether LLMs can predict and audit assay annotations from assay text, and explicitly concludes that per-class reliability estimates and targeted human review are needed before such labels are used in downstream ML pipelines."
+    },
+    {
+      "id": "q034",
+      "type": "named",
+      "query": {
+        "en": "BinProp for explaining chess and Go moves",
+        "pt": "BinProp para explicar jogadas de xadrez e Go"
+      },
+      "relevant": [
+        "2610.23166"
+      ],
+      "source": "2610.23166",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.23166] is directly about explaining chess and Go in natural language and introduces BinProp as a training-free method that discovers reusable concepts to explain moves, explicitly reporting results beyond chess in Go."
+    },
+    {
+      "id": "q035",
+      "type": "paraphrase",
+      "query": {
+        "en": "How can language models explain board game moves using reusable strategic concepts?",
+        "pt": "Como modelos de linguagem podem explicar jogadas de jogos de tabuleiro usando conceitos estratégicos reutilizáveis?"
+      },
+      "relevant": [
+        "2610.23166"
+      ],
+      "source": "2610.23166",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.23166] is directly about generating natural-language explanations for chess and Go moves by discovering reusable game concepts (via BinProp) and using them to explain moves, exactly matching the query about explaining board game moves with reusable strategic concepts."
+    },
+    {
+      "id": "q037",
+      "type": "named",
+      "query": {
+        "en": "EASE for evading AI-generated text detectors",
+        "pt": "EASE para burlar detectores de texto gerado por IA"
+      },
+      "relevant": [
+        "2610.09976"
+      ],
+      "source": "2610.09976",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.09976] is directly about EASE, a training-free entropy-adaptive decoding method explicitly designed to evade AI-generated text detectors."
+    },
+    {
+      "id": "q038",
+      "type": "paraphrase",
+      "query": {
+        "en": "How can decoding changes weaken AI text detection?",
+        "pt": "Como mudanças na decodificação podem enfraquecer a detecção de texto gerado por IA?"
+      },
+      "relevant": [
+        "2610.09976"
+      ],
+      "source": "2610.09976",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.09976 is directly about how decoding-time distribution changes such as logit perturbation and temperature adjustment reduce AI-generated text detector performance, and proposes an entropy-adaptive evasion method based on those decoding changes."
+    },
+    {
+      "id": "q039",
+      "type": "detail",
+      "query": {
+        "en": "What happens to detector AUROC and perplexity when adding Gaussian noise or raising temperature?",
+        "pt": "O que acontece com o AUROC do detector e a perplexidade ao adicionar ruído Gaussiano ou aumentar a temperatura?"
+      },
+      "relevant": [
+        "2610.09976"
+      ],
+      "source": "2610.09976",
+      "evidence": {
+        "paper": "2610.09976",
+        "section": "Decoding-Time Distribution Changes Affect Downstream Detection",
+        "paragraph": 9,
+        "quote": "As shown in Fig. 1 (a,b), stronger perturbations generally reduce detector AUROC but also increase generation perplexity. Second, we vary \\tau without logit perturbation. Fig. 1 (c,d) shows a similar pattern: higher temperatures can improve evasion while increasing perplexity."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.09976] is directly about AI-generated text detectors’ sensitivity to decoding-time distribution changes, specifically perturbing next-token logits and adjusting sampling temperature, and reports that these changes reduce detection performance with negligible text-quality degradation; this substantially matches a query about detector AUROC and perplexity under added noise or higher temperature."
+    },
+    {
+      "id": "q040",
+      "type": "named",
+      "query": {
+        "en": "SiLTT Polish-Silesian translation benchmark",
+        "pt": "benchmark de tradução polonês-silesiano SiLTT"
+      },
+      "relevant": [
+        "2610.01082"
+      ],
+      "source": "2610.01082",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01082] is directly about Polish-Silesian machine translation and explicitly introduces SiLTT as a new Pol-Szl test set used to benchmark systems."
+    },
+    {
+      "id": "q041",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to translate a low-resource dialect with noisy inconsistent writing?",
+        "pt": "Como traduzir um dialeto de poucos dados com escrita inconsistente e ruidosa?"
+      },
+      "relevant": [
+        "2610.01082"
+      ],
+      "source": "2610.01082",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.01082] is directly about machine translation for the low-resource Polish-Silesian dialect and explicitly evaluates dialectal, non-standard text settings, comparing neural and rule-based systems on a new benchmark tailored to such variation."
+    },
+    {
+      "id": "q042",
+      "type": "detail",
+      "query": {
+        "en": "Why are web-derived Silesian corpora limited for training translation systems?",
+        "pt": "Por que corpora de silesiano extraídos da web são limitados para treinar sistemas de tradução?"
+      },
+      "relevant": [
+        "2610.01082"
+      ],
+      "source": "2610.01082",
+      "evidence": {
+        "paper": "2610.01082",
+        "section": "Introduction",
+        "paragraph": 1,
+        "quote": "As a result, large-scale corpora derived from web data or generic multilingual resources often mix heterogeneous and noisy forms of Silesian, limiting their usefulness for training robust translation systems."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about limitations of web-derived Silesian corpora for training MT systems. Paper 2610.01082 is directly about Polish–Silesian machine translation, evaluates systems on dialectal data, and discusses curated data vs standard benchmarks, which substantially addresses data limitations for Silesian MT, including why typical available/web-like data may be insufficient for dialectal settings."
+    },
+    {
+      "id": "q043",
+      "type": "named",
+      "query": {
+        "en": "GGUF-quantized small language models and rare-word definition loss",
+        "pt": "modelos de linguagem pequenos quantizados em GGUF e perda de definição de palavras raras"
+      },
+      "relevant": [
+        "2610.04403"
+      ],
+      "source": "2610.04403",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.04403] is directly about aggressively GGUF-quantized small language models and shows that they can still emit rare words while losing the ability to define them, exactly matching the query on rare-word definition loss under GGUF quantization."
+    },
+    {
+      "id": "q044",
+      "type": "paraphrase",
+      "query": {
+        "en": "Do smaller quantized models lose meaning before they lose fluent word use?",
+        "pt": "modelos quantizados menores perdem significado antes de perder o uso fluente de palavras?"
+      },
+      "relevant": [
+        "2610.04403"
+      ],
+      "source": "2610.04403",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.04403 is directly about aggressively quantized small language models retaining the ability to generate rare words while losing the ability to define them, i.e. losing semantic competence before fluent word use."
+    },
+    {
+      "id": "q045",
+      "type": "detail",
+      "query": {
+        "en": "How does quantization-induced answer flipping change with model scale across tasks?",
+        "pt": "como a troca de respostas causada por quantização muda com a escala do modelo em diferentes tarefas?"
+      },
+      "relevant": [
+        "2610.04403"
+      ],
+      "source": "2610.04403",
+      "evidence": {
+        "paper": "2610.04403",
+        "section": "Vocabulary size does not predict fragility; scale does",
+        "paragraph": 117,
+        "quote": "They find that across different model families (Llama-2, Yi) and different tasks (MMLU, PIQA, HellaSwag, ARC), larger models flip fewer individual answers under quantization than smaller ones, while noting that the residual rate stays non-negligible: Llama-2-70B still flips 3 – 8\\% of answers at 4-bit."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.04403] This paper audits aggressively quantized small language models and shows size-dependent semantic degradation, but it studies rare-word definition/inclusion rather than quantization-induced answer flipping across tasks.\n[2610.00054] This paper studies answer flipping, but the flips come from judge readout methodology rather than model quantization, so it does not address the query.\n[2610.29896] This paper studies changes in bias under grammatical errors across benchmarks, which is about prompt perturbations, not quantization or scale-dependent answer flipping.\n[2610.30983] This paper analyzes prediction changes under context augmentation methods across datasets, but not quantization-induced flips or scaling under quantization.\n[2610.02022] This paper examines instability of LLM novelty judgments under prompt design changes, not quantization-induced answer flipping.\n[2610.04403] Among the listed papers, this is the closest relevant one because it directly studies quantization effects as a function of model size and documents severe output/semantic changes in small models versus robustness in larger ones, though not framed as answer flipping across multiple tasks."
+    },
+    {
+      "id": "q046",
+      "type": "named",
+      "query": {
+        "en": "memory-centric compression for large language models",
+        "pt": "compressão centrada em memória para LLMs"
+      },
+      "relevant": [
+        "2610.21165"
+      ],
+      "source": "2610.21165",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.21165] is directly about memory-centric compression for LLMs: it is a survey that unifies prompt compression, KV-cache management, retrieval augmentation, and agent memory under a memory-management framework for long-context inference."
+    },
+    {
+      "id": "q047",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to manage stored and active information during long-context inference",
+        "pt": "Como gerenciar informação armazenada e ativa durante inferência de contexto longo"
+      },
+      "relevant": [
+        "2610.06830",
+        "2610.19928",
+        "2610.21165",
+        "2610.27301"
+      ],
+      "source": "2610.21165",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.21165] is directly about long-context compression as memory management, explicitly distinguishing compute-active vs compute-inactive memory and operations like writing, offloading, recall, retrieval, materialization, eviction, consolidation, and forgetting during inference.\n[2610.06830] proposes an on-demand memory curation framework for LLM agents that dynamically chooses between query-agnostic memory and query-specific curation under performance/cost/latency trade-offs, which substantially addresses managing stored versus active information.\n[2610.19928] studies long-context reasoning with recurrent memory agents and proposes a dual-process memory system that selects evidence and updates memory efficiently, directly relevant to managing what information stays active during long-context inference.\n[2610.27301] evaluates context compaction methods for preserving information for later questions, which is relevant to deciding what information to keep active versus compress or discard in long-context settings."
+    },
+    {
+      "id": "q048",
+      "type": "detail",
+      "query": {
+        "en": "When does retrieved memory affect generation in long-context models?",
+        "pt": "Quando a memória recuperada afeta a geração em modelos de contexto longo?"
+      },
+      "relevant": [
+        "2610.06830",
+        "2610.19928",
+        "2610.21165",
+        "2610.27301",
+        "2610.30983"
+      ],
+      "source": "2610.21165",
+      "evidence": {
+        "paper": "2610.21165",
+        "section": "State Transitions: Retrieval, Injection, and Intermediate States",
+        "paragraph": 44,
+        "quote": "Retrieved memory is not equivalent to information the model has used: it affects generation only after selection, compression, formatting, and injection into the attention path."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about when retrieved memory influences generation in long-context models, so the most relevant papers are those directly about long-context memory systems, retrieval/injection of memory, or analyses of how context augmentation/compaction affects model outputs. [2610.21165] is directly about memory-centric compression, retrieval-and-injection, and when information participates in costly inference in long-context LLMs. [2610.19928] studies a recurrent memory agent for long-context reasoning, including evidence selection and memory updates that affect downstream generation. [2610.06830] proposes on-demand multimodal memory curation for LLM agents, explicitly controlling retrieval from memory versus raw history and how that impacts responses. [2610.30983] evaluates inference-time context augmentation methods and analyzes when inserted contextual information genuinely changes predictions versus merely perturbing them. [2610.27301] evaluates context compaction specifically on later questions, directly probing whether preserved context/memory affects later generations in long-context settings."
+    },
+    {
+      "id": "q049",
+      "type": "named",
+      "query": {
+        "en": "label-free reliability estimation for language model ensembles treated as a jury",
+        "pt": "estimativa de confiabilidade sem rótulos para ensembles de modelos de linguagem tratados como um júri"
+      },
+      "relevant": [
+        "2610.21085"
+      ],
+      "source": "2610.21085",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.21085] is directly about label-free reliability estimation for ensembles of language models, explicitly modeling the ensemble as a jury and estimating expert reliabilities from unlabeled agreement patterns via EM.",
+      "revision": {
+        "original": {
+          "en": "A Jury reliability estimation for language model ensembles",
+          "pt": "estimação de confiabilidade A Jury para ensembles de modelo de linguagem"
+        },
+        "original_relevant": [
+          "2610.21085"
+        ],
+        "reason": "'A Jury' é um pedaço do título, não o nome de um método"
+      }
+    },
+    {
+      "id": "q050",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to infer expert trustworthiness from agreement patterns alone",
+        "pt": "Como inferir a confiabilidade de especialistas só pelos padrões de acordo"
+      },
+      "relevant": [
+        "2610.21085"
+      ],
+      "source": "2610.21085",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.21085] is directly about estimating the reliability/trustworthiness of ensemble language-model experts from unlabeled agreement and disagreement patterns alone, using an EM jury model without labels."
+    },
+    {
+      "id": "q051",
+      "type": "detail",
+      "query": {
+        "en": "Why allow negative weights for weak experts when weighting LLM ensemble votes without labels?",
+        "pt": "Por que permitir pesos negativos para especialistas fracos ao ponderar votos de um ensemble de LLMs sem rótulos?"
+      },
+      "relevant": [
+        "2610.21085"
+      ],
+      "source": "2610.21085",
+      "evidence": {
+        "paper": "2610.21085",
+        "section": "What a weighted vote over argmax answers can and cannot do",
+        "paragraph": 19,
+        "quote": "We let w range over \\mathbb{R}^{|\\mathcal{E}|} rather than over the simplex because the model-derived weights can be negative for sufficiently weak experts, and the vote and the model should speak about the same object."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.21085] is directly about label-free reliability estimation for ensembles of language models, learning expert reliabilities from agreement patterns without labels and deriving a weighted voting rule; this is the only paper that substantially addresses how and why weak experts may receive low or effectively adverse weights in unlabeled ensemble aggregation.",
+      "revision": {
+        "original": {
+          "en": "Why allow negative weights in the weighted vote over answers?",
+          "pt": "Por que permitir pesos negativos na votação ponderada sobre respostas?"
+        },
+        "original_relevant": [
+          "2610.21085"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q052",
+      "type": "named",
+      "query": {
+        "en": "LLM-based novelty evaluation instability",
+        "pt": "instabilidade da avaliação de novidade baseada em LLM"
+      },
+      "relevant": [
+        "2610.02022"
+      ],
+      "source": "2610.02022",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.02022] is directly about the instability of LLM-based novelty evaluation, showing that small prompt design changes can drastically alter novelty judgments and accuracy."
+    },
+    {
+      "id": "q053",
+      "type": "paraphrase",
+      "query": {
+        "en": "How sensitive are novelty judges to prompt wording changes?",
+        "pt": "Quão sensíveis são os juízes de novidade a mudanças na formulação do prompt?"
+      },
+      "relevant": [
+        "2610.02022"
+      ],
+      "source": "2610.02022",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.02022] is directly about novelty evaluation by LLM judges and shows that small prompt design changes can flip verdicts on identical idea pairs and shift accuracy dramatically, exactly addressing sensitivity to prompt wording changes."
+    },
+    {
+      "id": "q054",
+      "type": "detail",
+      "query": {
+        "en": "How does changing the prompt affect different LLM novelty judges on human versus generated ideas?",
+        "pt": "Como mudar o prompt afeta diferentes juízes LLM de novidade em ideias humanas e geradas?"
+      },
+      "relevant": [
+        "2610.02022"
+      ],
+      "source": "2610.02022",
+      "evidence": {
+        "paper": "2610.02022",
+        "section": "Results",
+        "paragraph": 34,
+        "quote": "The effect of the same prompt change also depends on the judge and the data. Switching from P3 to P4 already shifts strict-accuracy on Human-Only by 21 points for claude-opus-4-6, but only about 7 for gpt-5.4. On Human+Generated, the shift grows for both judges, and gpt-5.4 becomes the more sensitive one (52.6 points). Which judge looks robust thus depends on the data, and validating on human-authored ideas can understate how much a prompt matters on generated ones."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.02022] is directly about LLM novelty judges, comparing human-authored papers and LLM-generated ideas, and shows that small prompt changes can drastically change verdicts and accuracy differently across judges.",
+      "revision": {
+        "original": {
+          "en": "How does the prompt change affect different judges on human and generated ideas?",
+          "pt": "Como a mudança no prompt afeta juízes diferentes em ideias humanas e geradas?"
+        },
+        "original_relevant": [
+          "2610.02022"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q055",
+      "type": "named",
+      "query": {
+        "en": "Thinking Inertia no-thinking metrics",
+        "pt": "métricas de no-thinking de Thinking Inertia"
+      },
+      "relevant": [
+        "2610.11765"
+      ],
+      "source": "2610.11765",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.11765] is directly about 'Thinking Inertia' and explicitly proposes and evaluates metrics for no-thinking behavior, including Empty-Thinking Rate, Question-Pre-answer Relevance, and Explicit Inference Rate."
+    },
+    {
+      "id": "q056",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to measure explicit reasoning when models should answer directly?",
+        "pt": "Como medir raciocínio explícito quando o modelo deve responder diretamente?"
+      },
+      "relevant": [
+        "2610.11765"
+      ],
+      "source": "2610.11765",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about measuring explicit reasoning in settings where models are instructed to answer directly or not think aloud. Paper 2610.11765 is directly about 'no-thinking' behavior and proposes concrete metrics for measuring visible/explicit inference under answer-only instructions, exactly matching the query."
+    },
+    {
+      "id": "q057",
+      "type": "detail",
+      "query": {
+        "en": "What surface proxies have been used to identify no-thinking in LLMs?",
+        "pt": "Quais proxies de superfície têm sido usados para identificar no-thinking em LLMs?"
+      },
+      "relevant": [
+        "2610.11765"
+      ],
+      "source": "2610.11765",
+      "evidence": {
+        "paper": "2610.11765",
+        "section": "Observations",
+        "paragraph": 6,
+        "quote": "In practice, existing work often identifies it through three surface proxies, as summarized on the left side of Figure 2: (i) prompt-side control, where the model is run in a no-think setting or is not prompted to think step by step; (ii) visible-format control, where no-thinking is inferred from the absence of an explicit <think> block or a separate reasoning trace; and (iii) length-based control, where shorter generations produced by length control or chain-of-thought compression are treated as reduced reasoning."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.11765] is directly about evaluating no-thinking in LLMs and explicitly states that prior work typically used surface proxies such as disabling thinking mode or checking for the absence of long reasoning traces to define no-thinking, then argues these proxies are unreliable."
+    },
+    {
+      "id": "q058",
+      "type": "named",
+      "query": {
+        "en": "RoCo-PRM routing teacher and PRM backbone",
+        "pt": "RoCo-PRM com routing teacher e backbone de PRM"
+      },
+      "relevant": [
+        "2610.29498"
+      ],
+      "source": "2610.29498",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.29498] is directly about RoCo-PRM, introducing a process reward model built from Mixture-of-Experts routing-derived supervision and discussing transfer across model architectures, which matches the query about RoCo-PRM, routing teacher, and PRM backbone."
+    },
+    {
+      "id": "q059",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to score reasoning steps using expert routing signals",
+        "pt": "Como pontuar etapas de raciocínio usando sinais de roteamento de experts"
+      },
+      "relevant": [
+        "2610.29498"
+      ],
+      "source": "2610.29498",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.29498] is directly about deriving step-level process-confidence and process reward supervision from Mixture-of-Experts expert routing statistics, including annotating reasoning trajectories with routing-derived step scores."
+    },
+    {
+      "id": "q060",
+      "type": "detail",
+      "query": {
+        "en": "Which models are used as the routing teacher and PRM backbone?",
+        "pt": "Quais modelos são usados como routing teacher e backbone de PRM?"
+      },
+      "relevant": [
+        "2610.29498"
+      ],
+      "source": "2610.29498",
+      "evidence": {
+        "paper": "2610.29498",
+        "section": "Experimental Setup",
+        "paragraph": 28,
+        "quote": "For RoCo-PRM, we use Qwen3-30B-A3B (Yang et al., 2025) as the routing teacher and Qwen2.5-7B-Instruct as the PRM backbone."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks for papers specifying a routing teacher and a PRM backbone. Paper 2610.29498 is directly about process supervision from MoE routing, introduces RoCo-PRM, and is the one that would contain the details of which model serves as the routing teacher and which model is used as the PRM backbone."
+    },
+    {
+      "id": "q061",
+      "type": "named",
+      "query": {
+        "en": "ReAnchor for speculative decoding with rejected verifier states",
+        "pt": "ReAnchor para speculative decoding com estados rejeitados do verificador"
+      },
+      "relevant": [
+        "2610.26531"
+      ],
+      "source": "2610.26531",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.26531 is directly about ReAnchor, a training-free speculative decoding method that reuses verifier hidden states beyond the first rejection to generate additional draft blocks, exactly matching the query’s focus on speculative decoding with rejected verifier states."
+    },
+    {
+      "id": "q062",
+      "type": "paraphrase",
+      "query": {
+        "en": "Reusing verifier hidden states to draft beyond the first rejected token",
+        "pt": "Reutilização de estados ocultos do verificador para rascunhar além do primeiro token rejeitado"
+      },
+      "relevant": [
+        "2610.26531"
+      ],
+      "source": "2610.26531",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.26531 is directly about speculative decoding with diffusion drafters and explicitly proposes reusing hidden states computed during target verification beyond the first rejection to reanchor drafting and extend draft coverage past the original block endpoint."
+    },
+    {
+      "id": "q063",
+      "type": "detail",
+      "query": {
+        "en": "Does ReAnchor work with different DFlash drafter variants?",
+        "pt": "ReAnchor funciona com diferentes variantes de drafter baseadas em DFlash?"
+      },
+      "relevant": [
+        "2610.26531"
+      ],
+      "source": "2610.26531",
+      "evidence": {
+        "paper": "2610.26531",
+        "section": "Compatibility with drafter variants.",
+        "paragraph": 30,
+        "quote": "We further evaluate ReAnchor on three DFlash-based variants, Domino, DSpark, and Draft-OPD, with different training and prediction mechanisms. At T=0, ReAnchor improves both \\tau and end-to-end speedup in all 48 comparisons, with average gains of 11.8% and 9.8%, respectively (Table 3). At T=1, the improvements remain consistent, increasing \\tau in all 48 comparisons and speedup in 45, with average gains of 11.5% and 8.1%. These results demonstrate that ReAnchor generalizes across different drafting mechanisms without additional training or variant-specific modifications."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.26531] is directly relevant because it introduces ReAnchor and explicitly reports results averaged over four target models with pretrained DFlash drafters, which addresses whether ReAnchor works across different DFlash drafter variants."
+    },
+    {
+      "id": "q064",
+      "type": "named",
+      "query": {
+        "en": "high-consistency/incorrect quadrant in financial QA evaluation",
+        "pt": "quadrante de alta consistência e incorreção na avaliação de QA financeiro"
+      },
+      "relevant": [
+        "2610.21128"
+      ],
+      "source": "2610.21128",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.21128 is directly about consistency-accuracy dissociation in financial QA, explicitly finding a high-consistency/incorrect quadrant where many wrong answers have high agreement and answer collapse, which matches the query exactly."
+    },
+    {
+      "id": "q065",
+      "type": "paraphrase",
+      "query": {
+        "en": "when models agree a lot but still give wrong answers",
+        "pt": "quando os modelos concordam muito, mas ainda assim erram"
+      },
+      "relevant": [
+        "2610.21128"
+      ],
+      "source": "2610.21128",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.21128 is directly about the dissociation between consistency/agreement and correctness, showing many incorrect answers occur in high-consistency regions and discussing the implications for label-free evaluation based on agreement alone."
+    },
+    {
+      "id": "q066",
+      "type": "detail",
+      "query": {
+        "en": "Which financial QA datasets and model families were tested?",
+        "pt": "Quais datasets de QA financeiro e famílias de modelos foram testados?"
+      },
+      "relevant": [
+        "2610.21128"
+      ],
+      "source": "2610.21128",
+      "evidence": {
+        "paper": "2610.21128",
+        "section": "Introduction",
+        "paragraph": 2,
+        "quote": "We conduct our experiments across 4 financial QA datasets (CFA Level 1 and CFA Level 2, CMT, and FinQA), 10 consistency dimensions, 2 tested model families (GPT 5.5 and Claude Opus 4.5), and 6 distinct generator-validator pipeline configurations, measuring the joint consistency–accuracy distribution at the level of individual examples."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks which financial QA datasets and model families were tested. Paper 2610.21128 explicitly studies four financial QA datasets and evaluates consistency/accuracy behavior across two frontier model families, directly matching both parts of the query."
+    },
+    {
+      "id": "q067",
+      "type": "named",
+      "query": {
+        "en": "Rogan–Gladen correction for interactive LLM evaluation",
+        "pt": "correção Rogan–Gladen para avaliação interativa de LLM"
+      },
+      "relevant": [
+        "2610.31678"
+      ],
+      "source": "2610.31678",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks for Rogan–Gladen correction in interactive LLM evaluation, i.e., correcting observed rates for scorer sensitivity/specificity or misclassification when comparing prompt conditions. Paper 2610.31678 is directly about how scorer errors distort interactive prompt comparisons, derives the effect of prompt-specific false positives/negatives on the measured difference, and discusses prompt-specific correction with uncertainty—this is the substantial match. Paper 2610.00054 is about first-token readout bias in LLM judges, relevant to judge measurement issues but not to Rogan–Gladen-style correction or interactive evaluation comparisons, so it is not a substantial match."
+    },
+    {
+      "id": "q068",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to adjust a comparison when classification errors differ across prompts",
+        "pt": "Como ajustar uma comparação quando os erros de classificação diferem entre prompts"
+      },
+      "relevant": [
+        "2610.31678"
+      ],
+      "source": "2610.31678",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.31678] is directly about prompt-comparison bias under prompt-specific classification error rates, deriving how scorer errors alter the comparison and arguing to validate the exact prompt difference rather than only overall accuracy."
+    },
+    {
+      "id": "q069",
+      "type": "detail",
+      "query": {
+        "en": "How does a sensitivity-specificity correction change the estimated relative difference in interactive LLM evaluation?",
+        "pt": "Como uma correção de sensibilidade e especificidade muda a diferença relativa estimada na avaliação interativa de LLMs?"
+      },
+      "relevant": [
+        "2610.31678"
+      ],
+      "source": "2610.31678",
+      "evidence": {
+        "paper": "2610.31678",
+        "section": "Correction does not remove calibration uncertainty",
+        "paragraph": 23,
+        "quote": "It changes automatic RD from +.113 to +.032, near the primary-rater value of +.070 (Table 3)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.31678] is directly about interactive LLM evaluation and shows how scorer errors that differ by prompt condition can change, shrink, or even reverse an estimated relative difference between prompts, effectively addressing correction for sensitivity/specificity-like scorer error rates.",
+      "revision": {
+        "original": {
+          "en": "How does the sensitivity-specificity correction change the relative difference estimate?",
+          "pt": "Como a correção de sensibilidade e especificidade muda a estimativa da diferença relativa?"
+        },
+        "original_relevant": [
+          "2610.31678"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q070",
+      "type": "named",
+      "query": {
+        "en": "AtomSD for procedural atom-guided self-distillation",
+        "pt": "AtomSD para auto-distilação guiada por átomos procedurais"
+      },
+      "relevant": [
+        "2610.26926"
+      ],
+      "source": "2610.26926",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query exactly matches the title and topic of AtomSD, which introduces procedural atoms and an atom-guided self-distillation framework for LLM agents."
+    },
+    {
+      "id": "q071",
+      "type": "paraphrase",
+      "query": {
+        "en": "How can an agent learn reusable step-by-step guidance from its own successful interactions?",
+        "pt": "Como um agente pode aprender orientação reutilizável passo a passo a partir de suas próprias interações bem-sucedidas?"
+      },
+      "relevant": [
+        "2610.15772",
+        "2610.21496",
+        "2610.26926"
+      ],
+      "source": "2610.26926",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.26926 is directly about extracting fine-grained reusable procedural guidance ('Procedural Atoms') from an agent’s own successful trajectories and distilling them back into the policy. 2610.15772 is relevant because it lets the policy extract skills from completed trajectories and co-evolve those reusable skills with the agent during on-policy RL. 2610.21496 is relevant because it learns reminder-style guidance from the agent’s own successful and failed on-policy coding trajectories to improve long-horizon behavior, though it is more about reminder supervision than reusable procedural atoms."
+    },
+    {
+      "id": "q072",
+      "type": "detail",
+      "query": {
+        "en": "How do prior approaches transfer reusable procedural knowledge from interaction trajectories?",
+        "pt": "Como abordagens anteriores transferem conhecimento procedimental reutilizável de trajetórias de interação?"
+      },
+      "relevant": [
+        "2610.26926"
+      ],
+      "source": "2610.26926",
+      "evidence": {
+        "paper": "2610.26926",
+        "section": "Introduction",
+        "paragraph": 1,
+        "quote": "Toward this goal, existing approaches leverage interaction trajectories to construct and transfer reusable procedural knowledge, broadly following two directions. (1) Organizing trajectories into reusable guidance. Prior work transforms previous interactions into reflections, workflows, skills, or conditional rules that can guide subsequent behavior through prompting (Wang et al., 2025; Mi et al., 2026; Liang et al., 2026; Sun et al., 2026). Such representations abstract beyond individual actions and make past experience accessible across future interactions. (2) Distilling experience into the policy. A second line of work transfers knowledge from demonstrations, feedback, or skill-augmented teacher context into the learner itself, allowing the resulting policy to benefit from this supervision without requiring the same external guidance at inference time (Zhao et al., 2026a; Hübotter et al., 2026; Wang et al., 2026a; Lu et al., 2026)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "[2610.26926] is directly about procedural knowledge transfer from interaction trajectories, explicitly contrasting prior approaches that represent such knowledge as trajectories or bundled skills and proposing reusable fine-grained Procedural Atoms instead."
+    },
+    {
+      "id": "q073",
+      "type": "named",
+      "query": {
+        "en": "IdeaLens idea provenance detection",
+        "pt": "detecção de proveniência de ideias IdeaLens"
+      },
+      "relevant": [
+        "2610.06778"
+      ],
+      "source": "2610.06778",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.06778] IdeaLens: Detecting AI Ideas in Long-form Writing is directly about idea provenance detection, introducing IdeaLens to detect whether a document’s ideas came from a human or AI regardless of who wrote the words."
+    },
+    {
+      "id": "q074",
+      "type": "paraphrase",
+      "query": {
+        "en": "Detecting whether writing ideas came from a human or a model",
+        "pt": "detectar se as ideias de um texto vieram de um humano ou de um modelo"
+      },
+      "relevant": [
+        "2610.06778"
+      ],
+      "source": "2610.06778",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query is specifically about detecting idea provenance—whether the ideas in writing originated from a human or an AI model—and IdeaLens directly introduces a detector for exactly this task, distinguishing idea provenance from prose provenance."
+    },
+    {
+      "id": "q075",
+      "type": "detail",
+      "query": {
+        "en": "How is the TwiceTold dataset constructed for human writing from AI plans?",
+        "pt": "Como o conjunto de dados TwiceTold é construído para humanos escreverem a partir de planos de IA?"
+      },
+      "relevant": [
+        "2610.06778"
+      ],
+      "source": "2610.06778",
+      "evidence": {
+        "paper": "2610.06778",
+        "section": "TwiceTold: humans writing from AI plans.",
+        "paragraph": 22,
+        "quote": "To fill this gap, we create TwiceTold, a dataset with 50 stories written from scratch by humans given only the outline of a 500-word story generated by GPT-5.6 Sol (see § for more details). Prose detectors should label these stories as human, while idea detectors should label them as AI. We also include the 50 original AI stories, which all detectors should label as AI."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks specifically about the construction of the TwiceTold dataset for human writing from AI plans. Among the listed papers, only IdeaLens explicitly mentions 'a new dataset of 50 stories that human authors wrote from AI-generated plans,' which is the relevant dataset setting and likely where TwiceTold is introduced or described. No other paper discusses this dataset or human-authored text from AI-generated plans."
+    },
+    {
+      "id": "q076",
+      "type": "named",
+      "query": {
+        "en": "Residual Advantage for RL with verifiable rewards",
+        "pt": "Residual Advantage para RL com recompensas verificáveis"
+      },
+      "relevant": [
+        "2610.11519"
+      ],
+      "source": "2610.11519",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.11519] Directly matches the query: it introduces Residual Advantage, a method for reinforcement learning with verifiable rewards, and studies it on reasoning benchmarks."
+    },
+    {
+      "id": "q077",
+      "type": "paraphrase",
+      "query": {
+        "en": "How to give step-level credit from teacher and student disagreement",
+        "pt": "Como dar crédito passo a passo a partir da discordância entre teacher e student"
+      },
+      "relevant": [
+        "2610.05976",
+        "2610.11519",
+        "2610.15772",
+        "2610.21496",
+        "2610.26926",
+        "2610.28586",
+        "2610.29498"
+      ],
+      "source": "2610.11519",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.11519 is directly about assigning step-level credit from teacher–student probability disagreement in RL/post-training, proposing Residual Advantage that turns the teacher–student residual into a bounded stepwise reward and advantage signal.\n2610.28586 is relevant because it analyzes failures of token/step-level teacher scoring in agentic on-policy distillation through the rollout-scorer gap, i.e., disagreement between what the teacher would do and how it scores student steps, and proposes a repair method for better step-level supervision.\n2610.05976 is relevant as it studies rejecting bad reasoning steps using a recoverability signal defined relative to the model’s own continuations, giving step-level accept/reject supervision for reasoning trajectories, though it is self-disagreement rather than teacher–student disagreement.\n2610.29498 is relevant because it provides step-level process supervision for reasoning using MoE routing confidence and selective regeneration of low-confidence steps, addressing step-level credit assignment even without a separate teacher.\n2610.15772 is relevant because it combines RL with on-policy self-distillation using teacher token scores and explicitly discusses calibrating trust in teacher supervision over evolving skills, which is closely related to step-level credit from teacher–student discrepancies.\n2610.21496 is relevant because it gives process-level, trajectory-position-specific supervision to coding agents via reminder-conditioned distillation on failed student rollouts, a form of step-level credit assignment over student mistakes.\n2610.2610.26926 is relevant because AtomSD extracts fine-grained procedural atoms from successful trajectories and distills them into policy learning, providing fine-grained procedural supervision though not specifically from teacher–student disagreement."
+    },
+    {
+      "id": "q078",
+      "type": "detail",
+      "query": {
+        "en": "How does the adapted teacher change across iterations in Co-RA?",
+        "pt": "Como o teacher adaptado muda ao longo das iterações em Co-RA?"
+      },
+      "relevant": [
+        "2610.11519"
+      ],
+      "source": "2610.11519",
+      "evidence": {
+        "paper": "2610.11519",
+        "section": "Co- RA teaches the teacher on the student’s attempts",
+        "paragraph": 13,
+        "quote": "After the updates, q_{\\phi_{k+1}} supplies the residual in the next iteration. The adapter starts at zero, so the first student update coincides with RA."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about how the adapted teacher changes across iterations in Co-RA. Paper 2610.11519 is the only paper that introduces CoRA/Co-RA and explicitly states that it updates a teacher LoRA with verifier advantages on the same scored student batch and then uses this updated teacher in the next iteration’s residual, i.e., the teacher is adapted iteratively across training rounds."
+    },
+    {
+      "id": "q079",
+      "type": "named",
+      "query": {
+        "en": "LLMLingua-2 word selection for later questions",
+        "pt": "seleção de palavras do LLMLingua-2 para perguntas posteriores"
+      },
+      "relevant": [
+        "2610.27301"
+      ],
+      "source": "2610.27301",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about LLMLingua-2 specifically in relation to word selection and performance on later questions after context compaction. Paper 2610.27301 directly studies context compaction evaluated on later questions and explicitly reports that deleting words instead of sentences does better, with LLMLingua-2 beating random sentence deletion on later MultiRC questions and analyzing retained content words."
+    },
+    {
+      "id": "q080",
+      "type": "paraphrase",
+      "query": {
+        "en": "Does keeping words instead of sentences preserve later answers better?",
+        "pt": "Manter palavras em vez de frases preserva melhor respostas posteriores?"
+      },
+      "relevant": [
+        "2610.27301"
+      ],
+      "source": "2610.27301",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.27301] Directly studies context compaction for later questions and reports that deleting words instead of sentences does better, with LLMLingua-2 outperforming random sentence deletion on later MultiRC questions."
+    },
+    {
+      "id": "q081",
+      "type": "detail",
+      "query": {
+        "en": "How much does keeping words instead of sentences improve answers to later questions in context compaction?",
+        "pt": "Quanto manter palavras em vez de frases melhora as respostas a perguntas posteriores na compactação de contexto?"
+      },
+      "relevant": [
+        "2610.27301"
+      ],
+      "source": "2610.27301",
+      "evidence": {
+        "paper": "2610.27301",
+        "section": "The gain comes from picking words.",
+        "paragraph": 19,
+        "quote": "A prespecified test keeps the LLMLingua-2 scores and changes only the unit kept. Picking words instead of whole sentences raises hidden-question accuracy at 25% by +11.7 points (MultiRC, gpt-6-luna), +4.6 (MultiRC, open-decider) and +19.1 (FEVER)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.27301 is directly about evaluating context compaction on later questions and explicitly reports that deleting words instead of sentences does better, including a quantified improvement for LLMLingua-2 on later MultiRC questions.",
+      "revision": {
+        "original": {
+          "en": "What happens if the same scores keep words instead of sentences?",
+          "pt": "O que acontece se os mesmos scores mantêm palavras em vez de frases?"
+        },
+        "original_relevant": [
+          "2610.27301"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q082",
+      "type": "named",
+      "query": {
+        "en": "ARMOR-DP for multilingual BabyLM",
+        "pt": "ARMOR-DP para Multilingual BabyLM"
+      },
+      "relevant": [
+        "2610.33583"
+      ],
+      "source": "2610.33583",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "O artigo 2610.33583 é diretamente sobre ARMOR-DP aplicado ao cenário Multilingual BabyLM, estudando amostragem dinâmica por língua, diagnóstico de desequilíbrio e resultados na avaliação oficial desse benchmark."
+    },
+    {
+      "id": "q083",
+      "type": "paraphrase",
+      "query": {
+        "en": "How can sampling shift across languages during training based on changing validation loss?",
+        "pt": "Como ajustar a amostragem entre línguas durante o treinamento com base na perda de validação que muda?"
+      },
+      "relevant": [
+        "2610.33583"
+      ],
+      "source": "2610.33583",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about dynamically changing language sampling during training according to changing validation loss across languages. Paper 2610.33583 is directly about ARMOR-DP, which updates multilingual training sampling using per-language validation loss and explicitly argues that the weakest language can shift over time, so protection should follow the current bottleneck rather than a fixed language."
+    },
+    {
+      "id": "q084",
+      "type": "detail",
+      "query": {
+        "en": "How does increasing model size change the combined score of a training curriculum for multilingual BabyLM?",
+        "pt": "Como aumentar o tamanho do modelo muda a pontuação combinada de um currículo de treino para BabyLM multilíngue?"
+      },
+      "relevant": [
+        "2610.33583"
+      ],
+      "source": "2610.33583",
+      "evidence": {
+        "paper": "2610.33583",
+        "section": "Capacity scaling makes dynamic protection competitive",
+        "paragraph": 29,
+        "quote": "Increasing the same curriculum-dynamic system to d256, d512, and d768 raises the public combined score to 0.371, 0.381, and 0.387 respectively."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about how increasing model size affects the combined score in a training curriculum for multilingual BabyLM. Paper 2610.33583 directly studies Multilingual BabyLM, compares curriculum-dynamic checkpoints, and explicitly notes that scaling capacity yields the strongest internal ARMOR-DP system, which is the relevant evidence about model-size effects on score/balance outcomes.",
+      "revision": {
+        "original": {
+          "en": "How did increasing model capacity affect the public combined score?",
+          "pt": "Como o aumento da capacidade do modelo afetou a pontuação combinada pública?"
+        },
+        "original_relevant": [
+          "2610.33583"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q085",
+      "type": "named",
+      "query": {
+        "en": "Tev1 and Nimble for multilingual inbox routing",
+        "pt": "Tev1 e Nimble para roteamento de inbox multilíngue"
+      },
+      "relevant": [
+        "2610.32955"
+      ],
+      "source": "2610.32955",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks specifically about Tev1 and Nimble in the setting of multilingual inbox routing. Paper 2610.32955 directly studies a personal multilingual inbox agent and explicitly compares local typed decision models Tev1 and Nimble for routing email actions, making it the clear match."
+    },
+    {
+      "id": "q086",
+      "type": "paraphrase",
+      "query": {
+        "en": "Which models best route emails into reply, task, urgent, or ignore actions?",
+        "pt": "Quais modelos classificam melhor emails em responder, tarefa, urgente ou ignorar?"
+      },
+      "relevant": [
+        "2610.32955"
+      ],
+      "source": "2610.32955",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.32955] is directly about routing a personal multilingual inbox into actionable categories including urgency, needs-reply, and ignore/noise, and compares multiple model types for exactly this email-routing decision problem."
+    },
+    {
+      "id": "q087",
+      "type": "detail",
+      "query": {
+        "en": "How does rephrasing the urgency question change model accuracy in email routing?",
+        "pt": "Como reformular a pergunta sobre urgência muda a acurácia dos modelos no roteamento de emails?"
+      },
+      "relevant": [
+        "2610.32955"
+      ],
+      "source": "2610.32955",
+      "evidence": {
+        "paper": "2610.32955",
+        "section": "6 Results",
+        "paragraph": 34,
+        "quote": "A three-level scale phrased as “how urgent” is part of the problem: rephrasing it as “what should the recipient do with this email” lifts Tev1 4B from 0.45 to 0.56 and Nimble 9B from 0.41 to 0.46, still below the majority class; the switches, phrased as actions, fare better (Table 3: Tev1 4B on a T4 reaches 0.79 / macro-F1 0.74 on needs-reply)."
+      },
+      "needs_review": false,
+      "judge_reasoning": "Paper 2610.32955 is directly about routing a personal multilingual inbox and reports detailed evaluation of message type, urgency, needs-reply, and related fields; it is the only paper likely to address how changing the wording of the urgency question affects model accuracy in email routing.",
+      "revision": {
+        "original": {
+          "en": "How does rephrasing the urgency question change model accuracy?",
+          "pt": "Como reformular a pergunta sobre urgência altera a precisão dos modelos?"
+        },
+        "original_relevant": [
+          "2610.32955"
+        ],
+        "reason": "a pergunta não dizia de que assunto falava ('o dataset construído', 'o primeiro experimento'); nenhum buscador saberia de qual artigo se trata"
+      }
+    },
+    {
+      "id": "q088",
+      "type": "named",
+      "query": {
+        "en": "Latent Coherence probability judgments and total probability",
+        "pt": "probabilidades de Latent Coherence e lei da probabilidade total"
+      },
+      "relevant": [
+        "2610.31833"
+      ],
+      "source": "2610.31833",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.31833] is directly about whether frontier language models' probability judgments satisfy the law of total probability, measuring latent-variable coherence in exactly the sense asked by the query."
+    },
+    {
+      "id": "q089",
+      "type": "paraphrase",
+      "query": {
+        "en": "Do frontier language models satisfy probability composition over hidden states?",
+        "pt": "Modelos de linguagem de fronteira satisfazem a composição de probabilidades sobre estados ocultos?"
+      },
+      "relevant": [
+        "2610.31833"
+      ],
+      "source": "2610.31833",
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about whether frontier LMs obey probability composition over hidden or latent states; paper 2610.31833 directly tests whether frontier models’ probability judgments satisfy the law of total probability over latent explanations inferred from context, exactly matching the query."
+    },
+    {
+      "id": "q090",
+      "type": "detail",
+      "query": {
+        "en": "How do persistent and rewording-driven residuals differ for Gemini and GLM?",
+        "pt": "Como os resíduos persistentes e os causados por reformulação diferem entre Gemini e GLM?"
+      },
+      "relevant": [
+        "2610.31833"
+      ],
+      "source": "2610.31833",
+      "evidence": {
+        "paper": "2610.31833",
+        "section": "Noise vs persistent incoherence",
+        "paragraph": 19,
+        "quote": "The two residual measures can disagree sharply. GLM and Gemini have the same mean residual (0.26) and similar rewording noise (0.53 and 0.50), but GLM’s persistent residual is 0.11 [0, 0.25] while Gemini’s is 0.28 [0.10, 0.40]. GLM’s residuals scatter around zero as the wording changes, so its incoherence is mostly instability that averaging several samples would reduce. Gemini’s residuals vary as much with wording, but around nonzero values that persist, so its judgments are inconsistent and re-asking does not remove the inconsistency."
+      },
+      "needs_review": false,
+      "judge_reasoning": "The query asks about persistent versus rewording-driven residuals for specific models (Gemini and GLM), which directly matches the paper on latent coherence that measures residuals, separates persistent incoherence from rewording noise, and reports model-specific findings for Gemini-family models and likely GLM if included in the evaluated frontier set."
+    },
+    {
+      "id": "q091",
+      "type": "topic",
+      "query": {
+        "en": "How can LLM agents learn reusable procedural guidance from their own trajectories?",
+        "pt": "Como agentes LLM podem aprender orientação procedimental reutilizável a partir de suas próprias trajetórias?"
+      },
+      "relevant": [
+        "2610.15772",
+        "2610.21496",
+        "2610.26926"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.26926 is directly about learning reusable procedural guidance from an agent’s own successful trajectories via extracted Procedural Atoms and self-distillation. 2610.15772 is relevant because it lets an agentic policy extract evolving skills from completed trajectories and use them for self-improving policy optimization, which is a closely related form of reusable guidance learned from experience. 2610.21496 is relevant because it distills reminder-style procedural guidance from on-policy coding-agent rollouts, using trajectory-derived supervision to help agents reuse contextually relevant guidance in future decisions."
+    },
+    {
+      "id": "q092",
+      "type": "topic",
+      "query": {
+        "en": "Which post-training methods improve generalization beyond supervised fine-tuning?",
+        "pt": "Quais métodos de pós-treinamento melhoram a generalização além do supervised fine-tuning?"
+      },
+      "relevant": [
+        "2610.05976",
+        "2610.11519",
+        "2610.12837",
+        "2610.12995",
+        "2610.15772",
+        "2610.20570",
+        "2610.21496",
+        "2610.28586",
+        "2610.29498"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.12995 is directly about a post-training method beyond standard supervised fine-tuning, proposing CIG-SFT and showing it outperforms standard SFT with especially strong improvements in generalization to challenging evaluation distributions. 2610.11519 proposes Residual Advantage, an RL-with-verifiable-rewards/on-policy distillation post-training method that improves reasoning performance over baselines, making it relevant as an alternative to pure SFT. 2610.15772 introduces RSIPO, an agentic reinforcement-learning post-training framework that outperforms baseline approaches, relevant as a post-training method beyond SFT. 2610.28586 presents Rollout-to-Scorer Distillation for agentic on-policy distillation, a post-training approach beyond supervised fine-tuning that improves over prior OPD methods. 2610.21496 proposes On-Policy Reminder Distillation for coding agents, another post-training/distillation method beyond plain SFT that improves downstream task performance. 2610.29498 presents RoCo-PRM and RoCo-Rethink, using MoE routing signals for process supervision and distillation, relevant as a non-SFT post-training method improving reasoning. 2610.12837 proposes COFFEQA, a few-shot distillation approach for QA that outperforms factual-only distillation baselines and is clearly a post-training alternative beyond standard SFT. 2610.05976 proposes Self-Step Rejection, training a lightweight gate for verifier-like decoding that improves reasoning accuracy without relying on standard SFT alone, relevant as a post-training inference/training method beyond SFT. 2610.00673 studies looped language models with pretraining plus mid-training/continued training rather than post-training alignment methods, so it is less directly relevant than the others but still about improving downstream generalization through architectural/training changes, though not primarily post-training. 2610.31421 analyzes depth growth and looping effects on in-context learning and generalization-like behavior, but it is not really a post-training method and is only weakly related. 2610.11765 evaluates no-thinking behavior and does not propose a post-training method for better generalization, so it is not relevant. 2610.20570 is about safety alignment via SFT and negative DPO results; it is relevant insofar as it compares post-training methods beyond SFT, but it is focused on safety/helpfulness rather than generalization. 2610.22841 analyzes CoT faithfulness across languages, not post-training methods. 2610.27190 studies task composition fragility, not post-training. 2610.30983 evaluates context augmentation methods at inference time, not post-training. 2610.08413 studies latent underspecification signals and clarification gating, not post-training generalization."
+    },
+    {
+      "id": "q093",
+      "type": "topic",
+      "query": {
+        "en": "How do attention heads and internal features support controllable behavior in language models?",
+        "pt": "Como cabeças de atenção e recursos internos sustentam comportamento controlável em modelos de linguagem?"
+      },
+      "relevant": [
+        "2610.08887",
+        "2610.15415",
+        "2610.19231",
+        "2610.21347",
+        "2610.22127",
+        "2610.24906",
+        "2610.27295",
+        "2610.31421",
+        "2610.32281"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.21347 is relevant because it identifies sparse affective attention heads and uses internal attention boosting to causally steer affective-state reasoning behavior.\n2610.22127 is relevant because it localizes interpretable personalized latents and associated MoE experts, then shows causal interventions on them can recover and control personalized behavior.\n2610.32281 is relevant because it studies causally controllable negation representations across languages, including sparse SAE features and activation directions that steer model behavior.\n2610.24906 is relevant because it proposes contextual activation steering to compose multiple fixed steering directions across behaviors and languages while analyzing how internal gates control behavior.\n2610.19231 is relevant because it directly tests whether syntax-specialized attention heads causally influence model syntactic behavior under interventions.\n2610.31421 is relevant because it traces induction attention heads through training and shows these heads support in-context learning behavior in grown and looped models.\n2610.22127 is relevant because it explicitly links internal expert routing/latents to controllable personalization behavior through causal interventions.\n2610.08887 is relevant because it analyzes emotion directions in a speech language model, showing emotion is linearly decodable and partially controllable via activation steering.\n2610.15415 is relevant because it uses activation steering to shift models’ action criterion while preserving sensitivity, demonstrating internal-feature-based control of behavior.\n2610.27295 is relevant because it is a benchmark paper specifically evaluating interpretability-informed fine-grained control and steering methods for LLM behaviors and agents."
+    },
+    {
+      "id": "q094",
+      "type": "topic",
+      "query": {
+        "en": "What methods improve long-context reasoning through memory, compaction, or selective delegation?",
+        "pt": "Quais métodos melhoram o raciocínio em contexto longo por memória, compactação ou delegação seletiva?"
+      },
+      "relevant": [
+        "2610.06830",
+        "2610.17560",
+        "2610.19928",
+        "2610.21165",
+        "2610.24944",
+        "2610.27301"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.19928 is relevant because it proposes MemDuet, a dual-process memory framework explicitly designed to improve long-context reasoning by selective evidence selection and memory updates.\n2610.06830 is relevant because it introduces MemPilot, which optimizes on-demand multimodal memory curation and retrieval to balance performance, cost, and latency for agent memory over long interaction histories.\n2610.17560 is relevant because it proposes EdgeWise, which improves long-horizon agent performance via selective cloud delegation of only critical steps, directly matching the query’s delegation aspect.\n2610.27301 is relevant because it studies context compaction methods and evaluates how sentence/word deletion and compression affect later-question answering, directly addressing compaction for long-context use.\n2610.21165 is relevant because it is a survey of memory-centric compression for LLMs, unifying prompt compression, KV-cache management, retrieval, and agent memory for long-context reasoning.\n2610.24944 is relevant because Épi uses persistent hierarchical memory across sessions to sustain long investigations and improve autonomous research over extended contexts."
+    },
+    {
+      "id": "q095",
+      "type": "topic",
+      "query": {
+        "en": "How can evaluation separate true capability from prompt artifacts and scorer bias?",
+        "pt": "Como a avaliação pode separar capacidade real de artefatos de prompt e viés do avaliador?"
+      },
+      "relevant": [
+        "2610.00054",
+        "2610.02022",
+        "2610.02486",
+        "2610.07109",
+        "2610.09671",
+        "2610.15415",
+        "2610.16870",
+        "2610.17685",
+        "2610.21128",
+        "2610.22894",
+        "2610.27295",
+        "2610.27301",
+        "2610.28066",
+        "2610.29225",
+        "2610.30983",
+        "2610.31678",
+        "2610.32318",
+        "2610.32955"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.31678 is directly about prompt-comparison evaluation being distorted by scorer errors, arguing that overall scorer accuracy can hide prompt-specific bias and that one must validate the exact comparison of prompts.\n2610.22894 is relevant because it argues for competence-based evaluation that tests stable capability across matched answer-preserving presentations, explicitly separating reasoning competence from artifacts of one phrasing.\n2610.02022 is relevant because it shows LLM-based novelty evaluation is highly unstable to prompt design choices, demonstrating how apparent capability assessments can instead reflect prompt artifacts.\n2610.21128 is relevant because it studies when agreement-based, label-free evaluation confuses consistency with correctness, exposing a major evaluation bias where wrong answers can look reliable.\n2610.00054 is relevant because it shows a common LLM-judge readout method introduces systematic position-bias distortion, a concrete scorer-bias issue in evaluation.\n2610.28066 is relevant because it analyzes how different elicitation and readout choices can measure answer habits rather than underlying judgment, helping separate real capability from prompt/readout artifacts.\n2610.07109 is relevant because it proposes distributional aggregation for LLM-as-a-judge and studies protocol instability, addressing evaluator bias and instability rather than model capability alone.\n2610.02486 is relevant because it evaluates typed decision models and shows how training objectives and reward normalization affect calibration and measurement, which matters for separating real capability from evaluation artifacts.\n2610.30983 is relevant because it evaluates inference-time context augmentation methods and shows many apparent gains are undirected perturbations rather than genuine capability improvements.\n2610.27301 is relevant because it demonstrates that scores on the current question do not reliably predict performance on later questions, showing how an evaluation setup can mismeasure the capability one actually cares about.\n2610.09671 is relevant because it introduces a decision-chain benchmark showing that strong local scores can mask failures in composition and propagation, thereby separating superficial benchmark performance from true end-to-end capability.\n2610.15415 is relevant because it uses signal-detection theory to separate sensitivity from criterion, explicitly disentangling true action capability from response bias induced by evaluation framing.\n2610.29225 is relevant because it improves LLM-as-a-judge reliability with prompt-level rubrics and higher human agreement, directly addressing scorer bias in safety evaluation.\n2610.32318 is relevant because it shows that apparent reranking advantages from decision models do not reflect true reranking capability, emphasizing careful evaluation against artifacts of task framing and calibration.\n2610.32955 is relevant because it advocates measuring real ground truth before training and shows how standard stored labels and accuracy can misrepresent practical performance, separating true capability from evaluation artifacts.\n2610.17685 is relevant because it shows action-level safety evaluation misses state-dependent risks, so evaluation must target latent workflow state rather than superficial action cues to measure true capability/safety.\n2610.16870 is relevant because it distinguishes passing tests from satisfying natural-language specifications and shows agents exploit reference-implementation artifacts, highlighting how evaluation can overstate capability.\n2610.27295 is relevant because it introduces a benchmark designed to test whether steering methods truly control behavior while preserving capability, rather than only looking good in simplified artifact-prone settings."
+    },
+    {
+      "id": "q096",
+      "type": "topic",
+      "query": {
+        "en": "How do multilingual and low-resource settings affect reasoning, safety, and faithfulness?",
+        "pt": "Como contextos multilíngues e de poucos recursos afetam raciocínio, segurança e fidelidade?"
+      },
+      "relevant": [
+        "2610.22841",
+        "2610.24288",
+        "2610.29225",
+        "2610.29896"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.22841] is directly about how language resource level affects chain-of-thought faithfulness across multiple languages, finding higher faithfulness in lower-resource languages on knowledge-intensive tasks.\n[2610.29225] is relevant because it studies safety evaluation in bilingual and multi-turn settings and reports that models are especially vulnerable in Chinese and multilingual contexts, bearing directly on multilingual effects on safety.\n[2610.24288] is relevant because it analyzes safety classification for Bangla across native script, romanized, and code-mixed low-resource settings, showing strong degradation of LLM safety behavior in these multilingual/low-resource forms.\n[2610.29896] is relevant because it shows that non-native/erroneous English prompts increase social bias, which is a safety-related effect arising from language variation associated with lower-resource or non-native settings."
+    },
+    {
+      "id": "q097",
+      "type": "topic",
+      "query": {
+        "en": "What benchmarks measure structured decision-making in agents, coding, QA, or domain tasks?",
+        "pt": "Quais benchmarks medem tomada de decisão estruturada em agentes, programação, QA ou tarefas de domínio?"
+      },
+      "relevant": [
+        "2610.07306",
+        "2610.08413",
+        "2610.09671",
+        "2610.12274",
+        "2610.15415",
+        "2610.16859",
+        "2610.16870",
+        "2610.17685",
+        "2610.18269",
+        "2610.20052",
+        "2610.22953",
+        "2610.27295",
+        "2610.28092",
+        "2610.28340"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "Relevant papers are those that introduce or center benchmarks/evaluation frameworks for structured decision-making, multi-step decision chains, or agent behavior in coding, QA, or domain-specific settings. [2610.09671] is directly about InsClaimBench, a benchmark for structured insurance claim adjudication across atomic rules, modules, and payout decisions. [2610.16859] introduces ANCHOR, a benchmark for repository-grounded agentic coding that evaluates hierarchical engineering constraint following and ordered workflows. [2610.16870] introduces SpecGuardBench, a benchmark for whether coding agents can build validation harnesses from natural-language specifications, a structured coding decision task. [2610.17685] introduces LatentRiskBench, a benchmark for enterprise agents where safety depends on latent workflow state, i.e., structured state-dependent decisions. [2610.27295] introduces RealControlBench, a benchmark for fine-grained control of LLMs and agents across tool-use decisions, reasoning, and safety in realistic interactions. [2610.22953] presents controlled evaluation tasks for language-based Go agents, testing recognition and move-evaluation decisions tied to game concepts. [2610.20052] proposes a framework and evaluations for model-dependent ambiguity in QA and Text-to-SQL, including selecting among answering, clarifying, and abstaining, which is structured QA decision-making. [2610.12274] is about training SQL agents in realistic database environments and evaluates interactive benchmark performance for stateful multi-turn database decision-making. [2610.15415] introduces FlipAct, a diagnostic benchmark for when models should act in physical states, explicitly decomposing structured action decisions. [2610.07306] introduces Kurate, a system for structured quality assessment of scientific studies across multiple evidence dimensions, a domain-specific decision framework. [2610.18269] introduces PAINT, a multilingual framework with benchmark-like dataset partitions for structured pain-information extraction decisions in clinical text. [2610.28092] introduces BAIT, a benchmark for detecting cognitive bias triggers in news at article and span levels, a structured domain evaluation task. [2610.28340] introduces DeclineCraft, a benchmark for abstention decisions in RAG QA, jointly measuring retrieval-grounded answering versus abstaining. [2610.08413] contributes a turn-labeled multi-turn benchmark for detecting underspecification and deciding when to clarify or answer in dialogue, a QA-style decision problem.",
+      "revision": {
+        "original": {
+          "en": "What benchmarks measure structured decision-making in agents, coding, QA, or domain tasks?",
+          "pt": "Quais benchmark medem tomada de decisão estruturada em agentes, programação, QA ou tarefas de domínio?"
+        },
+        "reason": "erro de concordância no português ('Quais benchmark')"
+      }
+    },
+    {
+      "id": "q098",
+      "type": "topic",
+      "query": {
+        "en": "How can retrieval-augmented systems decide when to answer, abstain, or clarify?",
+        "pt": "Como sistemas com recuperação podem decidir quando responder, se abster ou pedir esclarecimento?"
+      },
+      "relevant": [
+        "2610.04642",
+        "2610.08413",
+        "2610.20052",
+        "2610.28340"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "The query asks about decision policies in retrieval/context-augmented systems for whether to answer, abstain, or ask clarifying questions. Paper 2610.20052 is directly relevant because it formalizes ambiguity via clarifications and explicitly shows how recovered answer sets enable selection among answering, clarifying, and abstaining. Paper 2610.08413 is relevant because it studies latent signals for unanswerability/underspecification, especially in multi-turn dialogue, and evaluates a gate for clarifying behavior versus answering. Paper 2610.04642 is relevant because it targets retrieval-augmented generation specifically, detecting when responses are not grounded in retrieved context, which is central to deciding whether to answer or abstain. Paper 2610.28340 is directly relevant because it is a RAG abstention benchmark measuring when models should acknowledge insufficient retrieved and parametric knowledge instead of answering."
+    },
+    {
+      "id": "q099",
+      "type": "topic",
+      "query": {
+        "en": "What are reliable ways to evaluate and reduce hallucinations, bias, and unsafe outputs?",
+        "pt": "Quais são formas confiáveis de avaliar e reduzir alucinações, viés e saídas inseguras?"
+      },
+      "relevant": [
+        "2610.00054",
+        "2610.02022",
+        "2610.04642",
+        "2610.08413",
+        "2610.13550",
+        "2610.17685",
+        "2610.20570",
+        "2610.21128",
+        "2610.21347",
+        "2610.24288",
+        "2610.28092",
+        "2610.28340",
+        "2610.29225",
+        "2610.29896",
+        "2610.30983",
+        "2610.31678"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "[2610.04642] is relevant because it proposes and evaluates a generator-independent hidden-state probe for hallucination detection in RAG, directly addressing reliable evaluation of hallucinations.\n[2610.31678] is relevant because it studies how to reliably evaluate unsupported factual claims in interactive LLM settings and shows why overall scorer accuracy can mislead hallucination-related comparisons.\n[2610.28340] is relevant because it introduces a benchmark for abstention in RAG where models should avoid unsupported answers, providing a direct way to evaluate and improve hallucination-like failure to abstain.\n[2610.08413] is relevant because it evaluates latent signals for knowing when a question is underspecified and when models should clarify or abstain rather than hallucinate.\n[2610.30983] is relevant because it audits inference-time context augmentation methods meant to reduce failures to use context, showing when apparent hallucination reductions are unreliable.\n[2610.20570] is relevant because it presents reproducible safety alignment for a Portuguese LLM, analyzes negative DPO results, and discusses pitfalls in LLM-judge safety evaluation.\n[2610.29225] is relevant because it introduces a rubric-based safety benchmark and judging framework that improves the reliability and explainability of unsafe-output evaluation.\n[2610.24288] is relevant because it provides a benchmark and classifier for safety detection in Bangla across scripts and code-mixing, directly targeting reliable unsafe-output evaluation and reduction.\n[2610.17685] is relevant because it introduces a benchmark for state-dependent enterprise-agent safety risks, improving evaluation of unsafe outputs beyond action-local checks.\n[2610.21347] is relevant because it proposes an intervention that improves affective-state reasoning using internal attention signals, relevant to reducing harmful conversational failures tied to emotional misunderstanding.\n[2610.29896] is relevant because it studies how grammatical errors increase social bias in LLMs and shows that fine-tuning on erroneous texts can reduce this bias increase.\n[2610.13550] is relevant because it introduces a benchmark to distinguish beneficial personalization from stereotyping in speech LLMs, helping evaluate and mitigate bias.\n[2610.28092] is relevant because it presents a benchmark for detecting cognitive bias triggers in news and shows where LLMs fail, directly addressing evaluation of biased/manipulative outputs.\n[2610.02022] is relevant because it demonstrates instability in LLM-based novelty evaluation, a cautionary result about unreliable automatic evaluation that is pertinent when assessing harmful or low-quality outputs.\n[2610.21128] is relevant because it shows that label-free agreement-based evaluation can be confidently wrong, which is important for reliable evaluation of hallucinations, bias, or unsafe outputs when labels are scarce.\n[2610.00054] is relevant because it identifies a systematic artifact in reading LLM judges without generation, improving reliability of automatic evaluation setups often used in safety and hallucination assessment."
+    },
+    {
+      "id": "q100",
+      "type": "topic",
+      "query": {
+        "en": "How do alternative architectures like byte, pixel, diffusion, or looped models change learning?",
+        "pt": "Como arquiteturas alternativas como byte, pixel, diffusion ou modelos em loop mudam o aprendizado?"
+      },
+      "relevant": [
+        "2610.00673",
+        "2610.01016",
+        "2610.01177",
+        "2610.05978",
+        "2610.11790",
+        "2610.26181",
+        "2610.31421"
+      ],
+      "source": null,
+      "evidence": null,
+      "needs_review": false,
+      "judge_reasoning": "2610.26181 is relevant because it studies pixel-based language models and shows how their pixel-space predictions capture different visual/orthographic processing biases in reading modeling.\n2610.31421 is relevant because it analyzes how looped and depth-grown language models affect in-context learning acquisition, retention, and mechanisms.\n2610.11790 is relevant because it investigates byte-level patching architectures (BLT) and shows how their entropy-based compute allocation changes what the model learns to compute.\n2610.01016 is relevant because it studies diffusion language models and how alternative text embedding spaces affect latent diffusibility and generative learning.\n2610.05978 is relevant because it directly studies byte language models at scale, asking whether they can learn token-like abstractions and how they allocate information differently from subword models.\n2610.00673 is relevant because it gives controlled evidence that looped language models change learning and reasoning behavior relative to dense baselines under matched training conditions.\n2610.01177 is relevant because it analyzes diffusion language models’ generation dynamics across denoising steps, illuminating how this architecture uses inputs over time."
+    }
+  ]
+}
