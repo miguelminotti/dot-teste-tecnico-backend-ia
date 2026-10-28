@@ -1,5 +1,7 @@
 """Interface de linha de comando: lê as perguntas do terminal e imprime as respostas."""
 
+import io
+import sys
 from collections.abc import Callable
 
 # Palavras que encerram a conversa, comparadas sem diferenciar maiúsculas.
@@ -35,7 +37,20 @@ def run_chat(
 
 
 def main() -> None:
+    _use_utf8_stdio()
     run_chat(_placeholder_answer)
+
+
+def _use_utf8_stdio() -> None:
+    """Força UTF-8 na entrada e na saída do terminal.
+
+    Com entrada ou saída redirecionada (pipe, arquivo), o Python no Windows usa a página de código do
+    sistema (cp1252), e "Olá" chegaria ao modelo como "OlÃ¡". No console interativo já é UTF-8.
+    """
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        # O `isinstance` deixa de fora streams trocados por outro objeto (captura de testes, por exemplo).
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(encoding="utf-8")
 
 
 def _placeholder_answer(question: str) -> str:

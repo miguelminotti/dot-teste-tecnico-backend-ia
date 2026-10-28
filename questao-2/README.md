@@ -27,7 +27,7 @@ Conversar com o chatbot (para sair, `sair` ou Ctrl+C):
 uv run chatbot
 ```
 
-Os comandos de qualidade (ruff, mypy) e as convenções do código estão no [README da raiz](../README.md).
+Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estão no [README da raiz](../README.md). O que os testes protegem e os bugs encontrados estão em [`docs/qualidade.md`](docs/qualidade.md).
 
 ## Decisões
 
