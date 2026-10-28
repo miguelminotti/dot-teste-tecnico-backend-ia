@@ -7,11 +7,11 @@ Chatbot que responde perguntas sobre programação em Python, com LangChain e um
 | Requisito do enunciado | Status |
 | --- | --- |
 | Receber perguntas do usuário por input de texto | linha de comando (`uv run chatbot`) |
-| Usar o LangChain para gerenciar a conversa e integrar com o LLM | prompt, modelo e extração do texto encadeados com LCEL, com o histórico da conversa e, opcional, a busca na documentação oficial |
+| Usar o LangChain para gerenciar a conversa e integrar com o LLM | prompt, modelo e extração do texto encadeados com LCEL, com o histórico da conversa e a busca na documentação oficial |
 | Responder com um modelo da OpenAI (como o GPT-4) | `gpt-5.4-mini` com busca na documentação oficial, escolhido pelas avaliações ([ADR 0002](docs/adr/0002-busca-na-documentacao-com-gpt-5-4-mini.md)); configurável |
 | Configuração da API da OpenAI | `.env` com a chave, conferida na subida |
-| Exemplo "Como criar uma lista em Python?" com explicação detalhada | pendente |
-| Exemplos de perguntas e respostas | pendente |
+| Exemplo "Como criar uma lista em Python?" com explicação detalhada | resposta real da CLI em [`docs/exemplos.md`](docs/exemplos.md#como-criar-uma-lista-em-python-o-exemplo-do-enunciado), com a pergunta seguinte usando o histórico |
+| Exemplos de perguntas e respostas | [`docs/exemplos.md`](docs/exemplos.md): recurso recente com busca e fontes, premissa falsa, fora do escopo e o caso de fronteira do Python 3.14; o dataset da avaliação tem mais 15 conversas com os pontos-chave esperados |
 
 ## Como rodar
 
@@ -23,7 +23,7 @@ uv sync
 
 Copie o `.env.example` para `.env` e preencha `OPENAI_API_KEY` e, para registrar os turnos no LangSmith, `LANGSMITH_API_KEY`. Sem chave do LangSmith, use `LANGSMITH_TRACING=false`.
 
-Conversar com o chatbot (para sair, `sair` ou Ctrl+C):
+Conversar com o chatbot (para sair, `sair` ou Ctrl+C); conversas de exemplo estão em [`docs/exemplos.md`](docs/exemplos.md):
 
 ```bash
 uv run --env-file .env chatbot
