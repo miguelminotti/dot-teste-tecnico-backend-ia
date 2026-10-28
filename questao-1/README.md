@@ -13,6 +13,19 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 | Armazenamento em SQLite | repositório pronto e testado |
 | Testes unitários dos endpoints | `tests/api/`, de ponta a ponta com SQLite real |
 
+## Além do enunciado
+
+O enunciado pede cadastro e busca. Os itens abaixo foram acrescentados de propósito. Num time, cada um passaria antes pelo produto; aqui, sem a quem perguntar, a escolha foi mostrar como seriam modelados e deixar cada um isolado, para sair sem tocar o resto.
+
+- **Estado de publicação (`is_published`).** Editoras e bibliotecas pré-cadastram livros antes do lançamento, então a data de publicação pode estar no futuro e a pergunta "já saiu?" passa a fazer sentido. A resposta é derivada da data, nunca guardada, para não existir uma flag discordando dela. O "hoje" usado na comparação é o do fuso da biblioteca, porque em UTC um lançamento de 28/10 apareceria publicado às 21h de 27/10 em São Paulo. Para tirar: o value object, o serviço e o DTO de saída. ([ADR 0003](docs/adr/0003-datas-e-estado-de-publicacao.md))
+- **Busca sem caixa e sem acento.** O enunciado pede consulta por título ou autor, mas o `LIKE` do SQLite não acha "José" buscando "jose" nem "Érico" buscando "érico". Em português, sem isso, boa parte dos nomes simplesmente não aparece. Para tirar: as duas colunas normalizadas e a função de normalização do repositório. ([ADR 0005](docs/adr/0005-busca-sem-caixa-e-sem-acento.md))
+- **Paginação obrigatória.** Uma lista sem limite cresce junto com o acervo até a resposta ficar lenta ou cair. A resposta diz se há próxima página em vez de trazer o total, porque contar na busca por trecho percorreria a tabela de novo a cada página. ([ADR 0006](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md))
+- **Validação estrita na borda.** No modo padrão, o pydantic aceita o número `0` como data (vira 01/01/1970) e ignora campos desconhecidos, então o cliente acharia que definiu o `id`. Por isso a data só entra como `AAAA-MM-DD`, campo desconhecido é erro, os textos têm teto de tamanho e texto sem nenhuma letra ou número (só espaços ou caracteres invisíveis) é recusado. ([ADR 0002](docs/adr/0002-entidade-valida-com-identidade-propria.md) e [ADR 0006](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md))
+- **Rate limiting por IP.** O enunciado não pede autenticação, e a API roda sozinha com `uv run`, sem proxy na frente. Limitar requisições por cliente é a proteção mínima contra um cliente em laço. A biblioteca candidata (`fastapi-limiter`) foi testada e descartada: o limite saía global e confiava num cabeçalho que qualquer cliente forja. Para tirar: a dependência do router e o módulo do limitador. ([ADR 0007](docs/adr/0007-rate-limiting-proprio-em-memoria.md))
+- **Camadas (DDD enxuto).** Para dois endpoints, rotas acessando o banco direto bastariam. As camadas existem para que as regras sejam testadas sem banco nem servidor e para que cada item desta lista saia sem mexer nos outros. ([ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md))
+
+Interpretação do enunciado, não acréscimo: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
+
 ## Como rodar
 
 Pré-requisito: [uv](https://docs.astral.sh/uv/). O uv baixa o Python 3.12 sozinho se ele não estiver instalado.
@@ -117,16 +130,7 @@ O porquê de cada decisão, com as alternativas descartadas, está nas [ADRs des
 6. [Contrato HTTP com paginação obrigatória e validação estrita na borda](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md)
 7. [Rate limiting próprio, por IP, em janela fixa e em memória](docs/adr/0007-rate-limiting-proprio-em-memoria.md)
 
-### Além do enunciado
-
-O enunciado pede cadastro e busca. Estes itens foram acrescentados de propósito, cada um isolado para sair sem tocar o resto:
-
-- **Estado de publicação** (`is_published`), derivado da data, com o "hoje" no fuso da biblioteca: permite pré-cadastrar lançamentos ([ADR 0003](docs/adr/0003-datas-e-estado-de-publicacao.md)).
-- **Busca sem caixa e sem acento**: o `LIKE` do SQLite não encontraria "José" buscando "jose" ([ADR 0005](docs/adr/0005-busca-sem-caixa-e-sem-acento.md)).
-- **Paginação obrigatória**: nenhuma busca devolve o acervo inteiro ([ADR 0006](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md)).
-- **Rate limiting**: a única proteção de uma API sem autenticação e sem proxy na frente ([ADR 0007](docs/adr/0007-rate-limiting-proprio-em-memoria.md)).
-
-Decisão de produto: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
+O que destas decisões vai além do enunciado, e por quê, está em [Além do enunciado](#além-do-enunciado).
 
 ## Testes
 
