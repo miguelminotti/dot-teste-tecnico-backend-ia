@@ -10,7 +10,7 @@ Com `OPENAI_API_KEY` e `LANGSMITH_API_KEY` no `.env`, na pasta da questão:
 uv run --env-file .env chatbot-eval
 ```
 
-O comando envia o dataset ao LangSmith (se esta versão ainda não estiver lá), faz o tutor responder cada conversa com o modelo de `CHATBOT_MODEL`, roda os avaliadores e imprime o link do experimento. O código está em `src/chatbot/evaluation/`.
+As perguntas do Python 3.14 pedem esse Python instalado (`uv python install 3.14`), porque os snippets rodam na versão de cada pergunta. O comando envia o dataset ao LangSmith (se esta versão ainda não estiver lá), faz o tutor responder cada conversa com o modelo de `CHATBOT_MODEL`, roda os avaliadores e imprime o link do experimento. O código está em `src/chatbot/evaluation/`.
 
 Os braços de uma comparação mudam só as variáveis do chatbot, na linha de comando. O experimento da busca na documentação rodou assim:
 
@@ -22,7 +22,7 @@ CHATBOT_MODEL=gpt-5.4-mini CHATBOT_DOCS_SEARCH=true uv run --env-file .env chatb
 
 ## Dataset
 
-Fica em [`evals/dataset.json`](../evals/dataset.json), versionado junto com o código. O repositório é a fonte da verdade porque uma mudança no dataset passa por revisão no diff, como o código; editar direto no LangSmith deixaria o dataset mudar sem rastro no histórico do projeto. No LangSmith, o nome do dataset leva o hash do arquivo: mudar o arquivo cria um dataset novo, e cada experimento fica ligado à versão exata em que rodou.
+Fica em [`evals/dataset.json`](../evals/dataset.json), versionado junto com o código. O repositório é a fonte da verdade porque uma mudança no dataset passa por revisão no diff, como o código; editar direto no LangSmith deixaria o dataset mudar sem rastro no histórico do projeto. No LangSmith, o nome do dataset leva o hash do arquivo, com o final de linha normalizado: mudar o arquivo cria um dataset novo, e cada experimento fica ligado à versão exata em que rodou. Os experimentos registrados abaixo rodaram em `dot-questao-2-a70fadc0`, com o hash do arquivo com CRLF do checkout no Windows; com a normalização, o mesmo conteúdo passa a se chamar `dot-questao-2-352e255e`, e o próximo experimento o cria.
 
 Cada exemplo é uma **conversa**: uma lista de turnos, cada um com a pergunta e os **pontos-chave** que a resposta precisa cobrir. Uma pergunta solta é uma conversa de um turno. Os pontos-chave ficam no lugar de uma resposta completa de referência porque uma pergunta de programação tem muitas respostas certas, e um juiz que compara com um texto de referência penaliza a resposta correta escrita de outro jeito.
 
@@ -90,10 +90,11 @@ A taxa é lida junto com o custo: o desconto do token cacheado varia entre model
 
 ### Execução dos snippets
 
-- O código vem do modelo e roda nesta máquina, então o processo do snippet é fechado: Python fora de qualquer ambiente virtual (sem as dependências do chatbot), modo isolado (`-I`), diretório temporário, sem entrada, com tempo limite de 10 segundos e com um ambiente que só tem o necessário para o Python subir, sem as chaves da OpenAI e do LangSmith. As perguntas são do dataset, escritas por nós; se o dataset passar a ter entradas de fora, a execução vai para um container.
+- O código vem do modelo e roda nesta máquina, então o processo do snippet é restrito: Python fora de qualquer ambiente virtual (sem as dependências do chatbot), modo isolado (`-I`), diretório temporário, sem entrada, com tempo limite de 10 segundos e com um ambiente que só tem o necessário para o Python subir e achar a pasta do usuário, sem as chaves da OpenAI e do LangSmith. Restrito não é isolado: o snippet ainda lê o disco (inclusive o `.env`) e acessa a rede. O risco é baixo porque as perguntas são do dataset, escritas por nós, e as páginas que a busca traz são só de domínios oficiais; se o dataset passar a ter entradas de fora, a execução vai para um container sem rede.
 - Snippet que importa pacote fora da biblioteca padrão (o Pydantic, por exemplo) não é executado e é contado à parte, sem contar como falha. Módulo da biblioteca padrão que não existe na versão do exemplo (o `cgi`, removido no 3.13) é falha.
+- Os blocos podem vir recuados (dentro de um item de lista) e marcados como ` ```python `, ` ```py ` ou ` ```python3 `, em qualquer caixa; o recuo comum sai antes de rodar.
 - A biblioteca padrão de referência é a do Python que roda a avaliação (3.12). Um módulo que só existe numa versão mais nova, ou um nome de módulo inventado pelo modelo, cai como dependência externa e é pulado, em vez de contar como falha. A correção técnica, julgada pelo juiz, cobre esse caso.
-- **Os blocos de uma resposta rodam em sequência,** como o aluno que acompanha a explicação: cada bloco roda depois dos anteriores da mesma resposta que passaram, então a lista criada num bloco existe no seguinte. Na primeira linha de base, com cada bloco rodando sozinho, a maior parte das falhas era `NameError` de código certo que só continuava o anterior. Um bloco que falhou fica de fora do que vem depois, para que um erro não derrube os blocos certos seguintes. Um bloco pulado por dependência externa fica na sequência, para que o bloco seguinte, que usa o que ele importou, seja pulado também em vez de falhar com `NameError`. Blocos de turnos diferentes não se juntam: cada resposta é avaliada pelo que ela mesma mostra.
+- **Os blocos de uma resposta rodam em sequência,** como o aluno que acompanha a explicação: cada bloco roda depois dos anteriores da mesma resposta que passaram, então a lista criada num bloco existe no seguinte. Na primeira linha de base, com cada bloco rodando sozinho, a maior parte das falhas era `NameError` de código certo que só continuava o anterior. Um bloco que falhou fica de fora do que vem depois, para que um erro não derrube os blocos certos seguintes. Um bloco pulado por dependência externa também fica de fora, senão o `import` dele pularia todos os blocos seguintes, inclusive os independentes; o bloco que depois falha com `NameError`, por usar o que o bloco pulado importou, é pulado também. Blocos de turnos diferentes não se juntam: cada resposta é avaliada pelo que ela mesma mostra.
 - Snippet que mostra um erro de propósito (o `AttributeError` de chamar `push`) e snippet que lê do teclado com `input()` contam como falha.
 
 ## Resultados

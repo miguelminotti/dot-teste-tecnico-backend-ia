@@ -32,8 +32,10 @@ from chatbot.evaluation.usage import TurnUsage, cache_hit_rate, measure_turn, pe
 from chatbot.settings import Settings
 from chatbot.tutor import create_tutor
 
-DATASET_PATH = Path("evals/dataset.json")
-# Mais forte que o modelo do chatbot e de outra geração, para não favorecer o próprio estilo.
+# Relativo ao projeto, e não à pasta de onde o comando roda.
+DATASET_PATH = Path(__file__).resolve().parents[3] / "evals" / "dataset.json"
+# Mais forte que o modelo do chatbot e diferente dele, para não favorecer o próprio estilo. Com o
+# gpt-5.4-mini no chatbot, os dois são da mesma família: o risco de autopreferência fica para a calibração.
 DEFAULT_JUDGE_MODEL = "gpt-5.4"
 # Conversas avaliadas ao mesmo tempo; os turnos de uma conversa são sempre em sequência.
 MAX_CONCURRENCY = 4
@@ -46,7 +48,7 @@ def sync_dataset(client: Client, path: Path) -> str:
     do dataset em que rodou, sem sobrescrever a anterior.
     """
     raw = path.read_bytes()
-    name = f"dot-questao-2-{hashlib.sha256(raw).hexdigest()[:8]}"
+    name = dataset_name(raw)
     if client.has_dataset(dataset_name=name):
         return name
     conversations = json.loads(raw)
@@ -63,11 +65,21 @@ def sync_dataset(client: Client, path: Path) -> str:
                 for conversation in conversations
             ],
         )
-    except Exception:
-        # Um dataset criado sem exemplos seria reaproveitado na próxima vez, vazio.
+    except BaseException:
+        # Um dataset criado sem exemplos seria reaproveitado na próxima vez, vazio. `BaseException` para
+        # pegar também o Ctrl+C no meio do envio.
         client.delete_dataset(dataset_id=dataset.id)
         raise
     return name
+
+
+def dataset_name(raw: bytes) -> str:
+    """Nome do dataset no LangSmith, com o hash do conteúdo do arquivo.
+
+    O final de linha é normalizado antes do hash: o git troca LF por CRLF no checkout do Windows, e o
+    mesmo dataset viraria dois, um por sistema operacional.
+    """
+    return f"dot-questao-2-{hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest()[:8]}"
 
 
 class _ResponseCollector(BaseCallbackHandler):
@@ -212,6 +224,9 @@ def make_usage_summary(model: str) -> Callable[[list[Run], list[Example]], Evalu
     def summarize_usage(runs: list[Run], examples: list[Example]) -> EvaluationResults:
         """Percentis sobre todos os turnos do experimento, e não sobre as médias de cada conversa."""
         turns = [TurnUsage(**turn) for run in runs if run.outputs for turn in run.outputs["turns"]]
+        if not turns:
+            # Toda conversa deu erro: não há o que resumir, e o erro de cada uma está no experimento.
+            return EvaluationResults(results=[])
         costs = [_per_thousand(turn_cost(turn, price)) for turn in turns]
         latencies = [turn.latency_seconds for turn in turns]
         return EvaluationResults(

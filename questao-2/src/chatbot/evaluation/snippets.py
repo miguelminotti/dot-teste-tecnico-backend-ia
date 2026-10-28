@@ -6,19 +6,22 @@ import re
 import subprocess
 import sys
 import tempfile
+import textwrap
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-# Bloco ```python (ou ```py). Blocos de outras linguagens, de saída ou sem linguagem não são executados.
-_PYTHON_BLOCK = re.compile(r"```(?:python|py)[ \t]*\r?\n(.*?)```", re.DOTALL)
+# Bloco ```python (ou ```py, ```python3, em qualquer caixa). Blocos de outras linguagens, de saída ou sem
+# linguagem não são executados.
+_PYTHON_BLOCK = re.compile(r"```(?:python3?|py)[ \t]*\r?\n(.*?)```", re.DOTALL | re.IGNORECASE)
 _MISSING_MODULE = re.compile(r"ModuleNotFoundError: No module named '([\w.]+)'")
 
 TIMEOUT_SECONDS = 10.0
 
 # Único ambiente que o snippet recebe. O código vem do modelo: herdar o ambiente inteiro entregaria a
-# ele as chaves da OpenAI e do LangSmith. SYSTEMROOT e TEMP são o mínimo para o Python subir no Windows.
-_INHERITED_ENV = ("PATH", "SYSTEMROOT", "TEMP", "TMP")
+# ele as chaves da OpenAI e do LangSmith. SYSTEMROOT e TEMP são o mínimo para o Python subir no Windows;
+# HOME e USERPROFILE dão a pasta do usuário ao `Path.home()`, que falharia sem elas.
+_INHERITED_ENV = ("PATH", "SYSTEMROOT", "TEMP", "TMP", "HOME", "USERPROFILE")
 
 
 class SnippetStatus(StrEnum):
@@ -36,25 +39,33 @@ class SnippetResult:
 
 
 def extract_python_blocks(answer: str) -> list[str]:
-    """Blocos de código Python da resposta, na ordem em que aparecem."""
-    return [block for block in _PYTHON_BLOCK.findall(answer) if block.strip()]
+    """Blocos de código Python da resposta, na ordem em que aparecem.
+
+    O recuo comum sai: um bloco dentro de um item de lista vem recuado pelo markdown, não pelo código.
+    """
+    return [textwrap.dedent(block) for block in _PYTHON_BLOCK.findall(answer) if block.strip()]
 
 
 def run_answer_snippets(answer: str, python_version: str, *, timeout: float = TIMEOUT_SECONDS) -> list[SnippetResult]:
     """Roda os blocos da resposta em sequência, como o aluno que acompanha a explicação.
 
-    Cada bloco roda depois dos anteriores que não falharam: a lista criada num bloco existe no seguinte.
+    Cada bloco roda depois dos anteriores que passaram: a lista criada num bloco existe no seguinte.
     Rodar cada bloco sozinho contava como erro (`NameError`) o código certo que só continua o anterior.
     Um bloco que falhou fica de fora do que vem depois, para que um erro (até um mostrado de propósito)
-    não derrube os blocos seguintes. Um bloco pulado por dependência externa fica dentro: o que vem
-    depois dele esbarra na mesma dependência e é pulado também, em vez de falhar com `NameError`.
+    não derrube os blocos seguintes. Um bloco pulado por dependência externa também fica de fora, senão
+    o `import` dele pularia todos os seguintes; o bloco que depois falha com `NameError`, por usar o que
+    o bloco pulado definiu, é pulado também.
     """
     results = []
     context: list[str] = []
+    skipped_before = False
     for block in extract_python_blocks(answer):
         result = run_snippet("\n".join([*context, block]), python_version, timeout=timeout)
-        if result.status is not SnippetStatus.FAILED:
+        if result.status is SnippetStatus.FAILED and skipped_before and result.detail.startswith("NameError"):
+            result = SnippetResult(SnippetStatus.SKIPPED, "depende de um bloco pulado")
+        if result.status is SnippetStatus.PASSED:
             context.append(block)
+        skipped_before = skipped_before or result.status is SnippetStatus.SKIPPED
         results.append(result)
     return results
 

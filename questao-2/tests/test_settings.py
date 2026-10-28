@@ -16,3 +16,14 @@ def test_docs_search_flag_with_unknown_value_is_an_error() -> None:
     # comparação concluiria que a busca não muda nada.
     with pytest.raises(ValueError, match="CHATBOT_DOCS_SEARCH"):
         Settings.from_env({"OPENAI_API_KEY": "chave", "CHATBOT_DOCS_SEARCH": "ture"})
+
+
+@pytest.mark.parametrize("model", ["gpt-4.1-mini", "gpt-4.1-nano"])
+def test_model_that_rejects_the_docs_search_is_an_error_at_startup(model: str) -> None:
+    # A API recusa a busca restrita nesses modelos, e a CLI respondia "Tente de novo" a toda pergunta,
+    # sem que tentar de novo resolvesse. Com a busca desligada, o modelo funciona.
+    with pytest.raises(ValueError, match="CHATBOT_DOCS_SEARCH=false"):
+        Settings.from_env({"OPENAI_API_KEY": "chave", "CHATBOT_MODEL": model})
+
+    settings = Settings.from_env({"OPENAI_API_KEY": "chave", "CHATBOT_MODEL": model, "CHATBOT_DOCS_SEARCH": "false"})
+    assert settings.docs_search is False

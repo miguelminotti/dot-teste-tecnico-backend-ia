@@ -17,3 +17,7 @@ DOCS_DOMAINS = (
 # O filtro de domínios não é aceito em todo modelo: o gpt-4.1-mini recusa a chamada (400), e o
 # gpt-5.4-mini aceita. A busca roda nos servidores da OpenAI, dentro da mesma chamada ao modelo.
 WEB_SEARCH_TOOL: dict[str, Any] = {"type": "web_search", "filters": {"allowed_domains": list(DOCS_DOMAINS)}}
+
+# Modelos em que a API recusa a busca restrita (400): o gpt-4.1-mini não aceita o filtro, e o
+# gpt-4.1-nano nem a ferramenta. Conferidos em 2026-10-28; a configuração os barra na subida.
+MODELS_WITHOUT_DOCS_SEARCH = frozenset({"gpt-4.1-mini", "gpt-4.1-nano"})

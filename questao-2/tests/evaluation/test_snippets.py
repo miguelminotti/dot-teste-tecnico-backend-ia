@@ -108,3 +108,35 @@ def test_block_that_needs_a_skipped_dependency_is_skipped_too() -> None:
         SnippetStatus.SKIPPED,
         SnippetStatus.SKIPPED,
     ]
+
+
+def test_language_tag_ignores_case_and_accepts_python3() -> None:
+    # Um bloco marcado ```Python ou ```python3 é código Python; ficava fora da métrica sem aviso.
+    answer = "```Python\na = 1\n```\n```python3\nb = 2\n```"
+
+    assert extract_python_blocks(answer) == ["a = 1\n", "b = 2\n"]
+
+
+def test_block_indented_inside_a_list_item_runs() -> None:
+    # Num item de lista numerada, o bloco vem recuado; o recuo é do markdown, não do código, e o código
+    # certo falhava com `IndentationError`.
+    answer = "1. Crie a lista:\n   ```python\n   itens = [1, 2]\n   print(itens)\n   ```\n"
+
+    assert [result.status for result in run_answer_snippets(answer, "3.12")] == [SnippetStatus.PASSED]
+
+
+def test_independent_block_after_a_skipped_one_still_runs() -> None:
+    # Um bloco pulado por dependência externa levava junto todos os seguintes, porque o `import` dele
+    # vinha antes de cada um: o erro do bloco independente sumia da métrica.
+    answer = "```python\nimport requests\n```\nOutra coisa:\n```python\nprint(1 / 0)\n```"
+
+    results = run_answer_snippets(answer, "3.12")
+
+    assert [result.status for result in results] == [SnippetStatus.SKIPPED, SnippetStatus.FAILED]
+    assert results[1].detail == "ZeroDivisionError: division by zero"
+
+
+def test_snippet_can_find_the_home_directory() -> None:
+    # Sem a variável da pasta do usuário, `Path.home()` falha, e um exemplo certo de leitura de arquivo
+    # contaria como erro. A pasta do usuário não é segredo; as chaves continuam de fora.
+    assert run_snippet("from pathlib import Path\nprint(Path.home())", "3.12").status is SnippetStatus.PASSED

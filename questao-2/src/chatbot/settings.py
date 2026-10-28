@@ -4,6 +4,8 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from chatbot.docs_search import MODELS_WITHOUT_DOCS_SEARCH
+
 # Valores aceitos para ligar e desligar a busca; vazio fica com o padrão.
 _FLAG_VALUES = {"true": True, "false": False}
 
@@ -28,10 +30,14 @@ class Settings:
         if not environ.get("OPENAI_API_KEY", "").strip():
             raise ValueError("OPENAI_API_KEY não definida: copie o .env.example para .env e preencha a chave")
         model = environ.get("CHATBOT_MODEL", "").strip() or cls().model
-        docs_search = environ.get("CHATBOT_DOCS_SEARCH", "").strip().casefold()
-        if not docs_search:
-            return cls(model=model)
-        if docs_search not in _FLAG_VALUES:
+        flag = environ.get("CHATBOT_DOCS_SEARCH", "").strip().casefold()
+        if flag and flag not in _FLAG_VALUES:
             # Um valor desconhecido lido como desligado rodaria sem a busca sem ninguém perceber.
-            raise ValueError(f"CHATBOT_DOCS_SEARCH deve ser true ou false, e não {docs_search!r}")
-        return cls(model=model, docs_search=_FLAG_VALUES[docs_search])
+            raise ValueError(f"CHATBOT_DOCS_SEARCH deve ser true ou false, e não {flag!r}")
+        docs_search = _FLAG_VALUES[flag] if flag else cls().docs_search
+        if docs_search and model in MODELS_WITHOUT_DOCS_SEARCH:
+            # Sem esta conferência, a API recusaria toda pergunta, e a CLI pediria para tentar de novo.
+            raise ValueError(
+                f"o {model} não aceita a busca na documentação; use CHATBOT_DOCS_SEARCH=false ou outro modelo"
+            )
+        return cls(model=model, docs_search=docs_search)

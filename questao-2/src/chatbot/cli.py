@@ -1,8 +1,9 @@
 """Interface de linha de comando: lê as perguntas do terminal e imprime as respostas."""
 
 import io
+import os
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, MutableMapping
 
 from chatbot.settings import Settings
 from chatbot.tutor import AnswerUnavailableError, create_tutor
@@ -45,6 +46,8 @@ def run_chat(
 
 def main() -> None:
     use_utf8_stdio()
+    if disable_tracing_without_key():
+        print("LangSmith desligado: LANGSMITH_API_KEY não definida.", file=sys.stderr)
     try:
         settings = Settings.from_env()
     except ValueError as error:
@@ -52,6 +55,19 @@ def main() -> None:
         sys.exit(f"Erro de configuração: {error}")
     tutor = create_tutor(settings)
     run_chat(tutor.answer)
+
+
+def disable_tracing_without_key(environ: MutableMapping[str, str] = os.environ) -> bool:
+    """Desliga o tracing do LangSmith quando falta a chave dele; devolve se desligou.
+
+    Com o tracing ligado e sem chave, a biblioteca do LangSmith imprime avisos e erros 401 a cada turno,
+    no meio da conversa. O chatbot funciona sem o LangSmith, então a falta da chave não é erro.
+    """
+    tracing = environ.get("LANGSMITH_TRACING", "").strip().casefold() == "true"
+    if tracing and not environ.get("LANGSMITH_API_KEY", "").strip():
+        environ["LANGSMITH_TRACING"] = "false"
+        return True
+    return False
 
 
 def use_utf8_stdio() -> None:

@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 
+from chatbot.cli import disable_tracing_without_key
+
 # Roda o laço da conversa com a configuração de terminal do `main`, mas com uma resposta fixa no lugar
 # do modelo: o teste não depende de chave nem de rede.
 _CHAT_WITH_ECHO = (
@@ -30,3 +32,19 @@ def test_piped_accented_question_reaches_the_answer_intact() -> None:
     output = result.stdout.decode("utf-8")
     assert "recebi a pergunta: Olá, é possível?" in output
     assert "Até logo!" in output
+
+
+def test_tracing_without_langsmith_key_is_turned_off() -> None:
+    # O .env.example vem com o tracing ligado. Sem a chave do LangSmith, cada turno despejava avisos e
+    # erros 401 no meio da conversa; quem só quer conversar não precisa do LangSmith.
+    environ = {"LANGSMITH_TRACING": "true", "LANGSMITH_API_KEY": ""}
+
+    assert disable_tracing_without_key(environ) is True
+    assert environ["LANGSMITH_TRACING"] == "false"
+
+
+def test_tracing_with_langsmith_key_is_kept() -> None:
+    environ = {"LANGSMITH_TRACING": "true", "LANGSMITH_API_KEY": "chave"}
+
+    assert disable_tracing_without_key(environ) is False
+    assert environ["LANGSMITH_TRACING"] == "true"

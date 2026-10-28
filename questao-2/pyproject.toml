@@ -10,7 +10,9 @@ requires-python = ">=3.12"
 dependencies = [
     "langchain-core>=1.7.0",
     "langchain-openai>=1.7.3",
+    "langsmith>=0.14.14",
     "openai>=3.40.0",
+    "pydantic>=2.14.1",
 ]
 
 [project.scripts]
