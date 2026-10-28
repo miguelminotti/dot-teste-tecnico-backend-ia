@@ -14,5 +14,5 @@ Cada bug tem um teste que o reproduziu antes da correção.
 
 - **Bug:** com a pergunta vinda de um pipe ou de um arquivo, "Olá, é?" chegava ao chatbot como "OlÃ¡, Ã©?", e as respostas saíam com os acentos trocados.
 - **Como apareceu:** testando a CLI na mão com `printf ... | uv run chatbot`. Com stdin e stdout redirecionados, o Python no Windows usa a página de código do sistema (cp1252) em vez de UTF-8. No console interativo não acontece, porque ali o Python usa a API de console do Windows, que já é Unicode.
-- **Teste:** `test_piped_accented_question_reaches_the_answer_intact`, que roda o processo de verdade com `PYTHONIOENCODING=cp1252` para reproduzir o padrão do Windows em qualquer sistema.
-- **Correção:** o `main` reconfigura stdin, stdout e stderr para UTF-8 antes de começar a conversa.
+- **Teste:** `test_piped_accented_question_reaches_the_answer_intact`, que roda o processo de verdade com `PYTHONIOENCODING=cp1252` para reproduzir o padrão do Windows em qualquer sistema. Ele roda o laço da conversa com uma resposta fixa no lugar do modelo, para não depender de chave nem de rede; por isso confere o `use_utf8_stdio`, e não a chamada a ele dentro do `main`.
+- **Correção:** o `main` reconfigura stdin, stdout e stderr para UTF-8 (`use_utf8_stdio`) antes de começar a conversa.

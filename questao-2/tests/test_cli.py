@@ -2,6 +2,14 @@ import os
 import subprocess
 import sys
 
+# Roda o laço da conversa com a configuração de terminal do `main`, mas com uma resposta fixa no lugar
+# do modelo: o teste não depende de chave nem de rede.
+_CHAT_WITH_ECHO = (
+    "from chatbot.cli import run_chat, use_utf8_stdio; "
+    "use_utf8_stdio(); "
+    "run_chat(lambda question: 'recebi a pergunta: ' + question)"
+)
+
 
 def test_piped_accented_question_reaches_the_answer_intact() -> None:
     # Com a entrada redirecionada, o Python no Windows lê em cp1252, e "Olá" chegaria ao modelo como
@@ -11,7 +19,7 @@ def test_piped_accented_question_reaches_the_answer_intact() -> None:
     env["PYTHONIOENCODING"] = "cp1252"
 
     result = subprocess.run(
-        [sys.executable, "-c", "from chatbot.cli import main; main()"],
+        [sys.executable, "-c", _CHAT_WITH_ECHO],
         input="Olá, é possível?\nsair\n".encode(),
         capture_output=True,
         env=env,

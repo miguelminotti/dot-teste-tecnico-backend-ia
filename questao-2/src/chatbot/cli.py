@@ -4,6 +4,11 @@ import io
 import sys
 from collections.abc import Callable
 
+from langchain_openai import ChatOpenAI
+
+from chatbot.settings import Settings
+from chatbot.tutor import AnswerUnavailableError, Tutor
+
 # Palavras que encerram a conversa, comparadas sem diferenciar maiúsculas.
 _EXIT_COMMANDS = frozenset({"sair", "exit", "quit"})
 
@@ -28,7 +33,11 @@ def run_chat(
                 continue
             if question.casefold() in _EXIT_COMMANDS:
                 break
-            write(f"\nChatbot: {answer(question)}")
+            try:
+                write(f"\nChatbot: {answer(question)}")
+            except AnswerUnavailableError as error:
+                # Uma falha da API perde só esta pergunta, não a conversa.
+                write(f"\nNão consegui responder agora: {error}. Tente de novo.")
     except (EOFError, KeyboardInterrupt):
         # Ctrl+C, inclusive no meio de uma resposta, e fim da entrada (Ctrl+D, ou Ctrl+Z e Enter no
         # Windows) encerram a conversa sem traceback.
@@ -37,11 +46,17 @@ def run_chat(
 
 
 def main() -> None:
-    _use_utf8_stdio()
-    run_chat(_placeholder_answer)
+    use_utf8_stdio()
+    try:
+        settings = Settings.from_env()
+    except ValueError as error:
+        # Mensagem no stderr e código de saída 1, sem traceback: é erro de configuração, não bug.
+        sys.exit(f"Erro de configuração: {error}")
+    tutor = Tutor(ChatOpenAI(model=settings.model))
+    run_chat(tutor.answer)
 
 
-def _use_utf8_stdio() -> None:
+def use_utf8_stdio() -> None:
     """Força UTF-8 na entrada e na saída do terminal.
 
     Com entrada ou saída redirecionada (pipe, arquivo), o Python no Windows usa a página de código do
@@ -51,8 +66,3 @@ def _use_utf8_stdio() -> None:
         # O `isinstance` deixa de fora streams trocados por outro objeto (captura de testes, por exemplo).
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(encoding="utf-8")
-
-
-def _placeholder_answer(question: str) -> str:
-    # Provisório: o LLM entra no próximo passo, no lugar desta função.
-    return f"(ainda sem modelo) recebi a pergunta: {question}"
