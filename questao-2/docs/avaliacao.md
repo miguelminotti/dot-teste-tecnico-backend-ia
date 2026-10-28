@@ -28,6 +28,7 @@ Dois campos servem às métricas:
 | Métrica | Como mede | Unidade | Meta |
 | --- | --- | --- | --- |
 | Custo do turno | tokens de entrada e de saída vezes o preço do modelo, a partir do trace do LangSmith | US$ por turno, p50 e p95 | a definir |
+| Taxa de acerto do cache | tokens de entrada lidos do cache sobre o total de tokens de entrada (`input_token_details.cache_read` no `usage_metadata` do LangChain) | fração, por turno e somada na conversa | a definir |
 | Latência do turno | tempo total da resposta e tempo até o primeiro token (este só com streaming) | segundos, p50 e p95 | a definir |
 | Correção dos snippets | extrai os blocos ` ```python ` da resposta e roda cada um num processo separado, na `python_version` do exemplo, com tempo limite | fração dos snippets que rodam sem erro | a definir |
 | Correção técnica (juiz) | a resposta cobre cada ponto-chave e não afirma nada errado | passa ou falha, por exemplo | a definir |
@@ -42,6 +43,16 @@ Critérios da qualidade didática, julgados um a um:
 - **Idioma:** responde no idioma da pergunta.
 
 "Passo a passo" e "exemplos" valem quando cabem: numa pergunta conceitual sem procedimento, o critério passa como não aplicável. Exigir analogia em toda resposta empurraria o modelo a forçar uma onde ela não ajuda.
+
+### Cache de prompt
+
+Com histórico, cada turno reenvia ao modelo a conversa inteira: o custo de um turno cresce com o número de turnos, e o da conversa cresce com o quadrado. O cache de prompt da OpenAI cobra mais barato a parte inicial da entrada que for idêntica à de uma chamada recente (no `gpt-4.1-mini`, US$ 0,10 em vez de US$ 0,40 por milhão de tokens). Ele é automático, mas só funciona sob três condições, e a métrica existe para conferir que elas valem:
+
+- **Prefixo idêntico.** O cache casa pelo começo da entrada. O prompt de sistema vem primeiro e não muda, e o histórico só cresce no fim: resumir, cortar ou reescrever turnos antigos zera o cache dali em diante.
+- **Tamanho mínimo.** Abaixo de cerca de 1.024 tokens nada é cacheado. Os primeiros turnos de uma conversa curta mostram taxa zero por construção, não por defeito.
+- **Tempo.** Sem retenção estendida, o cache dura de 5 a 10 minutos sem uso. Um aluno que para para testar o código por mais tempo que isso volta sem cache.
+
+A taxa é lida junto com o custo: o desconto do token cacheado varia entre modelos, e uma taxa alta num modelo caro pode custar mais que uma taxa baixa num barato.
 
 ### Como o juiz decide
 
@@ -60,4 +71,4 @@ Critérios da qualidade didática, julgados um a um:
 ## Deixado de fora
 
 - **Similaridade com uma resposta de referência (BLEU, ROUGE ou embeddings).** Mede o quanto a resposta se parece com um texto, não se ela está certa e ensina bem; numa resposta aberta, duas explicações corretas podem ter pouca sobreposição.
-- **Conversa de vários turnos.** O dataset tem um turno por exemplo, porque o chatbot ainda não guarda histórico. Quando guardar, o custo de cada turno passa a crescer com o histórico reenviado ao modelo, e o dataset ganha conversas com aprofundamento.
+- **Conversa de vários turnos.** O chatbot já guarda o histórico ([ADR 0001](adr/0001-historico-explicito-sem-langgraph.md)), mas o dataset ainda tem um turno por exemplo. As conversas com aprofundamento, longas o bastante para passar do tamanho mínimo do cache, são o próximo passo do dataset; sem elas, a memória e a taxa de acerto do cache não têm o que medir.

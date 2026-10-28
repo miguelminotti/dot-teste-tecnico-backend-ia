@@ -6,6 +6,22 @@ O que os testes protegem e o registro dos bugs encontrados. Para rodar: `uv run 
 
 A mesma da [questão 1](../../questao-1/docs/qualidade.md): cada teste protege uma regra ou um caso de borda conhecido, só vale se fica vermelho com a regra quebrada, e todo bug vira teste antes da correção.
 
+## O que cada suíte cobre
+
+| Arquivo | Regras protegidas |
+| --- | --- |
+| `test_cli.py` | pergunta com acento vinda de pipe chega intacta e a resposta sai em UTF-8 |
+| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico |
+
+Os testes do `Tutor` usam um modelo falso próprio, que grava as mensagens de cada chamada: o que está em teste é o que vai ao modelo, sem rede nem custo. Os modelos falsos prontos do `langchain-core` não servem: eles respondem, mas descartam as mensagens que recebem, e nenhum falha numa chamada escolhida fora do streaming. Um modelo pronto com um callback do LangChain gravando as mensagens daria o mesmo resultado com código de tamanho parecido, e a falha ainda pediria um iterador que lança exceção, mais difícil de ler.
+
+## Regras quebradas de propósito
+
+Uma por vez; em todas a suíte falhou.
+
+- **Tutor:** não passar o histórico; pôr o turno no histórico antes da resposta; pôr o histórico depois da pergunta; inserir o turno novo no começo do histórico. Este último só o teste do prefixo pega: a conversa continua com todos os turnos, só que em outra ordem, e o cache deixaria de funcionar sem nenhum outro sintoma.
+- **CLI:** desfazer a configuração de UTF-8.
+
 ## Bugs registrados
 
 Cada bug tem um teste que o reproduziu antes da correção.
