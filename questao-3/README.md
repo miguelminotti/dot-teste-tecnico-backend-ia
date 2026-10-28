@@ -6,7 +6,7 @@ Sistema de busca semântica: gera embeddings de um conjunto de documentos, guard
 
 | Requisito do enunciado | Status |
 | --- | --- |
-| Conjunto de documentos de texto (artigos ou posts de blog) | pendente |
+| Conjunto de documentos de texto (artigos ou posts de blog) | 100 artigos do arXiv de outubro de 2026, sob licença aberta, em texto limpo e com as seções ([`docs/corpus.md`](docs/corpus.md)) |
 | Embeddings dos documentos com um modelo de embeddings | pendente |
 | Embeddings armazenados numa vector store (FAISS ou Milvus) | pendente |
 | Função de busca que devolve os documentos mais relevantes para uma consulta | pendente |
