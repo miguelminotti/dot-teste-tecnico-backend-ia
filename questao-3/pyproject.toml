@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-semantic-search = "semantic_search:main"
+semantic-search = "semantic_search.search:main"
 semantic-search-corpus = "semantic_search.corpus:main"
 semantic-search-queries = "semantic_search.evaluation.queries:main"
 semantic-search-embed = "semantic_search.embeddings:main"

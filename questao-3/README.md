@@ -9,7 +9,7 @@ Sistema de busca semântica: gera embeddings de um conjunto de documentos, guard
 | Conjunto de documentos de texto (artigos ou posts de blog) | 100 artigos do arXiv de outubro de 2026, sob licença aberta, em texto limpo e com as seções ([`docs/corpus.md`](docs/corpus.md)) |
 | Embeddings dos documentos com um modelo de embeddings | 5.398 pedaços (um por parágrafo, mais título e resumo) com o `intfloat/multilingual-e5-base`, local, pelo sentence-transformers ([`docs/indexacao.md`](docs/indexacao.md)) |
 | Embeddings armazenados numa vector store (FAISS ou Milvus) | Índice FAISS de busca exata (`IndexFlatIP`, cosseno), gravado ao lado dos pedaços ([`docs/indexacao.md`](docs/indexacao.md)) |
-| Função de busca que devolve os documentos mais relevantes para uma consulta | pendente |
+| Função de busca que devolve os documentos mais relevantes para uma consulta | `SemanticSearch.search` e a CLI `semantic-search`: os artigos mais relevantes, cada um pelo melhor pedaço, com título, link e trecho ([`docs/busca.md`](docs/busca.md)) |
 | Processo de criação dos embeddings e do armazenamento documentado | pedaços, embeddings e vector store em [`docs/indexacao.md`](docs/indexacao.md) |
 | Exemplos de consultas e resultados relevantes | pendente |
 
@@ -20,6 +20,16 @@ Pré-requisito: [uv](https://docs.astral.sh/uv/). O uv baixa o Python 3.12 sozin
 ```bash
 uv sync
 ```
+
+O corpus vem no repositório; o índice não. Para gerá-lo e buscar:
+
+```bash
+uv run semantic-search-embed --model intfloat/multilingual-e5-base
+uv run semantic-search-store --model intfloat/multilingual-e5-base
+uv run semantic-search "como avaliar agentes de programação" --k 5
+```
+
+O primeiro comando baixa o modelo (cerca de 1 GB) e leva uns 16 minutos na CPU; com uma GPU NVIDIA, menos de 1 minuto (veja [`docs/indexacao.md`](docs/indexacao.md)).
 
 Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estão no [README da raiz](../README.md).
 

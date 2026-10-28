@@ -40,6 +40,9 @@ class VectorStore:
         self._faiss_index = faiss_index
         self._chunks = list(chunks)
 
+    def __len__(self) -> int:
+        return len(self._chunks)
+
     @classmethod
     def build(cls, index: EmbeddingIndex) -> "VectorStore":
         norms = np.linalg.norm(index.vectors, axis=1)
