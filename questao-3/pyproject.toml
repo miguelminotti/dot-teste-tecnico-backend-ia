@@ -11,12 +11,14 @@ dependencies = [
     "beautifulsoup4>=4.13",
     "openai>=3.40.0",
     "pydantic>=2.14.1",
+    "sentence-transformers>=5",
 ]
 
 [project.scripts]
 semantic-search = "semantic_search:main"
 semantic-search-corpus = "semantic_search.corpus:main"
 semantic-search-queries = "semantic_search.evaluation.queries:main"
+semantic-search-embed = "semantic_search.embeddings:main"
 
 [build-system]
 requires = ["uv_build>=0.11.26,<0.12.0"]

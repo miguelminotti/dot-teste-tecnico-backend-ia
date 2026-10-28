@@ -7,10 +7,10 @@ Sistema de busca semântica: gera embeddings de um conjunto de documentos, guard
 | Requisito do enunciado | Status |
 | --- | --- |
 | Conjunto de documentos de texto (artigos ou posts de blog) | 100 artigos do arXiv de outubro de 2026, sob licença aberta, em texto limpo e com as seções ([`docs/corpus.md`](docs/corpus.md)) |
-| Embeddings dos documentos com um modelo de embeddings | pendente |
+| Embeddings dos documentos com um modelo de embeddings | 5.398 pedaços (um por parágrafo, mais título e resumo) com o `intfloat/multilingual-e5-base`, local, pelo sentence-transformers ([`docs/indexacao.md`](docs/indexacao.md)) |
 | Embeddings armazenados numa vector store (FAISS ou Milvus) | pendente |
 | Função de busca que devolve os documentos mais relevantes para uma consulta | pendente |
-| Processo de criação dos embeddings e do armazenamento documentado | pendente |
+| Processo de criação dos embeddings e do armazenamento documentado | pedaços e embeddings em [`docs/indexacao.md`](docs/indexacao.md); a vector store, pendente |
 | Exemplos de consultas e resultados relevantes | pendente |
 
 ## Como rodar

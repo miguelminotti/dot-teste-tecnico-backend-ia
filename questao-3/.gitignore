@@ -1,2 +1,5 @@
 # HTML baixado do arXiv: cache local da montagem do corpus, que pode ser baixado de novo
 /data/html/
+
+# Embeddings gerados: dezenas de MB, refeitos em minutos com semantic-search-embed
+/data/index/
