@@ -5,6 +5,7 @@ Cada questão é uma pasta com um projeto uv próprio, README próprio e as suas
 | Questão | Tema |
 | --- | --- |
 | [Questão 1](questao-1/README.md) | API de biblioteca virtual com FastAPI e SQLite |
+| [Questão 2](questao-2/README.md) | Chatbot de dúvidas de Python com LangChain e OpenAI |
 
 Para rodar uma questão, entre na pasta dela e siga o README. O único pré-requisito é o [uv](https://docs.astral.sh/uv/), que baixa o Python 3.12 sozinho.
 
