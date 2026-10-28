@@ -8,13 +8,18 @@ import json
 import os
 import sys
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from langchain_core.callbacks import get_usage_metadata_callback
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import AIMessage
+from langchain_core.outputs import ChatGeneration, LLMResult
+from langchain_core.tracers.context import register_configure_hook
 from langchain_openai import ChatOpenAI
 from langsmith import Client, evaluate
 from langsmith.evaluation import EvaluationResult, EvaluationResults
@@ -23,9 +28,9 @@ from langsmith.schemas import Example, Run
 from chatbot.cli import use_utf8_stdio
 from chatbot.evaluation.judge import CRITERIA, TurnVerdict, judge_turn
 from chatbot.evaluation.snippets import SnippetStatus, run_answer_snippets
-from chatbot.evaluation.usage import TurnUsage, cache_hit_rate, percentile, price_of, turn_cost
+from chatbot.evaluation.usage import TurnUsage, cache_hit_rate, measure_turn, percentile, price_of, turn_cost
 from chatbot.settings import Settings
-from chatbot.tutor import Tutor
+from chatbot.tutor import create_tutor
 
 DATASET_PATH = Path("evals/dataset.json")
 # Mais forte que o modelo do chatbot e de outra geração, para não favorecer o próprio estilo.
@@ -65,28 +70,49 @@ def sync_dataset(client: Client, path: Path) -> str:
     return name
 
 
-def make_target(model: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
+class _ResponseCollector(BaseCallbackHandler):
+    """Guarda as respostas do modelo, com o uso e os blocos de busca que o texto do `Tutor` não traz."""
+
+    def __init__(self) -> None:
+        self.responses: list[AIMessage] = []
+
+    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+        self.responses += [
+            generation.message
+            for generations in response.generations
+            for generation in generations
+            if isinstance(generation, ChatGeneration) and isinstance(generation.message, AIMessage)
+        ]
+
+
+# Mesmo mecanismo do `get_usage_metadata_callback` do LangChain: o coletor posto na variável de contexto
+# entra em toda chamada ao modelo feita dentro do `with`, sem o `Tutor` saber que está sendo medido.
+_collector: ContextVar[_ResponseCollector | None] = ContextVar("chatbot_response_collector", default=None)
+register_configure_hook(_collector, inheritable=True)
+
+
+@contextmanager
+def _collect_responses() -> Iterator[list[AIMessage]]:
+    collector = _ResponseCollector()
+    token = _collector.set(collector)
+    try:
+        yield collector.responses
+    finally:
+        _collector.reset(token)
+
+
+def make_target(settings: Settings) -> Callable[[dict[str, Any]], dict[str, Any]]:
     def run_conversation(inputs: dict[str, Any]) -> dict[str, Any]:
         """Uma conversa nova por exemplo, com as perguntas feitas em ordem, como na CLI."""
-        tutor = Tutor(ChatOpenAI(model=model))
+        tutor = create_tutor(settings)
         answers: list[str] = []
         turns: list[TurnUsage] = []
         for question in inputs["questions"]:
-            with get_usage_metadata_callback() as usage_callback:
+            with _collect_responses() as responses:
                 started = time.perf_counter()
                 answers.append(tutor.answer(question))
                 latency = time.perf_counter() - started
-            usages = usage_callback.usage_metadata.values()
-            turns.append(
-                TurnUsage(
-                    input_tokens=sum(usage["input_tokens"] for usage in usages),
-                    cache_read_tokens=sum(
-                        usage.get("input_token_details", {}).get("cache_read", 0) for usage in usages
-                    ),
-                    output_tokens=sum(usage["output_tokens"] for usage in usages),
-                    latency_seconds=latency,
-                )
-            )
+            turns.append(measure_turn(responses, latency_seconds=latency))
         return {"answers": answers, "turns": [asdict(turn) for turn in turns]}
 
     return run_conversation
@@ -173,6 +199,7 @@ def make_usage_evaluator(model: str) -> Callable[[dict[str, Any]], EvaluationRes
                 ),
                 EvaluationResult(key="latency_per_turn_s", score=mean(turn.latency_seconds for turn in turns)),
                 EvaluationResult(key="cache_hit_rate", score=cache_hit_rate(turns)),
+                EvaluationResult(key="web_search_rate", score=_web_search_rate(turns)),
             ]
         )
 
@@ -194,10 +221,16 @@ def make_usage_summary(model: str) -> Callable[[list[Run], list[Example]], Evalu
                 EvaluationResult(key="latency_per_turn_s_p50", score=percentile(latencies, 0.5)),
                 EvaluationResult(key="latency_per_turn_s_p95", score=percentile(latencies, 0.95)),
                 EvaluationResult(key="cache_hit_rate_overall", score=cache_hit_rate(turns)),
+                EvaluationResult(key="web_search_rate_overall", score=_web_search_rate(turns)),
             ]
         )
 
     return summarize_usage
+
+
+def _web_search_rate(turns: Sequence[TurnUsage]) -> float:
+    """Fração dos turnos que buscou na documentação; deve ficar perto de 1 nas recentes e de 0 no básico."""
+    return sum(turn.web_search_calls > 0 for turn in turns) / len(turns)
 
 
 def _per_thousand(cost_per_turn: float) -> float:
@@ -223,12 +256,17 @@ def main() -> None:
     client = Client()
     dataset = sync_dataset(client, DATASET_PATH)
     evaluate(
-        make_target(settings.model),
+        make_target(settings),
         data=dataset,
         evaluators=[make_judge_evaluator(judge_model), evaluate_snippets, make_usage_evaluator(settings.model)],
         summary_evaluators=[make_usage_summary(settings.model)],
-        experiment_prefix=settings.model,
-        metadata={"chatbot_model": settings.model, "judge_model": judge_model},
+        experiment_prefix=f"{settings.model}-busca" if settings.docs_search else settings.model,
+        metadata={
+            "chatbot_model": settings.model,
+            "docs_search": settings.docs_search,
+            "api": "responses",
+            "judge_model": judge_model,
+        },
         max_concurrency=MAX_CONCURRENCY,
         client=client,
     )

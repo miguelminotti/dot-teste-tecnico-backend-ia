@@ -11,10 +11,11 @@ A mesma da [questão 1](../../questao-1/docs/qualidade.md): cada teste protege u
 | Arquivo | Regras protegidas |
 | --- | --- |
 | `test_cli.py` | pergunta com acento vinda de pipe chega intacta e a resposta sai em UTF-8 |
-| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico |
+| `test_settings.py` | a busca na documentação liga e desliga pela variável, e vazio fica com o padrão (ligada); valor desconhecido é erro, e não busca desligada em silêncio |
+| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico; com a busca ligada, ela chega ao modelo restrita aos domínios oficiais; sem a busca, nem a ferramenta nem a regra dela chegam ao modelo (o braço de controle do experimento); as páginas citadas pela busca aparecem no fim da resposta, uma vez cada |
 | `evaluation/test_snippets.py` | só blocos `python` e `py` são executados, na ordem; snippet que roda passa e o que lança exceção falha com a última linha do erro; roda na versão do Python pedida; pacote de fora da biblioteca padrão é pulado, módulo removido da biblioteca padrão é falha; laço infinito falha por tempo limite; o snippet não recebe as chaves da OpenAI e do LangSmith; snippet que imprime acento passa no Windows; bloco que continua o anterior da mesma resposta passa; bloco que falhou não derruba os seguintes; bloco que depende de um pulado é pulado também |
 | `evaluation/test_scoring.py` | cobertura contada por ponto-chave, e não por turno; ponto ausente não é erro factual; erro factual reprova mesmo com cobertura total; o comentário nomeia os pontos que faltaram |
-| `evaluation/test_usage.py` | tokens do cache cobrados pelo preço de cache (conferido com o custo que o LangSmith registrou); modelo sem preço é erro, não custo zero; taxa de acerto do cache ponderada por token; percentil devolve um valor que ocorreu |
+| `evaluation/test_usage.py` | tokens do cache cobrados pelo preço de cache (conferido com o custo que o LangSmith registrou); cada busca cobrada à parte dos tokens; o uso do turno soma todas as respostas e conta só os blocos de busca; modelo sem preço é erro, não custo zero; taxa de acerto do cache ponderada por token; percentil devolve um valor que ocorreu |
 
 O juiz não tem teste automatizado: o que ele julga só se confere contra rótulos humanos (calibração, em [avaliacao.md](avaliacao.md#como-o-juiz-decide)). Antes do experimento, ele foi conferido com uma resposta errada de propósito ("use `lista.push`"), reprovada em correção, resposta à pergunta, exemplos e nível de detalhe.
 
@@ -29,7 +30,8 @@ Uma por vez; em todas a suíte falhou.
 - **Execução dos snippets:** passar o ambiente inteiro ao snippet; achar o Python sem `--system` (pega o do `.venv`); tirar o `-X utf8`; pular todo módulo ausente como dependência externa; executar blocos de qualquer linguagem. A penúltima escapou na primeira rodada: o teste usava `from tkinter import nao_existe`, que dá `ImportError`, e não `ModuleNotFoundError`, então nunca passava pela regra. Ele foi trocado pelo `import cgi` no 3.14, que é o caso real (módulo removido da biblioteca padrão).
 - **Sequência dos snippets:** rodar cada bloco sozinho; deixar o bloco que falhou entrar no contexto dos seguintes.
 - **Notas do juiz:** contar a cobertura pela média dos turnos; reprovar a precisão factual quando falta um ponto-chave; pôr no comentário os pontos cobertos em vez dos que faltaram.
-- **Métricas de uso:** cobrar o cache pelo preço cheio; dar preço zero a modelo fora da tabela; calcular a taxa de acerto do cache como média das taxas por turno.
+- **Métricas de uso:** cobrar o cache pelo preço cheio; dar preço zero a modelo fora da tabela; calcular a taxa de acerto do cache como média das taxas por turno; não cobrar a busca; contar todo bloco da resposta como busca.
+- **Busca na documentação:** tirar o filtro de domínios; pôr a ferramenta ou a regra dela no braço sem busca; descartar as fontes; repetir a mesma fonte; ler um valor desconhecido da variável como desligado; ler `true` como desligado.
 
 ## Bugs registrados
 

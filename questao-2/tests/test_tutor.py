@@ -1,12 +1,16 @@
+from collections.abc import Callable, Sequence
 from typing import Any
 
 import pytest
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from langchain_core.language_models import BaseChatModel
+from langchain_core.language_models import BaseChatModel, LanguageModelInput
 from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.runnables import Runnable
+from langchain_core.tools import BaseTool
 from pydantic import Field
 
+from chatbot.docs_search import DOCS_DOMAINS
 from chatbot.tutor import SYSTEM_PROMPT, Tutor
 
 
@@ -22,6 +26,10 @@ class RecordingChatModel(BaseChatModel):
     calls: list[list[BaseMessage]] = Field(default_factory=list)
     # Número da chamada (a partir de 1) que falha, para simular a API fora do ar.
     fail_on_call: int | None = None
+    # Conteúdo da resposta em blocos, como a Responses API devolve; sem ele, responde "resposta N".
+    reply_blocks: list[str | dict[Any, Any]] | None = None
+    # Ferramentas que o `Tutor` ligou ao modelo.
+    tools: list[Any] = Field(default_factory=list)
 
     @property
     def _llm_type(self) -> str:
@@ -37,7 +45,18 @@ class RecordingChatModel(BaseChatModel):
         self.calls.append(list(messages))
         if len(self.calls) == self.fail_on_call:
             raise RuntimeError("falha simulada")
-        return ChatResult(generations=[ChatGeneration(message=AIMessage(f"resposta {len(self.calls)}"))])
+        content = self.reply_blocks if self.reply_blocks is not None else f"resposta {len(self.calls)}"
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(content))])
+
+    def bind_tools(
+        self,
+        tools: Sequence[dict[str, Any] | type | Callable[..., Any] | BaseTool],
+        *,
+        tool_choice: str | None = None,
+        **kwargs: Any,
+    ) -> Runnable[LanguageModelInput, AIMessage]:
+        self.tools = list(tools)
+        return self
 
 
 def _sent(messages: list[BaseMessage]) -> list[tuple[str, str | list[Any]]]:
@@ -93,3 +112,51 @@ def test_failed_answer_does_not_enter_the_history() -> None:
         ("ai", "resposta 1"),
         ("human", "pergunta seguinte"),
     ]
+
+
+def test_docs_search_reaches_the_model_restricted_to_the_official_domains() -> None:
+    # Sem o filtro, a busca vai à web aberta: qualquer página entra na resposta, inclusive uma com
+    # instruções escondidas para o modelo.
+    model = RecordingChatModel()
+    tutor = Tutor(model, docs_search=True)
+
+    tutor.answer("O que são t-strings?")
+
+    assert model.tools == [{"type": "web_search", "filters": {"allowed_domains": list(DOCS_DOMAINS)}}]
+
+
+def test_without_docs_search_the_tutor_has_no_tool_and_the_same_prompt() -> None:
+    # É o braço de controle do experimento: só a busca pode mudar entre os dois braços.
+    model = RecordingChatModel()
+    tutor = Tutor(model)
+
+    tutor.answer("O que são t-strings?")
+
+    assert model.tools == []
+    assert _sent(model.calls[0])[0] == ("system", SYSTEM_PROMPT)
+
+
+def test_pages_cited_by_the_search_are_listed_after_the_answer() -> None:
+    # A OpenAI exige que as fontes da busca fiquem visíveis para quem lê, e a CLI mostra só o texto: os
+    # links ficariam nas anotações da resposta, fora da tela. Cada página aparece uma vez, na ordem.
+    whatsnew = "https://docs.python.org/3/whatsnew/3.14.html"
+    pep = "https://peps.python.org/pep-0750/"
+    model = RecordingChatModel(
+        reply_blocks=[
+            {"type": "web_search_call", "id": "ws_1", "status": "completed"},
+            {
+                "type": "text",
+                "text": "T-strings criam um Template.",
+                "annotations": [
+                    {"type": "url_citation", "url": whatsnew, "title": "What's new"},
+                    {"type": "url_citation", "url": pep, "title": "PEP 750"},
+                    {"type": "url_citation", "url": whatsnew, "title": "What's new"},
+                ],
+            },
+        ]
+    )
+    tutor = Tutor(model, docs_search=True)
+
+    answer = tutor.answer("O que são t-strings?")
+
+    assert answer == f"T-strings criam um Template.\n\nFontes:\n- {whatsnew}\n- {pep}"

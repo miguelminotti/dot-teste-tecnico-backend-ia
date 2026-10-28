@@ -12,6 +12,14 @@ uv run --env-file .env chatbot-eval
 
 O comando envia o dataset ao LangSmith (se esta versão ainda não estiver lá), faz o tutor responder cada conversa com o modelo de `CHATBOT_MODEL`, roda os avaliadores e imprime o link do experimento. O código está em `src/chatbot/evaluation/`.
 
+Os braços de uma comparação mudam só as variáveis do chatbot, na linha de comando. O experimento da busca na documentação rodou assim:
+
+```bash
+CHATBOT_MODEL=gpt-4.1-mini CHATBOT_DOCS_SEARCH=false uv run --env-file .env chatbot-eval
+CHATBOT_MODEL=gpt-5.4-mini CHATBOT_DOCS_SEARCH=false uv run --env-file .env chatbot-eval
+CHATBOT_MODEL=gpt-5.4-mini CHATBOT_DOCS_SEARCH=true uv run --env-file .env chatbot-eval
+```
+
 ## Dataset
 
 Fica em [`evals/dataset.json`](../evals/dataset.json), versionado junto com o código. O repositório é a fonte da verdade porque uma mudança no dataset passa por revisão no diff, como o código; editar direto no LangSmith deixaria o dataset mudar sem rastro no histórico do projeto. No LangSmith, o nome do dataset leva o hash do arquivo: mudar o arquivo cria um dataset novo, e cada experimento fica ligado à versão exata em que rodou.
@@ -38,7 +46,8 @@ Dois campos servem às métricas:
 
 | Métrica | Como mede | Unidade | Meta |
 | --- | --- | --- | --- |
-| Custo do turno | tokens de cada turno, medidos com o callback de uso do LangChain, vezes a tabela de preços do código (`usage.py`) | US$ por mil turnos, p50 e p95 | a definir |
+| Custo do turno | tokens de cada turno, lidos do uso das respostas do modelo, vezes a tabela de preços do código (`usage.py`), mais US$ 0,01 por busca na documentação | US$ por mil turnos, p50 e p95 | a definir |
+| Uso da busca | fração dos turnos com ao menos uma busca na documentação (cada busca vem como um bloco `web_search_call` da resposta) | fração, por conversa e no experimento; lida por categoria | perto de 1 nas perguntas recentes, perto de 0 no resto |
 | Taxa de acerto do cache | tokens de entrada lidos do cache sobre o total de tokens de entrada (`input_token_details.cache_read`), somados nos turnos | fração, por conversa e no experimento | a definir |
 | Latência do turno | tempo da chamada ao `Tutor`, do envio ao fim da resposta | segundos, p50 e p95 | a definir |
 | Correção dos snippets | extrai os blocos ` ```python ` da resposta e roda cada um, depois dos blocos anteriores da mesma resposta que passaram, num processo separado, na `python_version` do exemplo, com tempo limite | fração dos snippets executados que rodam sem erro | a definir |
@@ -74,7 +83,8 @@ A taxa é lida junto com o custo: o desconto do token cacheado varia entre model
 - **Erro separado de omissão.** Afirmar algo errado é passa ou falha; deixar um ponto-chave de fora conta na cobertura, ponto a ponto. Na primeira linha de base, uma nota só ("cobre todos os pontos e não erra") reprovou 78% das respostas, muitas delas certas e incompletas, e não dizia qual dos dois defeitos a resposta tinha. A cobertura é contada por ponto, e não por turno, para que um turno de quatro pontos pese mais que um de um só.
 - **Exemplo de ponto-chave é ilustração.** "Mostra o construtor `list()`, como `list(range(5))`" é coberto por `list("abc")`: o juiz é instruído a não exigir o exemplo literal.
 - **Correção separada de didática.** Uma resposta clara, bem exemplificada e errada não pode passar por ser bem escrita.
-- **O juiz não é o modelo que responde,** para não favorecer o próprio estilo (viés de autopreferência). O padrão é o `gpt-5.4`, mais forte e de outra geração que o do chatbot, configurável em `EVAL_JUDGE_MODEL`.
+- **O juiz não é o modelo que responde,** para não favorecer o próprio estilo (viés de autopreferência). O padrão é o `gpt-5.4`, mais forte que o do chatbot, configurável em `EVAL_JUDGE_MODEL`. Com o `gpt-5.4-mini` no chatbot, juiz e chatbot são da mesma família, e o viés de autopreferência volta a ser um risco a medir na calibração.
+- **O juiz não conhece o que é mais novo que ele.** Nas perguntas recentes, o veredito só é confiável no que está nos pontos-chave, escritos por nós a partir da documentação; numa afirmação fora deles, o juiz pode reprovar código certo (aconteceu com o `flush()` do `compression.zstd`). Nesse caso, a execução dos snippets na versão certa do Python é quem decide.
 - **Viés de verbosidade.** Juízes tendem a preferir respostas mais longas. O custo, que cresce com os tokens de saída, é o contrapeso: o enunciado pede uma explicação detalhada, e as duas métricas juntas medem se o detalhe vale o que custa.
 - **O juiz é calibrado antes de ser confiado:** uma parte das respostas é rotulada à mão, e a concordância com o juiz é medida. Um juiz que discorda de quem rotulou mede outra coisa.
 
@@ -88,7 +98,83 @@ A taxa é lida junto com o custo: o desconto do token cacheado varia entre model
 
 ## Resultados
 
+A escolha que estes resultados sustentam, o `gpt-5.4-mini` com busca, e o que a mudaria num produto real estão na [ADR 0002](adr/0002-busca-na-documentacao-com-gpt-5-4-mini.md).
+
 Os valores das tabelas são a média, entre as conversas, da nota de cada uma. "Perguntas recentes" são as categorias `recente` e `biblioteca` (5 conversas); "demais" são as outras 10. Cada experimento rodou uma vez: o mesmo modelo dá respostas diferentes a cada execução, e uma diferença pequena entre dois experimentos pode ser só isso.
+
+### Segunda rodada: prompt ajustado pelas falhas da primeira (2026-10-28)
+
+Três regras entraram no prompt, cada uma por uma falha medida na rodada anterior: explicar o essencial na própria resposta em vez de oferecer para depois (o exemplo do enunciado tinha caído para 0,50 de cobertura); pôr a saída do programa em blocos ```` ```text ````, e não ```` ```python ```` (era a maior parte das falhas de snippet do `gpt-5.4-mini`); e, só com a busca ligada, buscar também quando a pergunta é se uma sintaxe, função ou módulo existe ou é permitido (o caso do `except`). Rodaram de novo os dois braços do `gpt-5.4-mini`; o `gpt-4.1-mini` ficou de fora, porque não aceita a busca restrita.
+
+Experimentos `gpt-5.4-mini-eaac41d6` (sem busca) e `gpt-5.4-mini-busca-599186b5` (com busca). Nenhuma conversa deu erro. Entre parênteses, o valor da primeira rodada.
+
+| Métrica | 5.4-mini | 5.4-mini com busca |
+| --- | --- | --- |
+| Precisão factual, recentes | 0,40 (0,20) | **0,80** (0,60) |
+| Cobertura, recentes | 0,39 (0,50) | 0,61 (0,65) |
+| Precisão factual, demais | 1,00 (1,00) | 0,97 (1,00) |
+| Cobertura, demais | 0,82 (0,74) | 0,79 (0,77) |
+| Correção dos snippets, geral | 0,87 (0,76) | **0,94** (0,84) |
+| Turnos com busca, recentes | – | 3 de 5 (2 de 5) |
+| Turnos com busca, demais | – | 0 de 18 (0 de 18) |
+| Custo p50 (US$ por mil turnos) | 3,06 (2,49) | 3,06 (3,11) |
+| Custo médio | 3,16 (2,56) | 4,93 (4,58) |
+| Custo p95 | 5,02 (4,72) | 18,27 (17,37) |
+| Latência p50 | 3,5 s (2,7 s) | 3,3 s (2,2 s) |
+
+O que a segunda rodada mostra:
+
+- **O bloco de saída resolveu os snippets.** Sem a saída do programa rodando como código, a correção dos snippets foi a 0,87 e 0,94, acima do `gpt-4.1-mini` (0,91). No braço com busca, os snippets das perguntas recentes passaram todos.
+- **O essencial na resposta encarece e ajuda pouco.** As respostas ficaram mais longas: o custo p50 sem busca subiu 23% e a latência p50 quase 1 s. A cobertura nas perguntas que não são recentes voltou ao nível do `gpt-4.1-mini` sem busca (0,82), mas o exemplo do enunciado deu 1,00 num braço e 0,50 no outro, com o mesmo prompt: a resposta ainda termina oferecendo o resto ("Se quiser, posso mostrar..."), e às vezes deixa de dizer que a lista é ordenada. Com uma execução por braço, a diferença entre os dois é ruído.
+- **A busca segue sendo o que acerta as recentes, e agora acerta quatro de cinco.** Com ela, t-strings, `compression.zstd` e genéricos do 3.12 saem certos e com fonte; o modelo buscou também nos genéricos, que citam versão. Sem ela, as três do 3.14 erram.
+- **A regra não fez o modelo buscar no `except`.** Ele não buscou, e de novo respondeu com certeza que a forma é inválida. Uma regra de prompt não resolve o caso em que o modelo não sabe que não sabe: a decisão de buscar é dele, e ele só busca quando duvida. Fechar esse caso pede outra coisa, como dizer ao modelo qual é a versão atual do Python e que o conhecimento dele pode estar desatualizado, ou buscar em todo turno (cerca de US$ 20 por mil turnos, quatro vezes o custo médio atual).
+- **A única falha de precisão no resto é um caso de fronteira.** Em `conversa-indice`, o juiz reprovou `if indice < len(numeros):` como forma de evitar o `IndexError`, porque um índice negativo inválido passa pelo `if`. A crítica procede, e o critério "na dúvida falha" pega esse tipo de omissão.
+
+### Busca na documentação: três braços na Responses API (2026-10-28)
+
+A busca hospedada da OpenAI (`web_search`) só existe na Responses API, e o filtro que a restringe aos domínios oficiais não é aceito pelo `gpt-4.1-mini` (a API recusa a chamada). Por isso o experimento tem três braços, todos na Responses API, com o mesmo dataset e o mesmo juiz: o `gpt-4.1-mini` sem busca refaz a linha de base nessa API; o `gpt-5.4-mini` sem busca mede o efeito de trocar de modelo; o `gpt-5.4-mini` com busca mede o efeito da busca. Sem o braço do meio, o ganho do modelo mais novo seria atribuído à busca.
+
+Experimentos `gpt-4.1-mini-6dbe9b20`, `gpt-5.4-mini-33439684` e `gpt-5.4-mini-busca-0e1e2950`. Nenhuma conversa deu erro.
+
+| Perguntas recentes (5 conversas) | 4.1-mini | 5.4-mini | 5.4-mini com busca |
+| --- | --- | --- | --- |
+| Cobertura dos pontos-chave | 0,30 | 0,50 | 0,65 |
+| Precisão factual | 0,00 | 0,20 | **0,60** |
+| Responde à pergunta | 0,40 | 0,80 | 1,00 |
+| Nível de detalhe | 1,00 | 0,80 | 1,00 |
+| Correção dos snippets | 0,79 | 0,54 | 0,68 |
+| Turnos com busca | – | – | 2 de 5 |
+
+| Demais (10 conversas) | 4.1-mini | 5.4-mini | 5.4-mini com busca |
+| --- | --- | --- | --- |
+| Cobertura dos pontos-chave | **0,82** | 0,74 | 0,77 |
+| Precisão factual | 1,00 | 1,00 | 1,00 |
+| Responde à pergunta | 1,00 | 1,00 | 1,00 |
+| Nível de detalhe | 0,90 | 1,00 | 1,00 |
+| Correção dos snippets | 0,97 | 0,88 | 0,93 |
+| Turnos com busca | – | – | 0 de 18 |
+
+Passo a passo, exemplos e idioma ficaram em 1,00 nos três braços.
+
+| Uso por turno | 4.1-mini | 5.4-mini | 5.4-mini com busca |
+| --- | --- | --- | --- |
+| Custo p50 (US$ por mil turnos) | 0,90 | 2,49 | 3,11 |
+| Custo médio | 0,90 | 2,56 | 4,58 |
+| Custo p95 | 1,61 | 4,72 | 17,37 |
+| Latência p50 | 4,5 s | 2,7 s | 2,2 s |
+| Latência p95 | 7,2 s | 6,0 s | 5,2 s |
+| Acerto do cache | 0% | 13% | 58% |
+
+O que o experimento mostra:
+
+- **A busca é o que corrige as perguntas recentes.** A precisão nelas vai de 0,00 a 0,20 com o modelo novo e a 0,60 com a busca. O modelo novo sozinho acerta o que é anterior ao corte de treinamento dele (genéricos do 3.12 e `model_dump()` do Pydantic v2); as t-strings e o `compression.zstd` do 3.14 só saem certos com a busca, e com a página citada.
+- **O modelo decide buscar só quando sabe que não sabe.** Buscou nas duas perguntas que citam o 3.14 e em nenhuma das 18 do resto, como a regra pede. Mas na pergunta "posso escrever `except ValueError, TypeError:`?", que não cita versão, ele respondeu "não" com confiança, sem buscar, e errou: o 3.14 passou a aceitar essa forma (PEP 758). É a falha que sobra, e a mais perigosa, porque é a resposta errada dita com certeza. Na CLI, a mesma pergunta com "no Python 3.14" dispara a busca e sai certa.
+- **A busca pesa no custo da cauda, não no típico.** Um turno com busca custa cerca de US$ 0,018 (US$ 0,01 da chamada mais 8 a 9 mil tokens das páginas lidas), uns 7 vezes o turno sem busca do mesmo modelo. Com a busca só onde precisa, o p50 sobe 25% e o p95 quase quadruplica. Se a regra de quando buscar for alargada para pegar o caso do `except`, a conta muda: buscar em todo turno levaria o custo médio para perto de US$ 20 por mil turnos.
+- **Trocar de modelo encarece e encurta as respostas.** O `gpt-5.4-mini` custa cerca de 2,8 vezes o `gpt-4.1-mini` no p50, é mais rápido (2,7 s contra 4,5 s) e responde mais curto, oferecendo o resto ("Se quiser, posso mostrar...") em vez de explicar. A cobertura nas perguntas que não são recentes cai de 0,82 para 0,74, e o exemplo do enunciado ("Como criar uma lista em Python?") cai de 1,00 para 0,50: a resposta não diz que a lista é ordenada e mutável e não mostra o `append`. O critério "nível de detalhe" passou essas respostas, o que é mais um sinal de que ele precisa de calibração.
+- **A queda nos snippets do `gpt-5.4-mini` é de formato, não de código.** Ele põe a saída do programa num bloco ```` ```python ````, que o executor roda e falha com `SyntaxError`. Os erros de código de verdade foram poucos: no zstd com busca, `b"Olá, mundo!"` (bytes só aceitam ASCII).
+- **O juiz também não conhece o 3.14.** No zstd com busca, ele reprovou a precisão dizendo que `ZstdCompressor` não tem `flush()`; o snippet com `flush()` roda no 3.14. A reprovação se sustenta pelo erro do `b"Olá"`, que ele não apontou. Nas perguntas recentes, o juiz só é confiável no que está nos pontos-chave, escritos por nós; o resto, quem confere é a execução dos snippets.
+- **O cache não se compara entre os braços.** As conversas do dataset ficam perto do mínimo de 1.024 tokens: na de listas, o terceiro turno do `gpt-4.1-mini` teve 1.020 tokens, nada foi cacheado, e o braço deu 0%. Pequenas diferenças no tamanho das respostas mudam a taxa inteira. No braço com busca, as páginas lidas entram na conta e puxam a taxa para cima. A taxa só diz algo com conversas mais longas.
+- **Cada braço rodou uma vez, e as perguntas recentes são 5.** Cada conversa vale 0,20 na média delas: a diferença entre 0,20 e 0,60 são duas conversas. A direção é clara (as duas do 3.14 com busca saíram certas, com fonte); o tamanho do efeito pede mais perguntas recentes e repetições antes de virar meta.
 
 ### Linha de base com as réguas ajustadas: `gpt-4.1-mini`, prompt mínimo (2026-10-28)
 
