@@ -94,7 +94,7 @@ def test_round_trip_preserves_every_field(repository: SqliteBookRepository, make
 def test_dates_are_stored_as_utc_and_calendar_day_text(
     repository: SqliteBookRepository, connection: sqlite3.Connection, make_book: MakeBook
 ) -> None:
-    # O formato gravado é contrato do banco (ADR 0002): instante em UTC com offset explícito e
+    # O formato gravado é contrato do banco (ADR 0003): instante em UTC com offset explícito e
     # largura fixa (microssegundos mesmo quando zero, para o texto ordenar como o tempo), e data de
     # publicação como dia puro, sem hora.
     repository.add(

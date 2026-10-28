@@ -1,7 +1,7 @@
 """Contrato HTTP: o que a API recebe e devolve.
 
 Os limites de tamanho dos textos moram aqui, não na entidade: não são regra de negócio, são
-proteção da borda contra payload abusivo (ADR 0004). Vazio e espaços continuam com o domínio.
+proteção da borda contra payload abusivo (ADR 0002). Vazio e espaços continuam com o domínio.
 """
 
 import re
@@ -19,7 +19,7 @@ def _require_iso_date_text(value: Any) -> Any:
 
     No modo padrão o pydantic aceita `0` (vira 01/01/1970) e `"2026-10-28T00:00:00"` como data.
     Um número enviado por engano viraria um livro de 1970 em silêncio, e data com hora contraria
-    a data de publicação como dia puro (ADR 0002).
+    a data de publicação como dia puro (ADR 0003).
     """
     if not isinstance(value, str) or not _ISO_DATE.fullmatch(value):
         raise ValueError("use o formato AAAA-MM-DD")

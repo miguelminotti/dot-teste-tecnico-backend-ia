@@ -10,7 +10,7 @@ import sqlite3
 from pathlib import Path
 
 # STRICT faz o SQLite recusar valor de tipo errado em vez de convertê-lo em silêncio.
-# Os CHECKs repetem no banco a política de datas (ADR 0002), para valer também para quem gravar
+# Os CHECKs repetem no banco a política de datas (ADR 0003), para valer também para quem gravar
 # sem passar pelo repositório.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS books (

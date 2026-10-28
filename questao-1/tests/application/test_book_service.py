@@ -17,7 +17,7 @@ from library.infrastructure.database import connect, create_schema
 from library.infrastructure.sqlite_book_repository import SqliteBookRepository
 
 RELEASE_DAY = date(2026, 10, 28)
-# Offsets fixos, não `ZoneInfo`: o que está em teste é a conversão, não a base de fusos (ADR 0006).
+# Offsets fixos, não `ZoneInfo`: o que está em teste é a conversão, não a base de fusos do sistema.
 SAO_PAULO = timezone(timedelta(hours=-3))
 TOKYO = timezone(timedelta(hours=9))
 
@@ -69,7 +69,7 @@ def test_today_in_converts_the_utc_instant_to_the_library_day(
     monkeypatch: pytest.MonkeyPatch, library_timezone: timezone, expected_day: date
 ) -> None:
     # O "hoje" tirado direto do UTC adiantaria em três horas, em São Paulo, todo lançamento
-    # marcado para o dia seguinte (ADR 0005).
+    # marcado para o dia seguinte (ADR 0003).
     monkeypatch.setattr("library.application.book_service.utc_now", lambda: datetime(2026, 10, 28, 1, 0, tzinfo=UTC))
 
     assert today_in(library_timezone)() == expected_day

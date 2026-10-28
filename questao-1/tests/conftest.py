@@ -25,6 +25,6 @@ def _make_book(**overrides: Any) -> Book:
 def make_book() -> Callable[..., Book]:
     """Fábrica de livro válido; cada teste sobrescreve só o campo que está exercitando.
 
-    Saiu do `test_book.py` quando a suíte da infraestrutura passou a precisar dela também (ADR 0006).
+    Saiu do `test_book.py` quando a suíte da infraestrutura passou a precisar dela também.
     """
     return _make_book

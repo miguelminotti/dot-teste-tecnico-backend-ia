@@ -29,7 +29,7 @@ class BookDTO:
     author: str
     summary: str
     publication_date: date
-    # Derivado da data de publicação no dia da biblioteca (ADR 0005); nunca é guardado.
+    # Derivado da data de publicação no dia da biblioteca (ADR 0003); nunca é guardado.
     is_published: bool
     created_at: datetime
 

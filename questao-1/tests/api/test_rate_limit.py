@@ -55,7 +55,7 @@ def test_late_request_from_the_previous_window_does_not_reset_the_counters() -> 
 
 def test_each_client_has_its_own_limit() -> None:
     # Um contador compartilhado deixaria um cliente abusivo bloquear todos os outros
-    # (o defeito encontrado no fastapi-limiter, ADR 0011).
+    # (o defeito encontrado no fastapi-limiter, ADR 0007).
     limiter = FixedWindowRateLimiter(max_requests=1, window_seconds=60, clock=FakeClock())
     limiter.acquire("10.0.0.1")
 

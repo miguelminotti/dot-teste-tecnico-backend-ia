@@ -15,7 +15,7 @@ def today_in(timezone: tzinfo) -> Callable[[], date]:
 
     O instante vem do relógio do domínio (UTC) e só aqui vira dia, no fuso escolhido. Às 22h de
     27/10 em São Paulo o dia em UTC já é 28/10; com o fuso da biblioteca, ainda é 27/10, e um
-    lançamento de 28/10 não aparece como publicado antes da hora (ADR 0005).
+    lançamento de 28/10 não aparece como publicado antes da hora (ADR 0003).
     """
 
     def today() -> date:

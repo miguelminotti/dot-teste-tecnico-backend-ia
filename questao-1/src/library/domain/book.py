@@ -20,7 +20,7 @@ class Book:
 
     title: str
     author: str
-    # Dia do calendário, passado ou futuro (pré-cadastro). Ver as ADRs 0002 e 0005.
+    # Dia do calendário, passado ou futuro (pré-cadastro). Ver a ADR 0003.
     publication_date: PublicationDate
     summary: str
     # Identidade gerada no próprio domínio, sem depender do banco para existir.

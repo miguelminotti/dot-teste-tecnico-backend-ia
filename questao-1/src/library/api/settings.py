@@ -15,7 +15,7 @@ class Settings:
     """
 
     database_path: Path = Path("library.db")
-    # Fuso em que a biblioteca opera: define o "hoje" de `is_published` (ADR 0005).
+    # Fuso em que a biblioteca opera: define o "hoje" de `is_published` (ADR 0003).
     timezone: ZoneInfo = field(default_factory=lambda: ZoneInfo("America/Sao_Paulo"))
     rate_limit_requests: int = 60
     rate_limit_window_seconds: int = 60

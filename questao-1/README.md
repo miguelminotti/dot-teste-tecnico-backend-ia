@@ -107,32 +107,37 @@ As dependências apontam para dentro: `api` → `application` → `domain` ← `
 
 ## Decisões
 
-Cada decisão de arquitetura tem uma ADR com contexto, alternativas descartadas e consequências. Aqui fica só o resumo.
+O porquê de cada decisão, com as alternativas descartadas, está nas [ADRs desta questão](docs/adr/README.md). As que valem para o repositório inteiro (um projeto uv por questão, Python 3.12) e as convenções (idioma, ruff, mypy) estão no [README da raiz](../README.md).
 
-### Do repositório ([`../docs/adr/`](../docs/adr/README.md))
+1. [DDD enxuto, em camadas, com a aplicação como única porta da API](docs/adr/0001-ddd-enxuto-em-camadas.md)
+2. [Entidade válida por construção, com identidade própria](docs/adr/0002-entidade-valida-com-identidade-propria.md)
+3. [Instantes em UTC, data de publicação como dia, publicação derivada](docs/adr/0003-datas-e-estado-de-publicacao.md)
+4. [Persistência com `sqlite3` da stdlib, num repositório único](docs/adr/0004-persistencia-sqlite3-com-repositorio-unico.md)
+5. [Busca parcial, sem diferenciar maiúsculas nem acentos](docs/adr/0005-busca-sem-caixa-e-sem-acento.md)
+6. [Contrato HTTP com paginação obrigatória e validação estrita na borda](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md)
+7. [Rate limiting próprio, por IP, em janela fixa e em memória](docs/adr/0007-rate-limiting-proprio-em-memoria.md)
 
-- **Um repositório, um projeto uv por questão.** As dependências das questões não se sobrepõem, e a questão 3 traz o torch. Uv workspace descartado por acoplar versões sem ganho. [ADR 0001](../docs/adr/0001-monorepo-com-projeto-uv-por-questao.md)
-- **Python 3.12.** Versão mais segura para as wheels de FAISS e torch da questão 3, igual nas três questões. [ADR 0002](../docs/adr/0002-python-3-12.md)
-- **Código em inglês, documentação em português.** Sem misturar idiomas dentro do código. [ADR 0003](../docs/adr/0003-codigo-em-ingles-documentacao-em-portugues.md)
-- **ruff (120 colunas, regras enxutas) e mypy strict sobre `src/` e `tests/`, com layout `src`.** [ADR 0004](../docs/adr/0004-qualidade-ruff-e-mypy-strict.md)
+### Além do enunciado
 
-### Desta questão ([`docs/adr/`](docs/adr/README.md))
+O enunciado pede cadastro e busca. Estes itens foram acrescentados de propósito, cada um isolado para sair sem tocar o resto:
 
-- **DDD enxuto.** Camadas com dependências apontando para dentro; o domínio não conhece banco nem framework. Value object só onde há regra a proteger, sem agregados ou eventos enquanto o domínio for uma entidade e duas operações. [ADR 0001](docs/adr/0001-ddd-enxuto-em-camadas.md)
-- **Instantes em UTC, datas de calendário sem fuso.** `created_at` é UTC no domínio e no banco; a data de publicação é `date` e não muda de dia conforme o fuso de quem consulta. A API devolve instantes em UTC; converter para o fuso do cliente seria papel da borda, e não foi implementado. [ADR 0002](docs/adr/0002-instantes-em-utc-datas-sem-fuso.md)
-- **Identidade por UUID gerado no domínio.** O livro nasce com `id`, sem `id: int | None`, e se compara só pelo `id`. [ADR 0003](docs/adr/0003-identidade-por-uuid-do-dominio.md)
-- **Entidade válida por construção.** Invariantes no `__post_init__`, erros de domínio próprios. Regra que vem do negócio fica no domínio; proteção técnica, como limite de tamanho dos textos, fica no schema da API. [ADR 0004](docs/adr/0004-entidade-valida-por-construcao.md)
-- **`PublicationDate` como fonte única do estado de publicação.** Aceita data futura (pré-cadastro) e deriva `is_published(as_of)` em vez de guardar uma flag; o dia de referência vem de quem chama. [ADR 0005](docs/adr/0005-publication-date-como-fonte-unica.md)
-- **Testes protegem regras de negócio; todo bug vira teste.** [ADR 0006](docs/adr/0006-testes-protegem-regras-de-negocio.md)
-- **Persistência com `sqlite3` da stdlib, num repositório único.** Porta no domínio, implementação na infraestrutura, SQL explícito e sem ORM. Leitura e escrita no mesmo repositório: CQRS seria exagero para um endpoint de cada. Tabela `STRICT` com `CHECK`s que repetem a política de datas no banco. [ADR 0007](docs/adr/0007-persistencia-sqlite3-com-repositorio-unico.md)
-- **Busca parcial, sem diferenciar maiúsculas nem acentos.** "jose" acha "José de Alencar"; `%` e `_` digitados são texto, não curinga. [ADR 0008](docs/adr/0008-busca-sem-caixa-e-sem-acento.md)
-- **Camada de aplicação como única porta da API.** `BookService` recebe o repositório pela porta do domínio e devolve DTOs; a entidade nunca sai da aplicação. `is_published` é calculado no "hoje" do fuso da biblioteca. [ADR 0009](docs/adr/0009-camada-de-aplicacao-com-dtos.md)
-- **Contrato HTTP com paginação obrigatória e validação estrita na borda.** `limit` (até 100) e `offset` (até 1 milhão) com `has_more`; data só como `AAAA-MM-DD`; campo desconhecido é erro; tetos de tamanho dos textos; 422 num formato só, venha o erro do schema ou do domínio. Sem autenticação, porque o enunciado não pede; isso pressupõe uso em ambiente controlado. [ADR 0010](docs/adr/0010-contrato-http-e-validacao-na-borda.md)
-- **Proteção básica por rate limiting.** Limite simples por IP, com 429 e `Retry-After`, porque a API roda sem proxy na frente. [ADR 0011](docs/adr/0011-rate-limiting-proprio-em-memoria.md)
+- **Estado de publicação** (`is_published`), derivado da data, com o "hoje" no fuso da biblioteca: permite pré-cadastrar lançamentos ([ADR 0003](docs/adr/0003-datas-e-estado-de-publicacao.md)).
+- **Busca sem caixa e sem acento**: o `LIKE` do SQLite não encontraria "José" buscando "jose" ([ADR 0005](docs/adr/0005-busca-sem-caixa-e-sem-acento.md)).
+- **Paginação obrigatória**: nenhuma busca devolve o acervo inteiro ([ADR 0006](docs/adr/0006-contrato-http-paginado-e-validacao-na-borda.md)).
+- **Rate limiting**: a única proteção de uma API sem autenticação e sem proxy na frente ([ADR 0007](docs/adr/0007-rate-limiting-proprio-em-memoria.md)).
 
-Decisão de produto, fora das ADRs: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
+Decisão de produto: o **resumo é obrigatório**, porque o enunciado o lista junto dos outros campos sem marcá-lo como opcional.
 
 ## Testes
+
+Política da suíte:
+
+- Cada teste protege uma regra de negócio ou um caso de borda conhecido, e um comentário dentro dele diz qual estrago ele evita. A mecânica da linguagem ou da biblioteca (imutabilidade da dataclass, `repr`) só é testada se sustenta uma regra. Meta de cobertura de linhas ficou de fora, porque incentiva teste que executa código sem verificar regra.
+- Um teste só vale se fica vermelho quando sua regra é quebrada. Cada regra foi quebrada de propósito para confirmar (lista abaixo); as mutações foram feitas à mão, porque uma ferramenta como o mutmut é peso demais para este tamanho.
+- Todo bug vira teste: primeiro um teste que o reproduz e falha, depois a correção. O bug fica registrado no fim desta seção.
+- Fusos nos testes usam offset fixo, não `ZoneInfo`: o que está em teste é a conversão, não a base de fusos do sistema operacional.
+- Caracteres invisíveis são escritos como sequências de escape (`"​"`), nunca literais, para quem lê ver o que está sendo testado.
+- Helpers de teste ficam no arquivo que os usa e vão para o `conftest.py` quando um segundo arquivo precisa deles.
 
 O que cada suíte cobre:
 
@@ -149,7 +154,7 @@ O que cada suíte cobre:
 
 Os testes da infraestrutura e da API rodam contra SQLite real, sem fake: em memória quando basta uma conexão, num arquivo temporário quando precisam de mais de uma (persistência e concorrência) e um banco próprio por teste na API. Os testes da API sobem a aplicação com `create_app` e o `TestClient`, que executa o lifespan como na subida real.
 
-**Os testes protegem de verdade:** é necessário garantir que um teste fica vermelho se sua regra for quebrada, seguindo os padrões de RED -> GREEN. Cada regra foi quebrada de propósito, uma por vez, e em todas a suíte falhou:
+**Regras quebradas de propósito**, uma por vez; em todas a suíte falhou:
 
 - **Domínio:** trocar `<=` por `<` no `is_published`, tirar o `strip`, tirar a checagem de offset, trocar `utc_now()` por `datetime.now()`, desligar a igualdade por `id`, aceitar `datetime` como data de publicação, pular a conversão do `created_at`.
 - **Repositório:** tirar o commit, trocar por `INSERT OR REPLACE`, não escapar `%`, buscar sem normalizar, ordenar pela coluna original, tirar o desempate por `id`, gravar `created_at` sem largura fixa, combinar filtros com OU, recriar a tabela no `create_schema`, tirar o `CHECK` de UTC, e trocar a chave primária por um "já existe?" antes do insert (check-then-act). Este último depende de corrida entre threads, então foi rodado 20 vezes: a suíte falhou nas 20. Na paginação: tirar a barreira de `limit`/`offset`, aceitar `limit` zero, trocar `LIMIT` e `OFFSET` de lugar, ignorar o `OFFSET`.
@@ -164,7 +169,7 @@ Os testes da infraestrutura e da API rodam contra SQLite real, sem fake: em mem�
 
 ### Bugs registrados
 
-Todo bug vira um teste que o reproduz antes da correção ([ADR 0006](docs/adr/0006-testes-protegem-regras-de-negocio.md)).
+Cada bug tem um teste que o reproduziu antes da correção.
 
 **1. Texto só com caractere invisível era aceito**
 
