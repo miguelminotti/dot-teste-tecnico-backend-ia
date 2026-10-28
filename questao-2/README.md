@@ -2,6 +2,14 @@
 
 Chatbot que responde perguntas sobre programação em Python, com LangChain e um modelo da OpenAI.
 
+## Em resumo
+
+- **O que é:** chatbot de linha de comando que responde dúvidas de Python com LangChain (LCEL) e a OpenAI, e lembra a conversa para a pergunta seguinte ("e como removo um item dela?").
+- **Como rodar:** `uv sync`, copiar o `.env.example` para `.env` com a `OPENAI_API_KEY` e `uv run --env-file .env chatbot`. Detalhes em [Como rodar](#como-rodar).
+- **O resultado:** o modelo foi escolhido por avaliação no LangSmith, com 15 conversas, um juiz LLM e a execução do código das respostas. O `gpt-4.1-mini`, da família do GPT-4 que o enunciado cita, errou todas as perguntas sobre recursos recentes do Python (precisão 0,00). O `gpt-5.4-mini` com busca restrita à documentação oficial acertou 4 de 5 (0,80), ficou em 0,97 no resto e custa US$ 3,06 por mil turnos no p50 ([ADR 0002](docs/adr/0002-busca-na-documentacao-com-gpt-5-4-mini.md)).
+- **O que ficou em aberto:** perguntado se `except ValueError, TypeError:` é válido, sem citar versão, o modelo responde "não" com certeza e sem buscar, e o 3.14 passou a aceitar. Cada experimento rodou uma vez, as perguntas recentes são só 5, e o juiz ainda não foi calibrado contra rótulos humanos ([avaliação](docs/avaliacao.md#resultados)).
+- **Histórico sem as classes de memória do LangChain:** os turnos vão numa lista explícita para o `MessagesPlaceholder`, porque essas classes estão deprecadas no LangChain 1.x em favor do LangGraph, que seria uma camada sem uso aqui ([ADR 0001](docs/adr/0001-historico-explicito-sem-langgraph.md)).
+
 ## Enunciado × status
 
 | Requisito do enunciado | Status |

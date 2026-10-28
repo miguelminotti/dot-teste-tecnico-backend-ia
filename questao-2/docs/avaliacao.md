@@ -86,7 +86,7 @@ A taxa é lida junto com o custo: o desconto do token cacheado varia entre model
 - **O juiz não é o modelo que responde,** para não favorecer o próprio estilo (viés de autopreferência). O padrão é o `gpt-5.4`, mais forte que o do chatbot, configurável em `EVAL_JUDGE_MODEL`. Com o `gpt-5.4-mini` no chatbot, juiz e chatbot são da mesma família, e o viés de autopreferência volta a ser um risco a medir na calibração.
 - **O juiz não conhece o que é mais novo que ele.** Nas perguntas recentes, o veredito só é confiável no que está nos pontos-chave, escritos por nós a partir da documentação; numa afirmação fora deles, o juiz pode reprovar código certo (aconteceu com o `flush()` do `compression.zstd`). Nesse caso, a execução dos snippets na versão certa do Python é quem decide.
 - **Viés de verbosidade.** Juízes tendem a preferir respostas mais longas. O custo, que cresce com os tokens de saída, é o contrapeso: o enunciado pede uma explicação detalhada, e as duas métricas juntas medem se o detalhe vale o que custa.
-- **O juiz é calibrado antes de ser confiado:** uma parte das respostas é rotulada à mão, e a concordância com o juiz é medida. Um juiz que discorda de quem rotulou mede outra coisa.
+- **O juiz precisa ser calibrado antes de ser confiado:** uma parte das respostas é rotulada à mão, e a concordância com o juiz é medida. Um juiz que discorda de quem rotulou mede outra coisa. A calibração ainda não foi feita: até ela, os vereditos do juiz são lidos junto com a execução dos snippets e com a leitura das falhas, uma a uma, como nos resultados abaixo.
 
 ### Execução dos snippets
 
