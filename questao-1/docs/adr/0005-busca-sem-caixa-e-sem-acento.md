@@ -11,7 +11,7 @@ O enunciado pede consulta por título ou autor. Quem busca digita do jeito que l
 
 - A busca é por trecho ("contém"), em título e/ou autor. Com os dois filtros, o livro precisa casar com ambos.
 - O repositório grava, ao lado do título e do autor, uma versão normalizada de cada um, e busca nela. O texto buscado passa pela mesma normalização.
-- Normalizar é: `casefold` (maiúsculas, e "ß" vira "ss"), decomposição NFKD (separa letra e acento, desfaz ligaduras) e descarte dos acentos soltos.
+- Normalizar é: `casefold` (maiúsculas, e "ß" vira "ss"), decomposição NFKD (separa letra e acento, desfaz ligaduras), descarte dos acentos soltos e espaços repetidos reduzidos a um ("dom  casmurro" acha "Dom Casmurro").
 - `%` e `_` digitados pelo usuário são buscados como texto, não como curinga.
 - O resultado vem em ordem alfabética de título e autor, com o id desempatando, para que a paginação não repita nem pule livros.
 
@@ -27,3 +27,6 @@ O enunciado pede consulta por título ou autor. Quem busca digita do jeito que l
 - A normalização é detalhe da infraestrutura: num banco com suporte nativo (Postgres com `unaccent` e `ILIKE`, por exemplo), as colunas extras podem sumir sem mudar a porta.
 - Busca por "contém" não usa índice e percorre a tabela. Para o tamanho do acervo de uma prova, é irrelevante; para um acervo grande, o caminho é FTS5 ou a busca textual do Postgres.
 - Se a regra de normalização mudar, as colunas normalizadas existentes precisam ser recalculadas.
+- **Limitações conhecidas**, mantidas de propósito por terem impacto baixo:
+  - Letras que o NFKD não decompõe continuam diferentes da letra sem marca: "lodz" não acha "Łódź", e "orsted" não acha "Ørsted". Para nomes em português, não acontece; resolver exigiria uma tabela de transliteração.
+  - Um filtro feito só de acentos soltos passa pela validação da API (tem caractere que não é espaço), mas fica vazio depois de normalizado e casa com o acervo inteiro. A resposta continua paginada, então o efeito é o mesmo de uma busca sem filtro.

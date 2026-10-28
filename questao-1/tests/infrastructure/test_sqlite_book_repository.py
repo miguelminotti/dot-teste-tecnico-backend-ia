@@ -233,6 +233,25 @@ def test_search_ignores_case_and_accents(
 
 
 @pytest.mark.parametrize(
+    ("stored", "query"),
+    [
+        ("Dom Casmurro", "dom  casmurro"),
+        ("Dom  Casmurro", "dom casmurro"),
+        ("Dom\tCasmurro", "dom casmurro"),
+    ],
+    ids=["espaco-duplo-na-busca", "espaco-duplo-no-titulo", "tab-no-titulo"],
+)
+def test_search_ignores_repeated_whitespace(
+    repository: SqliteBookRepository, make_book: MakeBook, stored: str, query: str
+) -> None:
+    # Bug: "dom  casmurro" (dois espaços, comum ao digitar ou colar) não achava "Dom Casmurro", e
+    # um título cadastrado com espaço duplo só era achado por quem digitasse o espaço duplo.
+    repository.add(make_book(title=stored))
+
+    assert _titles(repository.search(title=query, limit=LIMIT)) == [stored]
+
+
+@pytest.mark.parametrize(
     ("query", "expected"),
     [
         ("%", ["100% Python"]),

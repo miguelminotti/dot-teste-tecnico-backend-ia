@@ -86,7 +86,7 @@ class SqliteBookRepository:
 
 
 def normalize_for_search(text: str) -> str:
-    """Forma do texto usada na busca: sem diferença de maiúsculas nem de acentos.
+    """Forma do texto usada na busca: sem diferença de maiúsculas, de acentos nem de espaçamento.
 
     O LIKE do SQLite só ignora maiúsculas em ASCII ("érico" não acha "Érico") e nunca ignora
     acentos ("jose" não acha "José"). Gravar e buscar pela forma normalizada resolve os dois.
@@ -94,9 +94,12 @@ def normalize_for_search(text: str) -> str:
     - `casefold` é a versão agressiva do `lower` para comparação ("ß" vira "ss").
     - NFKD separa a letra do acento ("é" vira "e" + acento) e desfaz ligaduras ("ﬁ" vira "fi").
     - Os acentos soltos (caracteres "combining") são descartados.
+    - Espaços repetidos, tabs e quebras de linha viram um espaço só: "dom  casmurro" acha
+      "Dom Casmurro".
     """
     decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return "".join(char for char in decomposed if not unicodedata.combining(char))
+    without_accents = "".join(char for char in decomposed if not unicodedata.combining(char))
+    return " ".join(without_accents.split())
 
 
 def _contains_pattern(text: str) -> str:

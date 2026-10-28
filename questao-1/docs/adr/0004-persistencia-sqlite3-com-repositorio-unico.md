@@ -30,3 +30,4 @@ O enunciado pede SQLite. O sistema tem uma tabela, uma escrita (cadastro) e uma 
 - Nenhuma dependência nova.
 - Os testes da infraestrutura rodam contra SQLite real, sem simular o banco.
 - Uma operação que precise de várias escritas atômicas vai exigir controle de transação acima do repositório (unit of work), hoje deixado de fora.
+- **Limitação conhecida:** a leitura reidrata o livro pelo construtor, então uma linha gravada sem passar pelo repositório que viole uma regra do livro (título só com espaços, por exemplo) faz a busca levantar um erro de domínio, e a API responde 422 a uma leitura, quando o certo seria 500. Fica assim porque só uma escrita por fora do repositório produz essa linha, e os `CHECK`s do banco já barram as datas fora da política.
