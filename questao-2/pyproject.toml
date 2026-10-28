@@ -15,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 chatbot = "chatbot.cli:main"
+chatbot-eval = "chatbot.evaluation.run:main"
 
 [build-system]
 requires = ["uv_build>=0.11.26,<0.12.0"]
@@ -44,3 +45,5 @@ files = ["src", "tests"]
 testpaths = ["tests"]
 # importlib: testes não precisam de __init__.py e importam o pacote instalado, não o diretório atual
 addopts = ["--import-mode=importlib", "--strict-markers", "-ra"]
+# Aviso de dentro do langsmith (usa ast.Str), não do nosso código; o resto dos avisos continua aparecendo.
+filterwarnings = ["ignore:ast.Str is deprecated:DeprecationWarning:langsmith"]

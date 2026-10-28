@@ -33,7 +33,13 @@ Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estã
 
 ## Avaliação
 
-O chatbot é desenvolvido guiado por avaliação: dataset e métricas vieram antes do código que chama o modelo, e cada peça da arquitetura entra se melhorar as métricas. O dataset está em [`evals/dataset.json`](evals/dataset.json); as métricas e o porquê de cada uma, em [`docs/avaliacao.md`](docs/avaliacao.md).
+O chatbot é desenvolvido guiado por avaliação: dataset e métricas vieram antes do código que chama o modelo, e cada peça da arquitetura entra se melhorar as métricas. O dataset está em [`evals/dataset.json`](evals/dataset.json); as métricas, o porquê de cada uma e os resultados dos experimentos, em [`docs/avaliacao.md`](docs/avaliacao.md).
+
+Rodar um experimento no LangSmith (precisa também de `LANGSMITH_API_KEY`):
+
+```bash
+uv run --env-file .env chatbot-eval
+```
 
 ## Decisões
 

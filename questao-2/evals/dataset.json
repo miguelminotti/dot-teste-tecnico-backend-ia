@@ -2,12 +2,16 @@
   {
     "id": "lista-criar",
     "category": "basico",
-    "question": "Como criar uma lista em Python?",
-    "key_points": [
-      "Cria a lista com colchetes, vazia (`[]`) ou com itens separados por vírgula",
-      "Mostra o construtor `list()`, inclusive convertendo outro iterável (como `list(range(5))`)",
-      "Explica que a lista é ordenada, mutável e aceita itens de tipos diferentes",
-      "Mostra o acesso por índice, começando em 0, e como adicionar um item com `append`"
+    "turns": [
+      {
+        "question": "Como criar uma lista em Python?",
+        "key_points": [
+          "Cria a lista com colchetes, vazia (`[]`) ou com itens separados por vírgula",
+          "Mostra o construtor `list()`, inclusive convertendo outro iterável (como `list(range(5))`)",
+          "Explica que a lista é ordenada, mutável e aceita itens de tipos diferentes",
+          "Mostra o acesso por índice, começando em 0, e como adicionar um item com `append`"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -15,12 +19,16 @@
   {
     "id": "lista-vs-tupla",
     "category": "basico",
-    "question": "Qual a diferença entre lista e tupla em Python? Quando usar cada uma?",
-    "key_points": [
-      "Lista é mutável e tupla é imutável",
-      "Lista usa colchetes e tupla usa parênteses (ou só vírgulas)",
-      "Tupla com itens imutáveis pode ser chave de dicionário ou item de set; lista não pode",
-      "Tupla para um registro de tamanho fixo que não muda; lista para uma coleção que cresce ou muda"
+    "turns": [
+      {
+        "question": "Qual a diferença entre lista e tupla em Python? Quando usar cada uma?",
+        "key_points": [
+          "Lista é mutável e tupla é imutável",
+          "Lista usa colchetes e tupla usa parênteses (ou só vírgulas)",
+          "Tupla com itens imutáveis pode ser chave de dicionário ou item de set; lista não pode",
+          "Tupla para um registro de tamanho fixo que não muda; lista para uma coleção que cresce ou muda"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -28,11 +36,15 @@
   {
     "id": "default-mutavel",
     "category": "armadilha",
-    "question": "Escrevi `def adicionar(item, itens=[]): itens.append(item); return itens` e a lista vai acumulando itens de uma chamada para outra. Por quê?",
-    "key_points": [
-      "O valor padrão é avaliado uma vez só, quando a função é definida, e não a cada chamada",
-      "Por isso todas as chamadas sem `itens` compartilham a mesma lista",
-      "A correção é usar `None` como padrão e criar a lista dentro da função"
+    "turns": [
+      {
+        "question": "Escrevi `def adicionar(item, itens=[]): itens.append(item); return itens` e a lista vai acumulando itens de uma chamada para outra. Por quê?",
+        "key_points": [
+          "O valor padrão é avaliado uma vez só, quando a função é definida, e não a cada chamada",
+          "Por isso todas as chamadas sem `itens` compartilham a mesma lista",
+          "A correção é usar `None` como padrão e criar a lista dentro da função"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -40,10 +52,14 @@
   {
     "id": "premissa-push",
     "category": "premissa-falsa",
-    "question": "Como uso o método push para adicionar um item numa lista em Python?",
-    "key_points": [
-      "Corrige a premissa: lista do Python não tem método `push` (o nome vem de outras linguagens, como JavaScript), e chamá-lo dá `AttributeError`",
-      "Mostra `append` para adicionar no fim da lista"
+    "turns": [
+      {
+        "question": "Como uso o método push para adicionar um item numa lista em Python?",
+        "key_points": [
+          "Corrige a premissa: lista do Python não tem método `push` (o nome vem de outras linguagens, como JavaScript), e chamá-lo dá `AttributeError`",
+          "Mostra `append` para adicionar no fim da lista"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -51,12 +67,16 @@
   {
     "id": "gerador-yield",
     "category": "intermediario",
-    "question": "O que é um gerador em Python e quando usar `yield` em vez de devolver uma lista?",
-    "key_points": [
-      "Uma função com `yield` devolve um gerador, que produz os valores sob demanda, um por vez",
-      "Economiza memória em sequências grandes ou infinitas, porque não guarda todos os valores",
-      "Um gerador só pode ser percorrido uma vez",
-      "Lista é melhor quando é preciso acessar por índice, saber o tamanho ou percorrer várias vezes"
+    "turns": [
+      {
+        "question": "O que é um gerador em Python e quando usar `yield` em vez de devolver uma lista?",
+        "key_points": [
+          "Uma função com `yield` devolve um gerador, que produz os valores sob demanda, um por vez",
+          "Economiza memória em sequências grandes ou infinitas, porque não guarda todos os valores",
+          "Um gerador só pode ser percorrido uma vez",
+          "Lista é melhor quando é preciso acessar por índice, saber o tamanho ou percorrer várias vezes"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -64,11 +84,15 @@
   {
     "id": "ordenar-dicionarios",
     "category": "intermediario",
-    "question": "Como ordenar uma lista de dicionários pelo valor de uma chave, por exemplo pela idade?",
-    "key_points": [
-      "Usa `sorted` ou `list.sort` com o parâmetro `key`, como `key=lambda pessoa: pessoa[\"idade\"]`",
-      "`sorted` devolve uma lista nova; `list.sort` ordena a própria lista e devolve `None`",
-      "`reverse=True` inverte a ordem"
+    "turns": [
+      {
+        "question": "Como ordenar uma lista de dicionários pelo valor de uma chave, por exemplo pela idade?",
+        "key_points": [
+          "Usa `sorted` ou `list.sort` com o parâmetro `key`, como `key=lambda pessoa: pessoa[\"idade\"]`",
+          "`sorted` devolve uma lista nova; `list.sort` ordena a própria lista e devolve `None`",
+          "`reverse=True` inverte a ordem"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
@@ -76,12 +100,16 @@
   {
     "id": "genericos-312",
     "category": "recente",
-    "question": "Como declaro uma função genérica com a sintaxe de parâmetros de tipo do Python 3.12?",
-    "key_points": [
-      "Os parâmetros de tipo vêm entre colchetes depois do nome, como `def primeiro[T](itens: list[T]) -> T`",
-      "Dispensa declarar um `TypeVar` separado",
-      "A mesma sintaxe vale para classes (`class Caixa[T]:`) e para aliases com `type`",
-      "Só funciona a partir do Python 3.12"
+    "turns": [
+      {
+        "question": "Como declaro uma função genérica com a sintaxe de parâmetros de tipo do Python 3.12?",
+        "key_points": [
+          "Os parâmetros de tipo vêm entre colchetes depois do nome, como `def primeiro[T](itens: list[T]) -> T`",
+          "Dispensa declarar um `TypeVar` separado",
+          "A mesma sintaxe vale para classes (`class Caixa[T]:`) e para aliases com `type`",
+          "Só funciona a partir do Python 3.12"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": "2023-10-02"
@@ -89,13 +117,17 @@
   {
     "id": "t-strings-314",
     "category": "recente",
-    "question": "O que são as template strings (t-strings) do Python 3.14 e como elas diferem das f-strings?",
-    "key_points": [
-      "Usam o prefixo `t` no lugar do `f`, como `t\"Olá, {nome}\"`",
-      "O resultado não é uma `str`, e sim um objeto `Template`, do módulo `string.templatelib`",
-      "O `Template` separa as partes fixas dos valores interpolados, para que o código processe os valores antes de montar o texto (escapar HTML ou SQL, por exemplo)",
-      "A f-string avalia e junta tudo numa `str` na hora, sem essa etapa",
-      "Existem a partir do Python 3.14 (PEP 750)"
+    "turns": [
+      {
+        "question": "O que são as template strings (t-strings) do Python 3.14 e como elas diferem das f-strings?",
+        "key_points": [
+          "Usam o prefixo `t` no lugar do `f`, como `t\"Olá, {nome}\"`",
+          "O resultado não é uma `str`, e sim um objeto `Template`, do módulo `string.templatelib`",
+          "O `Template` separa as partes fixas dos valores interpolados, para que o código processe os valores antes de montar o texto (escapar HTML ou SQL, por exemplo)",
+          "A f-string avalia e junta tudo numa `str` na hora, sem essa etapa",
+          "Existem a partir do Python 3.14 (PEP 750)"
+        ]
+      }
     ],
     "python_version": "3.14",
     "released_on": "2025-10-07"
@@ -103,11 +135,15 @@
   {
     "id": "zstd-314",
     "category": "recente",
-    "question": "Como comprimir e descomprimir dados com Zstandard usando só a biblioteca padrão do Python?",
-    "key_points": [
-      "A partir do Python 3.14, a biblioteca padrão tem o módulo `compression.zstd` (PEP 784)",
-      "Mostra `zstd.compress` e `zstd.decompress`, que trabalham com `bytes`",
-      "Antes do 3.14, Zstandard só com pacote de terceiros (como o `zstandard`)"
+    "turns": [
+      {
+        "question": "Como comprimir e descomprimir dados com Zstandard usando só a biblioteca padrão do Python?",
+        "key_points": [
+          "A partir do Python 3.14, a biblioteca padrão tem o módulo `compression.zstd` (PEP 784)",
+          "Mostra `zstd.compress` e `zstd.decompress`, que trabalham com `bytes`",
+          "Antes do 3.14, Zstandard só com pacote de terceiros (como o `zstandard`)"
+        ]
+      }
     ],
     "python_version": "3.14",
     "released_on": "2025-10-07"
@@ -115,11 +151,15 @@
   {
     "id": "except-sem-parenteses-314",
     "category": "recente",
-    "question": "Posso escrever `except ValueError, TypeError:` para capturar duas exceções em Python?",
-    "key_points": [
-      "A partir do Python 3.14 pode (PEP 758), desde que sem `as`",
-      "Com `as`, os parênteses continuam obrigatórios: `except (ValueError, TypeError) as erro:`",
-      "Até o Python 3.13 é `SyntaxError`; a forma que funciona em todas as versões é `except (ValueError, TypeError):`"
+    "turns": [
+      {
+        "question": "Posso escrever `except ValueError, TypeError:` para capturar duas exceções em Python?",
+        "key_points": [
+          "A partir do Python 3.14 pode (PEP 758), desde que sem `as`",
+          "Com `as`, os parênteses continuam obrigatórios: `except (ValueError, TypeError) as erro:`",
+          "Até o Python 3.13 é `SyntaxError`; a forma que funciona em todas as versões é `except (ValueError, TypeError):`"
+        ]
+      }
     ],
     "python_version": "3.14",
     "released_on": "2025-10-07"
@@ -127,10 +167,14 @@
   {
     "id": "pydantic-para-dicionario",
     "category": "biblioteca",
-    "question": "Como converto um modelo do Pydantic em dicionário?",
-    "key_points": [
-      "No Pydantic v2, com `model_dump()`",
-      "`.dict()` é da v1 e está depreciado na v2"
+    "turns": [
+      {
+        "question": "Como converto um modelo do Pydantic em dicionário?",
+        "key_points": [
+          "No Pydantic v2, com `model_dump()`",
+          "`.dict()` é da v1 e está depreciado na v2"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": "2023-06-30"
@@ -138,10 +182,124 @@
   {
     "id": "fora-do-escopo",
     "category": "fora-do-escopo",
-    "question": "Qual é uma boa receita de bolo de cenoura?",
-    "key_points": [
-      "Não dá a receita",
-      "Diz que responde dúvidas de programação em Python e convida o usuário a perguntar sobre isso"
+    "turns": [
+      {
+        "question": "Qual é uma boa receita de bolo de cenoura?",
+        "key_points": [
+          "Não dá a receita",
+          "Diz que responde dúvidas de programação em Python e convida o usuário a perguntar sobre isso"
+        ]
+      }
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "conversa-listas",
+    "category": "conversa",
+    "turns": [
+      {
+        "question": "Como criar uma lista em Python?",
+        "key_points": [
+          "Cria a lista com colchetes, vazia (`[]`) ou com itens separados por vírgula",
+          "Explica que a lista é ordenada e mutável"
+        ]
+      },
+      {
+        "question": "E como removo um item dela?",
+        "key_points": [
+          "Entende que \"dela\" é a lista da resposta anterior",
+          "`remove` tira pelo valor (a primeira ocorrência) e dá `ValueError` se o valor não existe",
+          "`pop` tira pelo índice (o último, se nenhum for passado) e devolve o item removido",
+          "`del` tira pelo índice ou por fatia, sem devolver nada"
+        ]
+      },
+      {
+        "question": "Qual a diferença entre o remove e o pop que você mostrou?",
+        "key_points": [
+          "`remove` recebe o valor; `pop` recebe a posição",
+          "`pop` devolve o item removido; `remove` devolve `None`",
+          "Os erros são diferentes: `ValueError` no `remove` com valor ausente, `IndexError` no `pop` com índice fora da lista"
+        ]
+      },
+      {
+        "question": "Agora me explique list comprehension com um exemplo usando listas como as que conversamos.",
+        "key_points": [
+          "Mostra a forma `[expressão for item in iterável]`",
+          "Mostra o filtro com `if` no fim",
+          "Compara com o `for` equivalente que monta a lista com `append`"
+        ]
+      }
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "conversa-dicionarios",
+    "category": "conversa",
+    "turns": [
+      {
+        "question": "Como funciona um dicionário em Python?",
+        "key_points": [
+          "Guarda pares de chave e valor, criados com chaves (`{}`) ou com `dict()`",
+          "Acessa o valor pela chave, com `d[chave]`",
+          "As chaves precisam ser imutáveis (hashable) e são únicas",
+          "Desde o Python 3.7, o dicionário mantém a ordem de inserção"
+        ]
+      },
+      {
+        "question": "Como percorro as chaves e os valores dele ao mesmo tempo?",
+        "key_points": [
+          "Usa `for chave, valor in d.items():`"
+        ]
+      },
+      {
+        "question": "E se eu tentar acessar uma chave que não existe?",
+        "key_points": [
+          "`d[chave]` com chave ausente dá `KeyError`",
+          "`d.get(chave)` devolve `None`, ou um padrão passado como segundo argumento",
+          "`chave in d` confere antes de acessar"
+        ]
+      },
+      {
+        "question": "Usando o que você explicou, como conto quantas vezes cada palavra aparece numa frase?",
+        "key_points": [
+          "Separa as palavras com `split()`",
+          "Conta num dicionário, com `get(palavra, 0) + 1` ou conferindo com `in`",
+          "Menciona `collections.Counter` como forma pronta"
+        ]
+      }
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "conversa-indice",
+    "category": "conversa",
+    "turns": [
+      {
+        "question": "Meu código `numeros = [1, 2, 3]` seguido de `print(numeros[3])` dá erro. Por quê?",
+        "key_points": [
+          "O erro é `IndexError`",
+          "Os índices começam em 0, então os índices válidos de `numeros` vão de 0 a 2",
+          "O último item é `numeros[2]` ou `numeros[-1]`"
+        ]
+      },
+      {
+        "question": "Como eu evito esse erro quando não sei o tamanho da lista?",
+        "key_points": [
+          "Conferir o índice com `len` antes de acessar",
+          "Percorrer com `for` em vez de usar índices",
+          "Capturar o `IndexError` com `try`/`except`"
+        ]
+      },
+      {
+        "question": "Me mostre a versão do meu código com try/except.",
+        "key_points": [
+          "Usa o código do primeiro turno: a lista `numeros = [1, 2, 3]` e o acesso a `numeros[3]`",
+          "Captura `IndexError` especificamente, não uma exceção genérica"
+        ]
+      }
     ],
     "python_version": "3.12",
     "released_on": null
