@@ -29,6 +29,10 @@ uv run chatbot
 
 Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estão no [README da raiz](../README.md). O que os testes protegem e os bugs encontrados estão em [`docs/qualidade.md`](docs/qualidade.md).
 
+## Avaliação
+
+O chatbot é desenvolvido guiado por avaliação: dataset e métricas vieram antes do código que chama o modelo, e cada peça da arquitetura entra se melhorar as métricas. O dataset está em [`evals/dataset.json`](evals/dataset.json); as métricas e o porquê de cada uma, em [`docs/avaliacao.md`](docs/avaliacao.md).
+
 ## Decisões
 
 - **Interface por linha de comando.** O enunciado pede input de texto e não pede front-end. Uma API ou uma interface web seria uma camada a mais sem requisito que a justifique. O laço da conversa recebe quem responde como parâmetro, então trocar a interface não mexe no chatbot.

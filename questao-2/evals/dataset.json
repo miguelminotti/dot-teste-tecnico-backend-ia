@@ -1,0 +1,149 @@
+[
+  {
+    "id": "lista-criar",
+    "category": "basico",
+    "question": "Como criar uma lista em Python?",
+    "key_points": [
+      "Cria a lista com colchetes, vazia (`[]`) ou com itens separados por vírgula",
+      "Mostra o construtor `list()`, inclusive convertendo outro iterável (como `list(range(5))`)",
+      "Explica que a lista é ordenada, mutável e aceita itens de tipos diferentes",
+      "Mostra o acesso por índice, começando em 0, e como adicionar um item com `append`"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "lista-vs-tupla",
+    "category": "basico",
+    "question": "Qual a diferença entre lista e tupla em Python? Quando usar cada uma?",
+    "key_points": [
+      "Lista é mutável e tupla é imutável",
+      "Lista usa colchetes e tupla usa parênteses (ou só vírgulas)",
+      "Tupla com itens imutáveis pode ser chave de dicionário ou item de set; lista não pode",
+      "Tupla para um registro de tamanho fixo que não muda; lista para uma coleção que cresce ou muda"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "default-mutavel",
+    "category": "armadilha",
+    "question": "Escrevi `def adicionar(item, itens=[]): itens.append(item); return itens` e a lista vai acumulando itens de uma chamada para outra. Por quê?",
+    "key_points": [
+      "O valor padrão é avaliado uma vez só, quando a função é definida, e não a cada chamada",
+      "Por isso todas as chamadas sem `itens` compartilham a mesma lista",
+      "A correção é usar `None` como padrão e criar a lista dentro da função"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "premissa-push",
+    "category": "premissa-falsa",
+    "question": "Como uso o método push para adicionar um item numa lista em Python?",
+    "key_points": [
+      "Corrige a premissa: lista do Python não tem método `push` (o nome vem de outras linguagens, como JavaScript), e chamá-lo dá `AttributeError`",
+      "Mostra `append` para adicionar no fim da lista"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "gerador-yield",
+    "category": "intermediario",
+    "question": "O que é um gerador em Python e quando usar `yield` em vez de devolver uma lista?",
+    "key_points": [
+      "Uma função com `yield` devolve um gerador, que produz os valores sob demanda, um por vez",
+      "Economiza memória em sequências grandes ou infinitas, porque não guarda todos os valores",
+      "Um gerador só pode ser percorrido uma vez",
+      "Lista é melhor quando é preciso acessar por índice, saber o tamanho ou percorrer várias vezes"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "ordenar-dicionarios",
+    "category": "intermediario",
+    "question": "Como ordenar uma lista de dicionários pelo valor de uma chave, por exemplo pela idade?",
+    "key_points": [
+      "Usa `sorted` ou `list.sort` com o parâmetro `key`, como `key=lambda pessoa: pessoa[\"idade\"]`",
+      "`sorted` devolve uma lista nova; `list.sort` ordena a própria lista e devolve `None`",
+      "`reverse=True` inverte a ordem"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  },
+  {
+    "id": "genericos-312",
+    "category": "recente",
+    "question": "Como declaro uma função genérica com a sintaxe de parâmetros de tipo do Python 3.12?",
+    "key_points": [
+      "Os parâmetros de tipo vêm entre colchetes depois do nome, como `def primeiro[T](itens: list[T]) -> T`",
+      "Dispensa declarar um `TypeVar` separado",
+      "A mesma sintaxe vale para classes (`class Caixa[T]:`) e para aliases com `type`",
+      "Só funciona a partir do Python 3.12"
+    ],
+    "python_version": "3.12",
+    "released_on": "2023-10-02"
+  },
+  {
+    "id": "t-strings-314",
+    "category": "recente",
+    "question": "O que são as template strings (t-strings) do Python 3.14 e como elas diferem das f-strings?",
+    "key_points": [
+      "Usam o prefixo `t` no lugar do `f`, como `t\"Olá, {nome}\"`",
+      "O resultado não é uma `str`, e sim um objeto `Template`, do módulo `string.templatelib`",
+      "O `Template` separa as partes fixas dos valores interpolados, para que o código processe os valores antes de montar o texto (escapar HTML ou SQL, por exemplo)",
+      "A f-string avalia e junta tudo numa `str` na hora, sem essa etapa",
+      "Existem a partir do Python 3.14 (PEP 750)"
+    ],
+    "python_version": "3.14",
+    "released_on": "2025-10-07"
+  },
+  {
+    "id": "zstd-314",
+    "category": "recente",
+    "question": "Como comprimir e descomprimir dados com Zstandard usando só a biblioteca padrão do Python?",
+    "key_points": [
+      "A partir do Python 3.14, a biblioteca padrão tem o módulo `compression.zstd` (PEP 784)",
+      "Mostra `zstd.compress` e `zstd.decompress`, que trabalham com `bytes`",
+      "Antes do 3.14, Zstandard só com pacote de terceiros (como o `zstandard`)"
+    ],
+    "python_version": "3.14",
+    "released_on": "2025-10-07"
+  },
+  {
+    "id": "except-sem-parenteses-314",
+    "category": "recente",
+    "question": "Posso escrever `except ValueError, TypeError:` para capturar duas exceções em Python?",
+    "key_points": [
+      "A partir do Python 3.14 pode (PEP 758), desde que sem `as`",
+      "Com `as`, os parênteses continuam obrigatórios: `except (ValueError, TypeError) as erro:`",
+      "Até o Python 3.13 é `SyntaxError`; a forma que funciona em todas as versões é `except (ValueError, TypeError):`"
+    ],
+    "python_version": "3.14",
+    "released_on": "2025-10-07"
+  },
+  {
+    "id": "pydantic-para-dicionario",
+    "category": "biblioteca",
+    "question": "Como converto um modelo do Pydantic em dicionário?",
+    "key_points": [
+      "No Pydantic v2, com `model_dump()`",
+      "`.dict()` é da v1 e está depreciado na v2"
+    ],
+    "python_version": "3.12",
+    "released_on": "2023-06-30"
+  },
+  {
+    "id": "fora-do-escopo",
+    "category": "fora-do-escopo",
+    "question": "Qual é uma boa receita de bolo de cenoura?",
+    "key_points": [
+      "Não dá a receita",
+      "Diz que responde dúvidas de programação em Python e convida o usuário a perguntar sobre isso"
+    ],
+    "python_version": "3.12",
+    "released_on": null
+  }
+]
