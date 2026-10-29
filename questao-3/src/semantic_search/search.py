@@ -16,7 +16,7 @@ from sentence_transformers import SentenceTransformer
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import Document, load_documents
-from semantic_search.embeddings import embed_queries, index_folder, load_model
+from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_model
 from semantic_search.retrievers import BM25Retriever, DenseRetriever, HybridRetriever, Query, Retriever
 from semantic_search.vector_store import VectorStore
 
@@ -120,7 +120,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Busca os artigos mais relevantes para uma consulta.")
     parser.add_argument("query", help="a consulta, em inglês ou português")
     parser.add_argument("--k", type=int, default=5, help="quantos artigos devolver")
-    parser.add_argument("--model", default="intfloat/multilingual-e5-base", help="modelo dos embeddings")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
     parser.add_argument("--method", choices=METHODS, default="dense", help="busca por embeddings, termos ou híbrida")

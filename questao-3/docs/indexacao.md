@@ -23,29 +23,29 @@ O código está em `src/semantic_search/chunking.py`.
 O código está em `src/semantic_search/embeddings.py`.
 
 ```bash
+uv run semantic-search-embed
 uv run semantic-search-embed --model intfloat/multilingual-e5-base
 ```
 
-- **Modelo local, pelo sentence-transformers (sobre o `transformers` da Hugging Face), como a dica do enunciado sugere.** Roda sem chave, sem custo por consulta e sem mandar o texto para fora.
-- **Modelo de partida: `intfloat/multilingual-e5-base`.**
-  - Multilíngue, porque metade das consultas de avaliação é em português sobre artigos em inglês.
-  - Licença MIT, 278 milhões de parâmetros, vetores de 768 dimensões e limite de 512 tokens.
-  - Está entre os modelos multilíngues mais baixados da Hugging Face.
-  - Os candidatos para a comparação são o `BAAI/bge-m3` e o `Qwen/Qwen3-Embedding-0.6B`, maiores e mais novos.
+- **Modelo local, pelo sentence-transformers (sobre o `transformers` da Hugging Face), como a dica do enunciado sugere.** Roda sem chave, sem custo por consulta e sem mandar o texto para fora. O modelo precisa ser multilíngue, porque metade das consultas de avaliação é em português sobre artigos em inglês.
+- **Modelo padrão: `BAAI/bge-m3`** ([ADR 0001](adr/0001-modelo-de-embeddings-bge-m3.md)). Licença MIT, 568 milhões de parâmetros e vetores de 1.024 dimensões. Não usa prefixo de consulta nem de documento.
+- **Opção leve: `intfloat/multilingual-e5-base`,** o modelo de partida. Licença MIT, 278 milhões de parâmetros, vetores de 768 dimensões e limite de 512 tokens. Indexa em um quarto do tempo do bge-m3 na CPU, mas em português põe no topo, com frequência, um artigo sobre LLM brasileiro no lugar do certo ([experimentos](experimentos.md#outro-modelo-bge-m3)).
 - **Prefixos de consulta e de documento.** O e5 foi treinado com `query: ` antes da consulta e `passage: ` antes do documento, mas a configuração dele no sentence-transformers vem com os dois vazios. Sem a correção, consulta e documento saíam com o mesmo embedding, e o modelo rodaria fora do jeito em que foi treinado, sem nenhum erro aparente. Os prefixos ficam numa tabela por família de modelo, com teste. Modelos que trazem os próprios prompts, como o Qwen3-Embedding, ficam fora da tabela.
 - **Vetores normalizados (norma 1).** O produto interno entre dois deles é a similaridade de cosseno, a medida que a vector store usa para comparar a consulta com os pedaços.
 - **Um índice por modelo,** em `data/index/<modelo>/`: os pedaços em `chunks.jsonl`, os vetores em `embeddings.npy` (a linha *i* é o pedaço *i*) e o modelo e o corte em `meta.json`. A pasta fica fora do git e é refeita pelo comando acima.
 
-| `multilingual-e5-base` | |
-| --- | --- |
-| Vetores | 5.398 × 768, 16,6 MB em float32 |
-| Tempo | 987 s na CPU (Intel i7-10700K, 16 threads), cerca de 5,5 pedaços por segundo; 50 s na GPU (NVIDIA RTX 3060, 12 GB) |
+| | `bge-m3` | `multilingual-e5-base` |
+| --- | --- | --- |
+| Vetores | 5.398 × 1.024, 22,1 MB em float32 | 5.398 × 768, 16,6 MB em float32 |
+| Download do modelo | 4,3 GB | 1,1 GB |
+| Tempo na GPU (NVIDIA RTX 3060, 12 GB) | 167 s | 50 s |
+| Tempo na CPU | cerca de 84 min (Intel i7-4790K, estimado por uma amostra de 200 pedaços) | 987 s (Intel i7-10700K, 16 threads); cerca de 22 min no i7-4790K, pela mesma amostra |
 
-**CPU por padrão, GPU opcional.** O `uv.lock` fixa o PyTorch do PyPI, que no Windows é só para CPU: o projeto roda em qualquer máquina, sem CUDA. Com uma GPU NVIDIA, a versão com CUDA entra só no `.venv`, sem mudar o projeto, e os comandos passam a usar `--no-sync`, porque um `uv run` comum sincroniza o ambiente com o `uv.lock` e volta o PyTorch para a versão de CPU. O índice sai igual nos dois casos: 5.398 × 768, com norma 1.
+**CPU por padrão, GPU opcional.** O `uv.lock` fixa o PyTorch do PyPI, que no Windows é só para CPU: o projeto roda em qualquer máquina, sem CUDA. Com uma GPU NVIDIA, a versão com CUDA entra só no `.venv`, sem mudar o projeto, e os comandos passam a usar `--no-sync`, porque um `uv run` comum sincroniza o ambiente com o `uv.lock` e volta o PyTorch para a versão de CPU. O índice sai igual nos dois casos.
 
 ```bash
 uv pip install --reinstall-package torch "torch==2.15.0" --index-url https://download.pytorch.org/whl/cu132
-uv run --no-sync semantic-search-embed --model intfloat/multilingual-e5-base
+uv run --no-sync semantic-search-embed
 ```
 
 ## 3. Vector store
@@ -53,7 +53,7 @@ uv run --no-sync semantic-search-embed --model intfloat/multilingual-e5-base
 O código está em `src/semantic_search/vector_store.py`.
 
 ```bash
-uv run semantic-search-store --model intfloat/multilingual-e5-base
+uv run semantic-search-store
 ```
 
 - **FAISS, e não Milvus.** O enunciado aceita os dois. O FAISS é uma biblioteca: roda no mesmo processo da busca e grava o índice num arquivo. O Milvus é um banco de vetores, feito para rodar como serviço, que se paga com milhões de vetores, filtros por metadado e escrita concorrente. Nada disso existe aqui: são 5,4 mil vetores, gravados uma vez e só lidos depois.
@@ -63,11 +63,13 @@ uv run semantic-search-store --model intfloat/multilingual-e5-base
 - **Com menos pedaços que o `k` pedido, a busca devolve só os que existem.** O FAISS completa as vagas com a posição -1, que em Python apontaria para o último pedaço.
 - **O índice é gravado como `faiss.index`** na pasta do modelo, ao lado dos pedaços, fora do git, e o comando acima o refaz em menos de 1 segundo. No índice exato, o arquivo é a própria matriz de vetores, do mesmo tamanho do `embeddings.npy`.
 
-| `IndexFlatIP` sobre o `multilingual-e5-base` | |
-| --- | --- |
-| Montagem | 0,14 s |
-| Tamanho | 16,6 MB, o mesmo da matriz em float32 |
-| Busca dos 10 mais próximos, uma consulta por vez | mediana de 2,5 ms e p95 de 4,7 ms na CPU (Intel i7-4790K, 8 threads) |
-| Busca das 198 consultas de avaliação (99 em inglês e 99 em português) em lote | 48 ms |
-| Embedding de uma consulta | 12,9 ms na GPU (RTX 3060) |
-| Conferência com numpy (produto interno com todos os vetores, ordenado) | os mesmos 10 pedaços, na mesma ordem, em 197 das 198 consultas; na outra, dois pedaços com o mesmo texto e a mesma nota trocam de lugar |
+| `IndexFlatIP` | `bge-m3` | `multilingual-e5-base` |
+| --- | --- | --- |
+| Montagem | 0,11 s | 0,14 s |
+| Tamanho | 22,1 MB, o mesmo da matriz em float32 | 16,6 MB, o mesmo da matriz em float32 |
+| Busca dos 10 mais próximos, uma consulta por vez, na CPU (Intel i7-4790K, 8 threads) | mediana de 1,6 ms | mediana de 1,2 ms |
+| Busca das 198 consultas de avaliação (99 em inglês e 99 em português) em lote | 18,5 ms | 15,2 ms |
+| Embedding de uma consulta, na GPU (RTX 3060), mediana | 23,2 ms | 12,5 ms |
+| Conferência com numpy (produto interno com todos os vetores, ordenado) | os mesmos 10 pedaços, na mesma ordem, nas 198 consultas | os mesmos 10 pedaços em 197 das 198; na outra, dois pedaços com o mesmo texto e a mesma nota trocam de lugar |
+
+As latências da busca variam entre rodadas: a mediana do e5-base foi de 2,5 ms numa medida e de 1,2 ms em outra. Nas duas, a busca exata fica na casa de 1 a 3 ms, menor que o embedding da consulta.

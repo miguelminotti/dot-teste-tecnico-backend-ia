@@ -144,3 +144,7 @@ MRR por tipo de consulta, só embeddings:
 - **Nas médias, a diferença está dentro do ruído do conjunto.** Num bootstrap pareado, sorteando as 99 consultas 10 mil vezes, a diferença de MRR (bge-m3 − e5) é de +0,028 em português, com intervalo de 95% de [−0,019; +0,076], e de −0,003 em inglês, com intervalo de [−0,037; +0,034]. No total, o MRR vai de 0,920 para 0,933, e a R-precision fica igual (0,806 e 0,804). O conjunto não tem tamanho para separar dois modelos bons por 1 ou 2 centésimos.
 - **A híbrida continua pior que os embeddings sozinhos em português,** também com o bge-m3: MRR de 0,826 contra 0,924. O problema é o BM25 em português, e não o modelo.
 - **O custo é o dobro na consulta e quase o quádruplo na indexação.** Na GPU isso é pouco (23 ms por consulta, menos de 3 minutos para o corpus). Sem GPU, a indexação passa de cerca de 22 para cerca de 84 minutos nesta máquina.
+
+### Decisão
+
+O bge-m3 passa a ser o modelo padrão, e o e5-base fica como a opção leve para quem indexa sem GPU ([ADR 0001](adr/0001-modelo-de-embeddings-bge-m3.md)). As médias não separam os dois, mas o erro que o bge-m3 elimina é sistemático e fica à vista de quem busca em português. A busca padrão continua só com embeddings.

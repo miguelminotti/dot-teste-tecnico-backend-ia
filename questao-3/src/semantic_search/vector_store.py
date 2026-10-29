@@ -1,7 +1,7 @@
 """Vector store: os embeddings dos pedaços num índice FAISS, consultado pelos vizinhos mais próximos.
 
 Uso, na pasta da questão, depois do semantic-search-embed:
-uv run semantic-search-store --model intfloat/multilingual-e5-base
+uv run semantic-search-store
 
 O índice é o IndexFlatIP, a busca exata: compara a consulta com todos os vetores pelo produto interno, que,
 com vetores de norma 1, é a similaridade de cosseno.
@@ -18,7 +18,7 @@ import faiss
 import numpy as np
 
 from semantic_search.chunking import Chunk
-from semantic_search.embeddings import EmbeddingIndex, Vectors, index_folder, load_index
+from semantic_search.embeddings import DEFAULT_MODEL, EmbeddingIndex, Vectors, index_folder, load_index
 
 _FAISS_FILE = "faiss.index"
 
@@ -80,7 +80,7 @@ class VectorStore:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Monta o índice FAISS a partir dos embeddings gravados.")
-    parser.add_argument("--model", default="intfloat/multilingual-e5-base", help="modelo dos embeddings")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     args = parser.parse_args()
 

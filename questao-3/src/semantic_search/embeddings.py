@@ -1,6 +1,6 @@
 """Geração dos embeddings: cada pedaço do corpus vira um vetor, gravado junto com o pedaço.
 
-Uso, na pasta da questão: uv run semantic-search-embed --model intfloat/multilingual-e5-base
+Uso, na pasta da questão: uv run semantic-search-embed (--model escolhe outro modelo)
 
 O modelo roda localmente pelo sentence-transformers (sobre o transformers da Hugging Face), na CPU ou na
 GPU que houver. Os vetores saem normalizados (norma 1): o produto interno entre eles é a similaridade de
@@ -23,6 +23,10 @@ from semantic_search.chunking import DEFAULT_MAX_WORDS, Chunk, chunk_documents
 from semantic_search.corpus import load_documents
 
 Vectors = npt.NDArray[np.float32]
+
+# Modelo padrão de todos os comandos (docs/adr/0001-modelo-de-embeddings-bge-m3.md): o e5-base, mais leve,
+# fica como opção com --model intfloat/multilingual-e5-base.
+DEFAULT_MODEL = "BAAI/bge-m3"
 
 # Prefixos que o modelo espera e que a configuração dele no sentence-transformers não traz. O e5 foi
 # treinado com "query: " na consulta e "passage: " no documento; sem eles, consulta e documento saem com
@@ -92,7 +96,7 @@ def index_folder(root: Path, model_name: str) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Gera os embeddings dos pedaços do corpus.")
-    parser.add_argument("--model", default="intfloat/multilingual-e5-base", help="modelo do sentence-transformers")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo do sentence-transformers")
     parser.add_argument("--max-words", type=int, default=DEFAULT_MAX_WORDS, help="teto de palavras por pedaço")
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
     parser.add_argument("--out", type=Path, default=Path("data/index"))

@@ -1,7 +1,7 @@
 """Avaliação da recuperação: roda as consultas de avaliação na busca e mede o resultado.
 
 Uso, na pasta da questão, depois do semantic-search-embed e do semantic-search-store:
-uv run semantic-search-eval --model intfloat/multilingual-e5-base
+uv run semantic-search-eval
 
 Cada consulta roda nas duas línguas. A busca por artigo é medida em todas, contra os artigos rotulados pelo
 juiz; a busca por trecho, só nas de detalhe, contra o pedaço que contém a citação de evidência. As médias
@@ -18,7 +18,7 @@ from pathlib import Path
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import load_documents
-from semantic_search.embeddings import embed_queries, index_folder, load_model
+from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_model
 from semantic_search.evaluation.metrics import (
     contains_quote,
     ndcg_at_k,
@@ -183,7 +183,7 @@ def format_summary(summary: dict[tuple[str, str], dict[str, float]], counts: dic
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Mede a busca nas consultas de avaliação.")
-    parser.add_argument("--model", default="intfloat/multilingual-e5-base", help="modelo dos embeddings")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
     parser.add_argument("--k", type=int, default=10, help="posições avaliadas")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
