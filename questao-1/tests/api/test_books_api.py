@@ -249,6 +249,14 @@ def test_search_rejects_unknown_parameters(client: TestClient) -> None:
     assert response.json()["detail"][0]["loc"] == ["query", "autor"]
 
 
+def test_validation_error_keeps_accents_as_utf8(client: TestClient) -> None:
+    # Bug: a correção do surrogate (bug 10) gravava o 422 inteiro em ASCII, e quem lia a resposta crua
+    # (curl, log) via "Parâmetro desconhecido". Só o surrogate precisa de escape.
+    response = client.get("/books", params={"autor": "machado"})
+
+    assert "Parâmetro desconhecido".encode() in response.content
+
+
 def test_search_rejects_offset_beyond_the_ceiling(client: TestClient) -> None:
     # Bug: sem teto, um offset acima do inteiro de 64 bits estourava no sqlite3 e virava 500.
     assert client.get("/books", params={"offset": 10**20}).status_code == 422

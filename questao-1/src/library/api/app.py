@@ -1,6 +1,7 @@
 """Montagem da aplicação FastAPI."""
 
 import json
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, closing
 
@@ -14,6 +15,9 @@ from library.api.routes import router
 from library.api.settings import Settings
 from library.domain.errors import BookAlreadyExistsError, DomainError
 from library.infrastructure.database import connect, create_schema
+
+# Metade de um par UTF-16 sem a outra: vale como escape JSON ("\ud800"), mas não existe em UTF-8.
+_LONE_SURROGATE = re.compile("[\ud800-\udfff]")
 
 _DESCRIPTION = """
 Cadastro e consulta de livros de uma biblioteca virtual.
@@ -52,11 +56,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 def _request_validation_error(_: Request, error: Exception) -> Response:
-    # O mesmo 422 do FastAPI, serializado em ASCII. O FastAPI devolve o valor recebido em `input`, e um
-    # surrogate solto ("\ud800" no JSON) não existe em UTF-8: a resposta padrão caía com 500. Em ASCII,
-    # ele volta escapado, e os acentos também (`é`), o que qualquer leitor de JSON entende igual.
+    # O mesmo 422 do FastAPI, com um cuidado a mais. O FastAPI devolve o valor recebido em `input`, e com
+    # um surrogate solto a resposta padrão caía com 500 ao virar UTF-8. Só o surrogate volta escapado,
+    # como veio no JSON; os acentos ficam em UTF-8, legíveis para quem lê a resposta crua.
     errors = error.errors() if isinstance(error, RequestValidationError) else []
-    body = json.dumps({"detail": jsonable_encoder(errors)}, ensure_ascii=True)
+    body = json.dumps({"detail": jsonable_encoder(errors)}, ensure_ascii=False)
+    body = _LONE_SURROGATE.sub(lambda match: f"\\u{ord(match.group()):04x}", body)
     return Response(content=body, status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, media_type="application/json")
 
 

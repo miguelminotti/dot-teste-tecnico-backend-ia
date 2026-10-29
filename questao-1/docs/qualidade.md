@@ -82,6 +82,12 @@ Os bugs 8 e 9 foram encontrados numa segunda revisão independente, depois da en
 
 - **Bug:** `{"title": "abc\ud800", ...}` é JSON válido, mas `\ud800` sozinho não é texto UTF-8. O pydantic recusava o campo, e o 422 padrão do FastAPI devolve o valor recebido em `input`; ao gerar a resposta com ele, a API caía com 500. Achado na terceira revisão independente.
 - **Teste:** `test_lone_surrogate_in_the_body_is_rejected_with_422`.
-- **Correção:** o 422 de validação é serializado em ASCII, com o mesmo conteúdo; o surrogate volta escapado.
+- **Correção:** o 422 de validação é serializado com o surrogate escapado, como veio no JSON (a primeira versão escapava tudo, ver bug 11).
 
 Na mesma revisão, duas regras quebradas à mão não fizeram a suíte falhar: a ordem por autor entre livros de mesmo título (ADR 0005) e o CHECK violado que estoura como está, sem virar "livro já cadastrado" (ADR 0004). As duas funcionavam, mas sem teste; ganharam `test_search_with_the_same_title_orders_by_author` e `test_other_integrity_violation_is_not_reported_as_a_duplicate`.
+
+### 11. A correção do bug 10 escapava todos os acentos do 422
+
+- **Bug:** para escapar o surrogate, a primeira correção gravava o 422 inteiro em ASCII, e quem lia a resposta crua (curl, log) via `"Parâmetro desconhecido"`. O JSON era equivalente, mas ilegível em português. Achado por um avaliador independente, depois da correção.
+- **Teste:** `test_validation_error_keeps_accents_as_utf8`.
+- **Correção:** o 422 volta a sair em UTF-8, e só os surrogates soltos são escapados.
