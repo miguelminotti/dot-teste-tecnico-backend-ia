@@ -10,7 +10,7 @@ A resolução de uma prova técnica para desenvolvedor backend com foco em IA: t
 | --- | --- | --- | --- |
 | [`questao-1/`](questao-1/README.md) | API de biblioteca virtual (FastAPI, SQLite) | `uv run library` | nada |
 | [`questao-2/`](questao-2/README.md) | Chatbot de dúvidas de Python (LangChain, OpenAI) | `uv run --env-file .env chatbot` | `OPENAI_API_KEY` no `.env` |
-| [`questao-3/`](questao-3/README.md) | Busca semântica (embeddings, FAISS) | `uv run semantic-search "consulta"` | gerar o índice antes (veja abaixo) |
+| [`questao-3/`](questao-3/README.md) | Busca semântica (embeddings, FAISS) | `uv run semantic-search "consulta"` | nada; a primeira busca baixa o modelo (veja abaixo) |
 
 ## Para avaliar rápido
 
@@ -18,7 +18,7 @@ Por questão, nesta ordem:
 
 1. **README da questão:** a tabela "Enunciado × status" e as decisões em resumo.
 2. **`docs/adr/`:** as decisões difíceis de reverter, com as alternativas descartadas. As que valem para todas as questões estão em [`docs/adr/`](docs/adr/README.md) na raiz.
-3. **Código em `src/`** e testes em `tests/`. Os testes protegem regras de negócio; o `docs/qualidade.md` das questões 1 e 2 diz quais e lista os bugs que eles pegaram.
+3. **Código em `src/`** e testes em `tests/`. Os testes protegem regras de negócio; o `docs/qualidade.md` das questões 1 e 2 lista os bugs que eles pegaram.
 4. **Documentos de apoio em `docs/`:** qualidade e bugs achados (questões 1 e 2), avaliação e experimentos com números medidos (questões 2 e 3), exemplos com saídas reais (questões 2 e 3).
 
 O que o enunciado pede está nos passos 1 e 3. O resto vai além dele (a questão 1 lista os acréscimos em "Além do enunciado") e pode ser lido só onde interessar.
@@ -40,15 +40,13 @@ uv run pytest
 
 Nenhum teste chama serviço pago ou a rede: a questão 2 usa um modelo falso nos testes, e a questão 3 usa vetores pequenos.
 
-**Questão 3: o índice não está no git.** Antes de buscar, gere os embeddings e o índice FAISS:
+**Questão 3: o índice do modelo padrão está no git.** A busca roda logo depois do `uv sync`; a primeira baixa o `BAAI/bge-m3` (4,3 GB), que transforma a consulta em vetor:
 
 ```bash
-uv run semantic-search-embed
-uv run semantic-search-store
 uv run semantic-search "como avaliar agentes de programação" --k 5
 ```
 
-O primeiro comando baixa o `BAAI/bge-m3` (4,3 GB) e leva menos de 3 minutos com GPU NVIDIA, ou cerca de 85 minutos na CPU. Para um teste rápido sem GPU, `--model intfloat/multilingual-e5-base` nos três comandos baixa 1,1 GB e leva cerca de 22 minutos. Com a versão CUDA do PyTorch instalada à mão no `.venv`, todos os comandos precisam de `uv run --no-sync`: um `uv run` comum volta o PyTorch para a versão de CPU do `uv.lock` ([`docs/indexacao.md`](questao-3/docs/indexacao.md)).
+Quem muda o corpus ou a divisão em pedaços regera o índice com `uv run semantic-search-embed` e `uv run semantic-search-store` (menos de 3 minutos com GPU NVIDIA, cerca de 85 minutos na CPU); `test_versioned_index.py` falha enquanto o índice versionado não bater com o corpus. Com a versão CUDA do PyTorch instalada à mão no `.venv`, todos os comandos precisam de `uv run --no-sync`: um `uv run` comum volta o PyTorch para a versão de CPU do `uv.lock` ([`docs/indexacao.md`](questao-3/docs/indexacao.md)).
 
 ## Regras para quem muda o código
 

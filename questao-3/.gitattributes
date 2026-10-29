@@ -1,0 +1,2 @@
+# O índice versionado vai byte a byte: sem troca de final de linha no checkout e sem diff de texto.
+/data/index/** binary

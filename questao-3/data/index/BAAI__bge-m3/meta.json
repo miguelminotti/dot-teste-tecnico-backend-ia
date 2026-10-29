@@ -1,0 +1,6 @@
+{
+  "model": "BAAI/bge-m3",
+  "max_words": 200,
+  "chunks": 5032,
+  "dimensions": 1024
+}

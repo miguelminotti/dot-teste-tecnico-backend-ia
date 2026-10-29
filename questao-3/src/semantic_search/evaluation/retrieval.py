@@ -18,7 +18,7 @@ from pathlib import Path
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import load_documents
-from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_index, load_model
+from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_chunks, load_model
 from semantic_search.evaluation.metrics import (
     contains_quote,
     ndcg_at_k,
@@ -209,7 +209,7 @@ def main() -> None:
 
     folder = index_folder(args.index, args.model)
     queries = load_queries(args.queries)
-    check_evidence_indexed(queries, load_index(folder).chunks)
+    check_evidence_indexed(queries, load_chunks(folder))
     retriever = load_retriever(args.method, folder)
     results = evaluate(retriever, args.model, queries, corpus=args.corpus, k=args.k)
     summary = summarize(results)

@@ -1,5 +1,11 @@
 # HTML baixado do arXiv: cache local da montagem do corpus, que pode ser baixado de novo
 /data/html/
 
-# Embeddings e índice FAISS gerados: dezenas de MB, refeitos com semantic-search-embed e semantic-search-store
-/data/index/
+# Índices gerados. Só o do modelo padrão vem no git, sem a matriz de embeddings (a busca não a lê), para
+# que a busca rode sem indexar; os outros são refeitos com semantic-search-embed e semantic-search-store.
+/data/index/*
+!/data/index/BAAI__bge-m3/
+/data/index/BAAI__bge-m3/*
+!/data/index/BAAI__bge-m3/faiss.index
+!/data/index/BAAI__bge-m3/chunks.jsonl
+!/data/index/BAAI__bge-m3/meta.json

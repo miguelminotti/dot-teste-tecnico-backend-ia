@@ -8,32 +8,27 @@ Sistema de busca semântica: gera embeddings de um conjunto de documentos, guard
 | --- | --- |
 | Conjunto de documentos de texto (artigos ou posts de blog) | 100 artigos do arXiv de outubro de 2026, sob licença aberta, em texto limpo e com as seções ([`docs/corpus.md`](docs/corpus.md)) |
 | Embeddings dos documentos com um modelo de embeddings | 5.032 pedaços (um por parágrafo, mais título e resumo) com o `BAAI/bge-m3`, local, pelo sentence-transformers; o `intfloat/multilingual-e5-base` como opção leve ([`docs/indexacao.md`](docs/indexacao.md), [ADR 0001](docs/adr/0001-modelo-de-embeddings-bge-m3.md)) |
-| Embeddings armazenados numa vector store (FAISS ou Milvus) | Índice FAISS de busca exata (`IndexFlatIP`, cosseno), gravado ao lado dos pedaços ([`docs/indexacao.md`](docs/indexacao.md)) |
+| Embeddings armazenados numa vector store (FAISS ou Milvus) | Índice FAISS de busca exata (`IndexFlatIP`, cosseno), gravado ao lado dos pedaços e versionado ([`docs/indexacao.md`](docs/indexacao.md)) |
 | Função de busca que devolve os documentos mais relevantes para uma consulta | `SemanticSearch.search` e a CLI `semantic-search`: os artigos mais relevantes, cada um pelo melhor pedaço, com título, link e trecho ([`docs/busca.md`](docs/busca.md)) |
 | Processo de criação dos embeddings e do armazenamento documentado | pedaços, embeddings e vector store em [`docs/indexacao.md`](docs/indexacao.md) |
 | Exemplos de consultas e resultados relevantes | 5 buscas reais da CLI, em inglês e português (pelo nome, por paráfrase, por tema, com a busca híbrida e uma livre), conferidas com os rótulos, incluindo os casos em que a busca erra ([`docs/exemplos.md`](docs/exemplos.md)) |
 
 ## Como rodar
 
-Pré-requisito: [uv](https://docs.astral.sh/uv/), que baixa o Python 3.12 se ele não estiver instalado. O corpus vem no repositório; o índice não.
+Pré-requisito: [uv](https://docs.astral.sh/uv/), que baixa o Python 3.12 se ele não estiver instalado. O corpus e o índice do modelo padrão, o `BAAI/bge-m3`, vêm no repositório: a busca roda logo depois do `uv sync`, sem indexar.
 
 ```bash
 uv sync
 ```
 
-Sem GPU, o caminho mais rápido é o `intfloat/multilingual-e5-base`: baixa 1,1 GB e indexa em 16 a 22 minutos na CPU, com resultado pior em consultas em português ([ADR 0001](docs/adr/0001-modelo-de-embeddings-bge-m3.md)).
-
 ```bash
-uv run semantic-search-embed --model intfloat/multilingual-e5-base
-uv run semantic-search-store --model intfloat/multilingual-e5-base
-uv run semantic-search "como avaliar agentes de programação" --k 5 --model intfloat/multilingual-e5-base
-```
-
-Com o modelo padrão, o `BAAI/bge-m3`, os mesmos comandos sem `--model`. Ele baixa 4,3 GB e indexa em menos de 3 minutos numa GPU NVIDIA, ou cerca de 85 minutos na CPU; para usar a GPU, veja [`docs/indexacao.md`](docs/indexacao.md#2-embeddings). A busca híbrida, que ajuda em termos raros em inglês, é `--method hybrid`:
-
-```bash
+uv run semantic-search "como avaliar agentes de programação" --k 5
 uv run semantic-search "Rogan–Gladen correction" --k 3 --method hybrid
 ```
+
+A primeira busca baixa o bge-m3 (4,3 GB), que transforma a consulta em vetor. A busca híbrida (`--method hybrid`) ajuda em termos raros em inglês. Para reindexar depois de mudar o corpus ou a divisão em pedaços, `uv run semantic-search-embed` e `uv run semantic-search-store`: menos de 3 minutos numa GPU NVIDIA, cerca de 85 minutos na CPU ([`docs/indexacao.md`](docs/indexacao.md#2-embeddings)).
+
+Com menos download, o `intfloat/multilingual-e5-base` baixa 1,1 GB, mas o índice dele não vem no repositório: indexar leva de 16 a 22 minutos na CPU, e o resultado é pior em consultas em português ([ADR 0001](docs/adr/0001-modelo-de-embeddings-bge-m3.md)). Os três comandos aceitam `--model intfloat/multilingual-e5-base`.
 
 Os comandos de qualidade (ruff, mypy, pytest) estão no [README da raiz](../README.md).
 
