@@ -35,4 +35,10 @@ Os comandos de qualidade (ruff, mypy, pytest) e as convenções do código estã
 
 ## Avaliação
 
-A busca é desenvolvida guiada por avaliação: as consultas de teste, com os artigos e trechos relevantes, vieram antes da escolha do modelo de embeddings. São 99 consultas em inglês e português, de quatro tipos (pelo nome, por paráfrase, por detalhe e por tema), geradas por um LLM, rotuladas por um juiz sobre o corpus inteiro e revisadas uma a uma. O conjunto, como foi feito e as limitações estão em [`docs/avaliacao.md`](docs/avaliacao.md).
+A busca é desenvolvida guiada por avaliação: as consultas de teste, com os artigos e trechos relevantes, vieram antes da escolha do modelo de embeddings. São 99 consultas em inglês e português, de quatro tipos (pelo nome, por paráfrase, por detalhe e por tema), geradas por um LLM, rotuladas por um juiz sobre o corpus inteiro e revisadas uma a uma. O conjunto, como foi feito, as métricas e as limitações estão em [`docs/avaliacao.md`](docs/avaliacao.md).
+
+```bash
+uv run semantic-search-eval --model intfloat/multilingual-e5-base
+```
+
+Na linha de base, só com embeddings, os 10 primeiros resultados trazem em média 92,9% dos artigos relevantes, e o MRR é de 0,920. A busca vai pior com consultas em português, temas largos e o parágrafo exato de um detalhe. Os números, a análise dos erros e os próximos experimentos estão em [`docs/experimentos.md`](docs/experimentos.md).

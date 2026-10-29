@@ -28,6 +28,7 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from semantic_search.corpus import Document, load_documents
+from semantic_search.evaluation.metrics import contains_quote
 
 # Parágrafo mais curto que isso ("Results are in Table 2.") não sustenta uma pergunta de detalhe.
 MIN_PASSAGE_WORDS = 60
@@ -65,8 +66,7 @@ def choose_passages(documents: Sequence[Document], *, count: int, seed: int) -> 
 
 def quote_in_passage(quote: str, passage: Passage) -> bool:
     """A citação foi copiada do parágrafo, sem reescrita; só o espaço entre as palavras pode mudar."""
-    normalized = " ".join(quote.split())
-    return bool(normalized) and normalized in " ".join(passage.text.split())
+    return contains_quote(passage.text, quote)
 
 
 def label_relevance(*, judged: set[str], source: str | None) -> tuple[list[str], bool]:

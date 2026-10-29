@@ -89,11 +89,15 @@ def format_results(results: Sequence[PaperResult]) -> str:
     return "\n".join(lines)
 
 
-def print_results(results: Sequence[PaperResult]) -> None:
-    """Imprime em UTF-8: redirecionada para arquivo, a saída do Python no Windows usa o cp1252, que não tem
-    caracteres que aparecem nos artigos ("≥", letras gregas)."""
+def use_utf8_output() -> None:
+    """Passa a saída para UTF-8: redirecionada para arquivo, a saída do Python no Windows usa o cp1252, que
+    não tem caracteres que aparecem nos artigos ("≥", letras gregas)."""
     if isinstance(sys.stdout, io.TextIOWrapper):
         sys.stdout.reconfigure(encoding="utf-8")
+
+
+def print_results(results: Sequence[PaperResult]) -> None:
+    use_utf8_output()
     print(format_results(results))
 
 

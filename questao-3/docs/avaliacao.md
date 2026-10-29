@@ -66,6 +66,33 @@ Na rodada completa, cada consulta foi lida. As alteradas guardam o texto origina
 - **1 consulta removida (`q036`).** O trecho dela era uma lista de trabalhos de outros autores, da seção de trabalhos relacionados, e o artigo de origem não trata do que a pergunta pedia. Reescrita, ela ficou genérica, e o juiz a ligou a artigos que só tinham "explicação" em comum.
 - **1 consulta marcada pelo juiz e mantida (`q021`).** O detalhe (o protocolo SPoRC) está no corpo do artigo, e o juiz lê só os resumos.
 
+## Métricas
+
+```bash
+uv run semantic-search-eval --model intfloat/multilingual-e5-base
+```
+
+O código está em `src/semantic_search/evaluation/metrics.py` e `retrieval.py`. Cada consulta roda nas duas línguas, num total de 198 buscas. As médias saem por tipo de consulta e por língua, porque cada tipo testa uma fraqueza diferente. A tabela vai para o terminal, e as notas e os 10 primeiros artigos de cada busca vão para `evals/results/<modelo>.json`, para a análise dos erros. Os resultados estão em [`experimentos.md`](experimentos.md).
+
+**Por artigo,** nos 10 primeiros resultados da [função de busca](busca.md), contra os artigos rotulados pelo juiz:
+
+| Métrica | O que mede |
+| --- | --- |
+| Recall@10 | a fração dos artigos relevantes que aparece entre os 10 primeiros: a cobertura |
+| P@10 | a fração dos 10 primeiros que é relevante. Em 79 das 99 consultas há um relevante só, e o máximo é 0,1: a métrica fica registrada, mas não decide nada |
+| MRR | 1 sobre a posição do primeiro relevante, ou 0 se ele não está entre os 10: o quanto o leitor precisa descer |
+| NDCG@10 | a ordem dos relevantes, com desconto pela posição, dividida pela da ordem ideal. Com mais relevantes que 10, a ordem ideal enche os 10 primeiros, e a busca perfeita tira 1 |
+| R-precision | a precisão nas R primeiras posições, sendo R o número de relevantes. Três temas têm de 14 a 18 relevantes, e a cobertura em 10 não chega a 1 nem com a busca perfeita; a R-precision chega |
+
+**Por trecho,** só nas 29 consultas de detalhe, sobre os 10 pedaços mais parecidos com a consulta, sem agrupar por artigo. O pedaço relevante é o que contém a citação de evidência, com o espaço entre as palavras normalizado, como na geração. Cada uma das 29 citações está em exatamente um dos 5.398 pedaços, no parágrafo certo (conferido).
+
+| Métrica | O que mede |
+| --- | --- |
+| Trecho@10 | a fração das consultas em que o pedaço que responde está entre os 10 mais parecidos |
+| MRR trecho | 1 sobre a posição desse pedaço entre os 10, ou 0 |
+
+As médias foram conferidas por outro caminho: numpy puro, com o máximo por artigo sobre todos os pedaços, sem o FAISS e sem as funções de métrica. Os 10 primeiros artigos das 198 buscas e todas as médias saíram iguais.
+
 ## Limitações
 
 - **O juiz lê resumos, não o texto inteiro.** Um artigo que trata do assunto só no corpo pode ficar de fora dos relevantes, sobretudo nas consultas de detalhe. Ler os 100 artigos inteiros por consulta custaria cerca de 600 mil tokens de entrada cada.
