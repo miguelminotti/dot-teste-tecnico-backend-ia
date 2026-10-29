@@ -35,7 +35,7 @@ Um pedaço por parágrafo, mais um com título e resumo por artigo ([`indexacao.
 
 1. **BM25 e busca híbrida com RRF.** Ataca os termos raros (q067) e pode trazer o parágrafo exato nas consultas de detalhe, que repetem palavras do texto. Não deve ajudar o português. Feito: [abaixo](#bm25-e-busca-híbrida).
 2. **Prefixo de contexto no pedaço (título e seção), o *contextual retrieval* do livro.** Um parágrafo solto ("we use the full dataset") não diz de que artigo é, e o prefixo pode levar os pedaços certos ao topo nos detalhes e nos temas.
-3. **Outros modelos (`BAAI/bge-m3`, `Qwen/Qwen3-Embedding-0.6B`).** É onde o viés de língua pode mudar, e a GPU torna o teste barato (o e5-base levou 50 s).
+3. **Outros modelos (`BAAI/bge-m3`, `Qwen/Qwen3-Embedding-0.6B`).** É onde o viés de língua pode mudar, e a GPU torna o teste barato (o e5-base levou 50 s). Feito só com o bge-m3: [abaixo](#outro-modelo-bge-m3).
 4. **Tamanho do pedaço.** O rótulo por trecho não depende da divisão, e a comparação é direta.
 
 ## BM25 e busca híbrida
@@ -91,3 +91,56 @@ A busca continua só com embeddings por padrão (`--method dense`). A híbrida m
 
 - **Escolher a busca pela língua da consulta:** a híbrida em inglês e os embeddings em português. Com a língua conhecida, como no conjunto de avaliação, as médias das 198 buscas seriam 0,940 de MRR, 0,830 de R-precision e 0,810 de Trecho@10, acima das duas buscas sozinhas. Na prática, isso exige detectar a língua de consultas curtas e feitas quase só de nomes, como "ARMOR-DP para Multilingual BabyLM", em que só "para" é português.
 - **Traduzir a consulta para o inglês antes do BM25:** daria ao BM25 em português as mesmas palavras que ele casa em inglês, ao custo de uma chamada a um modelo de tradução por consulta.
+
+## Outro modelo: bge-m3
+
+O `BAAI/bge-m3` é multilíngue, tem licença MIT, 568 milhões de parâmetros (o dobro do e5-base) e vetores de 1.024 dimensões, e não usa prefixo de consulta nem de documento. Os pedaços são os mesmos do e5 (o `chunks.jsonl` sai idêntico), e a diferença mede só o modelo.
+
+```bash
+uv run --no-sync semantic-search-embed --model BAAI/bge-m3
+uv run semantic-search-store --model BAAI/bge-m3
+uv run semantic-search-eval --model BAAI/bge-m3 --method dense
+```
+
+Ficou só o bge-m3, e não o Qwen3-Embedding-0.6B. A pergunta era se outro modelo resolve o viés de língua, e um modelo responde. Com 99 consultas, comparar muitos modelos e variantes tenderia a escolher o que se ajusta a este conjunto.
+
+### Resultados
+
+| Modelo | Busca | Língua | Recall@10 | MRR | NDCG@10 | R-prec. | Trecho@10 | MRR trecho |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| e5-base | Embeddings | en | 0.929 | 0.945 | 0.907 | 0.845 | 0.828 | 0.536 |
+| bge-m3 | Embeddings | en | 0.941 | 0.943 | 0.909 | 0.826 | 0.793 | 0.556 |
+| e5-base | Híbrida | en | 0.935 | 0.985 | 0.935 | 0.893 | 0.897 | 0.610 |
+| bge-m3 | Híbrida | en | 0.935 | 0.985 | 0.934 | 0.878 | 0.931 | 0.596 |
+| e5-base | Embeddings | pt | 0.928 | 0.895 | 0.869 | 0.767 | 0.724 | 0.481 |
+| bge-m3 | Embeddings | pt | 0.934 | 0.924 | 0.888 | 0.782 | 0.793 | 0.509 |
+| e5-base | Híbrida | pt | 0.901 | 0.778 | 0.773 | 0.621 | 0.690 | 0.422 |
+| bge-m3 | Híbrida | pt | 0.913 | 0.826 | 0.806 | 0.662 | 0.690 | 0.393 |
+| e5-base | Embeddings | ambas | 0.929 | 0.920 | 0.888 | 0.806 | 0.776 | 0.509 |
+| bge-m3 | Embeddings | ambas | 0.937 | 0.933 | 0.899 | 0.804 | 0.793 | 0.533 |
+| e5-base | Híbrida | ambas | 0.918 | 0.881 | 0.854 | 0.757 | 0.793 | 0.516 |
+| bge-m3 | Híbrida | ambas | 0.924 | 0.905 | 0.870 | 0.770 | 0.810 | 0.494 |
+
+MRR por tipo de consulta, só embeddings:
+
+| Tipo | e5-base en | bge-m3 en | e5-base pt | bge-m3 pt |
+| --- | ---: | ---: | ---: | ---: |
+| named | 0.970 | 0.983 | 0.978 | 0.983 |
+| paraphrase | 0.900 | 0.903 | 0.799 | 0.865 |
+| detail | 0.983 | 0.957 | 0.943 | 0.931 |
+| topic | 0.900 | 0.900 | 0.800 | 0.900 |
+
+| Custo | e5-base | bge-m3 |
+| --- | ---: | ---: |
+| Embeddings do corpus na GPU (RTX 3060) | 50 s | 167 s |
+| Embeddings do corpus na CPU (i7-4790K, estimado por uma amostra de 200 pedaços) | cerca de 22 min | cerca de 84 min |
+| Embedding de uma consulta na GPU (mediana) | 12,5 ms | 23,2 ms |
+| Download do modelo (cache da Hugging Face) | 1,1 GB | 4,3 GB: o repositório traz os pesos em dois formatos, de 2,3 GB cada, e os dois foram baixados |
+| Índice FAISS | 16,6 MB | 22,1 MB |
+
+### O que os números dizem
+
+- **O bge-m3 desfaz o ímã do português.** Com o e5, o artigo do Manacá ficava em 1º, no lugar do certo, em 10 buscas em português; com o bge-m3, em 1. As consultas em que o português perde para o inglês caem de 14 para 6. Uma queda de 10 para 1 casos de um erro sistemático não é acaso. A q067 ("Rogan–Gladen"), que o e5 punha em 10º, vem em 1º nas duas línguas, só com embeddings.
+- **Nas médias, a diferença está dentro do ruído do conjunto.** Num bootstrap pareado, sorteando as 99 consultas 10 mil vezes, a diferença de MRR (bge-m3 − e5) é de +0,028 em português, com intervalo de 95% de [−0,019; +0,076], e de −0,003 em inglês, com intervalo de [−0,037; +0,034]. No total, o MRR vai de 0,920 para 0,933, e a R-precision fica igual (0,806 e 0,804). O conjunto não tem tamanho para separar dois modelos bons por 1 ou 2 centésimos.
+- **A híbrida continua pior que os embeddings sozinhos em português,** também com o bge-m3: MRR de 0,826 contra 0,924. O problema é o BM25 em português, e não o modelo.
+- **O custo é o dobro na consulta e quase o quádruplo na indexação.** Na GPU isso é pouco (23 ms por consulta, menos de 3 minutos para o corpus). Sem GPU, a indexação passa de cerca de 22 para cerca de 84 minutos nesta máquina.
