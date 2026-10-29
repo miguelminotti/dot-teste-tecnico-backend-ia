@@ -15,6 +15,8 @@ uv run semantic-search "como avaliar agentes de programação" --k 5
 
 O resultado é exato, e não uma aproximação da agregação. Um artigo que não aparece entre os pedaços buscados tem todos os pedaços abaixo do último deles e, portanto, nota menor que a de qualquer artigo achado.
 
+**Sem limiar de relevância.** A busca devolve sempre os `k` artigos mais parecidos, mesmo para uma consulta sem relação com o corpus: o cosseno diz qual pedaço é mais parecido, não se ele é relevante, e muda de escala com o modelo. Só a consulta em branco é recusada, com mensagem; e, quando o BM25 não acha nenhum termo, a saída diz que não há resultado. Num RAG, decidir quando não responder pediria um limiar calibrado nas consultas de avaliação ou um reranker, cuja nota lê a consulta e o trecho juntos ([próximos experimentos](experimentos.md#próximos-experimentos-na-ordem-que-os-números-sugerem)).
+
 Cada resultado traz o título, o link do arXiv, a nota e o trecho, com a seção de onde ele veio:
 
 ```text

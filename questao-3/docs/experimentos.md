@@ -28,6 +28,7 @@ Um pedaço por parágrafo, mais um com título e resumo por artigo ([`indexacao.
 1. **BM25 e busca híbrida com RRF,** para os termos raros (q067) e o parágrafo exato dos detalhes. Feito: [abaixo](#bm25-e-busca-híbrida).
 2. **Prefixo de contexto no pedaço (título e seção), o *contextual retrieval*,** para que um parágrafo solto diga de que artigo é. Não feito.
 3. **Outro modelo de embeddings,** onde o viés de língua pode mudar. Feito com o bge-m3: [abaixo](#outro-modelo-bge-m3).
+4. **Reranking com um cross-encoder** (por exemplo, o `BAAI/bge-reranker-v2-m3`, multilíngue como o bge-m3) sobre os primeiros pedaços. O MRR de trecho fica perto de 0,54: o artigo certo vem no topo, mas o parágrafo que responde nem sempre. O reranker lê a consulta e o trecho juntos, e a nota dele serve também de limiar para a busca dizer que não achou nada. Não feito.
 
 ## BM25 e busca híbrida
 

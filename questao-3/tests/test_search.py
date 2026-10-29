@@ -1,15 +1,25 @@
 import argparse
 import io
 import sys
+from typing import cast
 
 import numpy as np
 import pytest
+from sentence_transformers import SentenceTransformer
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import Document
 from semantic_search.embeddings import EmbeddingIndex, Vectors
 from semantic_search.retrievers import DenseRetriever, Query
-from semantic_search.search import PaperResult, positive_int, print_results, rank_papers
+from semantic_search.search import (
+    PaperResult,
+    SemanticSearch,
+    format_results,
+    positive_int,
+    print_results,
+    query_text,
+    rank_papers,
+)
 from semantic_search.vector_store import VectorStore
 
 
@@ -75,6 +85,23 @@ def test_k_below_one_is_rejected() -> None:
         rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=0, documents=_documents("A"))
     with pytest.raises(argparse.ArgumentTypeError):
         positive_int("0")
+
+
+@pytest.mark.parametrize("query", ["", "   "], ids=["vazia", "em-branco"])
+def test_blank_query_is_rejected(query: str) -> None:
+    # Bug: a consulta em branco também vira um vetor, e a busca devolvia `k` artigos com nota alta, como
+    # se fossem relevantes para alguma coisa. O modelo nem chega a ser usado.
+    search = SemanticSearch(cast(SentenceTransformer, None), _store(["A"], _unit([1.0, 0.0])), [])
+
+    with pytest.raises(ValueError, match="em branco"):
+        search.search(query)
+    with pytest.raises(argparse.ArgumentTypeError, match="em branco"):
+        query_text(query)
+
+
+def test_search_without_results_says_so() -> None:
+    # O BM25 não acha nada quando a consulta não tem termo do corpus; a saída vazia parecia uma falha.
+    assert format_results([]) == "Nenhum artigo encontrado."
 
 
 def test_returns_at_most_k_papers_when_the_chunks_found_span_more() -> None:

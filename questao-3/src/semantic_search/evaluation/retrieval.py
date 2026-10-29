@@ -1,6 +1,7 @@
 """Avaliação da recuperação: roda as consultas de avaliação na busca e mede o resultado.
 
-Uso, na pasta da questão, depois do semantic-search-embed e do semantic-search-store:
+Uso, na pasta da questão (o índice do modelo padrão vem no repositório; com outro modelo, ou depois de mudar
+o corpus, rode antes o semantic-search-embed e o semantic-search-store):
 uv run semantic-search-eval
 
 Cada consulta roda nas duas línguas. A busca por artigo é medida em todas, contra os artigos rotulados pelo

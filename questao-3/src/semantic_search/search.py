@@ -1,6 +1,7 @@
 """Busca semântica: a consulta em texto vira embedding, e a busca devolve os artigos mais relevantes.
 
-Uso, na pasta da questão, depois do semantic-search-embed e do semantic-search-store:
+Uso, na pasta da questão (o índice do modelo padrão vem no repositório; com outro modelo, ou depois de mudar
+o corpus, rode antes o semantic-search-embed e o semantic-search-store):
 uv run semantic-search "como avaliar agentes de programação" --k 5
 """
 
@@ -22,7 +23,7 @@ from semantic_search.vector_store import VectorStore
 
 METHODS = ("dense", "bm25", "hybrid")
 
-# Pedaços buscados por artigo pedido, na primeira tentativa. Um artigo tem em média 54 pedaços, e os mais
+# Pedaços buscados por artigo pedido, na primeira tentativa. Um artigo tem em média 50 pedaços, e os mais
 # parecidos com a consulta tendem a vir de poucos artigos; quando não chegam a `k` artigos, a busca dobra.
 _CHUNKS_PER_PAPER = 10
 
@@ -86,12 +87,17 @@ class SemanticSearch:
         return cls(load_model(model_name), retriever, load_documents(corpus))
 
     def search(self, query: str, k: int = 5) -> list[PaperResult]:
+        if not query.strip():
+            # A consulta em branco também vira um vetor, e a busca devolveria `k` artigos com nota alta.
+            raise ValueError("a consulta veio em branco")
         vector = embed_queries(self._model, [query])
         return rank_papers(self._retriever, Query(text=query, vector=vector), k=k, documents=self._documents)
 
 
 def format_results(results: Sequence[PaperResult]) -> str:
     """Os resultados para o terminal: posição, nota, título, link e o trecho, com a seção de onde veio."""
+    if not results:
+        return "Nenhum artigo encontrado."
     lines = []
     for position, result in enumerate(results, start=1):
         excerpt = textwrap.shorten(result.excerpt.text, width=300, placeholder=" [...]")
@@ -114,6 +120,16 @@ def positive_int(value: str) -> int:
     return number
 
 
+def query_text(value: str) -> str:
+    """Tipo do argparse para a consulta: em branco, vira mensagem de uso antes de carregar o modelo.
+
+    A mensagem vai para o stderr, que no Windows, redirecionado, sai em cp1252; sem acento, ela chega legível.
+    """
+    if not value.strip():
+        raise argparse.ArgumentTypeError("a consulta veio em branco")
+    return value
+
+
 def use_utf8_output() -> None:
     """Passa a saída para UTF-8: redirecionada para arquivo, a saída do Python no Windows usa o cp1252, que
     não tem caracteres que aparecem nos artigos ("≥", letras gregas)."""
@@ -128,7 +144,7 @@ def print_results(results: Sequence[PaperResult]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Busca os artigos mais relevantes para uma consulta.")
-    parser.add_argument("query", help="a consulta, em inglês ou português")
+    parser.add_argument("query", type=query_text, help="a consulta, em inglês ou português")
     parser.add_argument("--k", type=positive_int, default=5, help="quantos artigos devolver")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
