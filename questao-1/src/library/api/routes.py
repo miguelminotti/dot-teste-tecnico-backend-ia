@@ -2,7 +2,8 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi.exceptions import RequestValidationError
 
 from library.api.dependencies import BookServiceDep, enforce_rate_limit
 from library.api.schemas import BookCreate, BookPageResponse, BookResponse, ErrorResponse
@@ -49,7 +50,28 @@ def register_book(payload: BookCreate, service: BookServiceDep) -> BookResponse:
     return BookResponse.model_validate(book)
 
 
-@router.get("", summary="Busca livros por título ou autor", responses=_RATE_LIMITED)
+_SEARCH_PARAMETERS = {"title", "author", "limit", "offset"}
+
+
+def _reject_unknown_query_parameters(request: Request) -> None:
+    """Recusa parâmetro que a busca não conhece, como o corpo do cadastro recusa campo desconhecido.
+
+    Ignorado, um filtro com nome errado (`?autor=`) devolveria o acervo inteiro com 200, como se a busca
+    tivesse funcionado. O erro sai no mesmo formato do 422 de validação.
+    """
+    unknown = sorted(set(request.query_params) - _SEARCH_PARAMETERS)
+    if unknown:
+        raise RequestValidationError(
+            [{"type": "extra_forbidden", "loc": ["query", name], "msg": "Parâmetro desconhecido"} for name in unknown]
+        )
+
+
+@router.get(
+    "",
+    summary="Busca livros por título ou autor",
+    responses=_RATE_LIMITED,
+    dependencies=[Depends(_reject_unknown_query_parameters)],
+)
 def search_books(
     service: BookServiceDep,
     title: Annotated[str | None, Query(max_length=300, pattern=_NOT_BLANK, description="Trecho do título.")] = None,

@@ -65,6 +65,17 @@ def test_saved_store_comes_back_with_the_same_hits_even_in_a_folder_with_accents
     assert loaded.search(query, k=3) == store.search(query, k=3)
 
 
+def test_store_loads_without_the_embeddings_matrix(tmp_path: Path) -> None:
+    # O faiss.index já é a matriz de vetores: ler também o embeddings.npy dobrava o que a busca carrega
+    # da pasta (20 MB a mais com o bge-m3) a cada subida.
+    embedding_index = _embedding_index(_unit([1.0, 0.0], [0.0, 1.0]))
+    save_index(embedding_index, tmp_path)
+    VectorStore.build(embedding_index).save(tmp_path)
+    (tmp_path / "embeddings.npy").unlink()
+
+    assert len(VectorStore.load(tmp_path)) == 2
+
+
 def test_faiss_index_with_a_different_number_of_vectors_than_chunks_is_rejected() -> None:
     # Pega um faiss.index velho ao lado de pedaços regerados com outro corte: o vetor i não seria o pedaço i.
     faiss_index = faiss.IndexFlatIP(2)

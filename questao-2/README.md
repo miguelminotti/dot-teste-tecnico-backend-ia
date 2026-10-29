@@ -14,7 +14,7 @@ Chatbot que responde perguntas sobre programação em Python, com LangChain e um
 
 | Requisito do enunciado | Status |
 | --- | --- |
-| Receber perguntas do usuário por input de texto | linha de comando (`uv run chatbot`) |
+| Receber perguntas do usuário por input de texto | linha de comando (`uv run --env-file .env chatbot`) |
 | Usar o LangChain para gerenciar a conversa e integrar com o LLM | prompt, modelo e extração do texto encadeados com LCEL, com o histórico da conversa e a busca na documentação oficial |
 | Responder com um modelo da OpenAI (como o GPT-4) | `gpt-5.4-mini` com busca na documentação oficial, escolhido pelas avaliações ([ADR 0002](docs/adr/0002-busca-na-documentacao-com-gpt-5-4-mini.md)); configurável |
 | Configuração da API da OpenAI | `.env` com a chave, conferida na subida |

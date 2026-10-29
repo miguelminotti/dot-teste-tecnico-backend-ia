@@ -39,7 +39,12 @@ responda sem buscar."""
 
 
 class AnswerUnavailableError(Exception):
-    """O modelo não respondeu: falha de rede, limite de uso da API ou chave inválida."""
+    """O modelo não respondeu a esta pergunta, por uma falha passageira: rede, servidor ou limite por minuto."""
+
+
+class OpenAIAccountError(Exception):
+    """A OpenAI recusou a chave ou a conta (chave inválida, sem permissão, sem saldo): nenhuma pergunta vai
+    ser respondida até a configuração mudar."""
 
 
 class Tutor:
@@ -68,6 +73,11 @@ class Tutor:
         try:
             reply = self._chain.invoke({"history": self._history, "question": question})
         except openai.APIError as error:
+            if _account_rejected(error):
+                raise OpenAIAccountError(
+                    f"a OpenAI recusou a chave ou a conta ({type(error).__name__}): confira a OPENAI_API_KEY e o "
+                    "saldo da conta"
+                ) from error
             # O cliente da OpenAI já tentou de novo nas falhas passageiras; aqui a falha é definitiva
             # para esta pergunta, e a conversa pode seguir.
             raise AnswerUnavailableError(f"o modelo não respondeu ({type(error).__name__})") from error
@@ -75,6 +85,14 @@ class Tutor:
         # próximas chamadas, como se tivesse sido respondida.
         self._history += [HumanMessage(question), AIMessage(reply)]
         return reply
+
+
+def _account_rejected(error: openai.APIError) -> bool:
+    """Chave inválida (401), sem permissão (403) ou sem saldo (429 com `insufficient_quota`). O 429 comum,
+    de limite por minuto, passa sozinho e não entra aqui."""
+    if isinstance(error, openai.AuthenticationError | openai.PermissionDeniedError):
+        return True
+    return isinstance(error, openai.RateLimitError) and error.code == "insufficient_quota"
 
 
 def create_tutor(settings: Settings) -> Tutor:

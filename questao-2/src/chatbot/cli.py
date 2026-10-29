@@ -6,7 +6,7 @@ import sys
 from collections.abc import Callable, MutableMapping
 
 from chatbot.settings import Settings
-from chatbot.tutor import AnswerUnavailableError, create_tutor
+from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError, create_tutor
 
 # Palavras que encerram a conversa, comparadas sem diferenciar maiúsculas.
 _EXIT_COMMANDS = frozenset({"sair", "exit", "quit"})
@@ -54,7 +54,11 @@ def main() -> None:
         # Mensagem no stderr e código de saída 1, sem traceback: é erro de configuração, não bug.
         sys.exit(f"Erro de configuração: {error}")
     tutor = create_tutor(settings)
-    run_chat(tutor.answer)
+    try:
+        run_chat(tutor.answer)
+    except OpenAIAccountError as error:
+        # A subida só confere se a chave existe; se ela vale, só a primeira pergunta diz.
+        sys.exit(f"Erro de configuração: {error}")
 
 
 def disable_tracing_without_key(environ: MutableMapping[str, str] = os.environ) -> bool:

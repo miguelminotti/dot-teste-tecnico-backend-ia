@@ -84,9 +84,13 @@ def save_index(index: EmbeddingIndex, folder: Path) -> None:
 
 def load_index(folder: Path) -> EmbeddingIndex:
     meta = json.loads((folder / "meta.json").read_text(encoding="utf-8"))
-    chunks = [Chunk(**json.loads(line)) for line in (folder / "chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     vectors = np.load(folder / "embeddings.npy").astype(np.float32, copy=False)
-    return EmbeddingIndex(model=meta["model"], max_words=meta["max_words"], chunks=chunks, vectors=vectors)
+    return EmbeddingIndex(model=meta["model"], max_words=meta["max_words"], chunks=load_chunks(folder), vectors=vectors)
+
+
+def load_chunks(folder: Path) -> list[Chunk]:
+    """Só os pedaços do índice, sem a matriz de vetores: o que a busca precisa além do índice FAISS."""
+    return [Chunk(**json.loads(line)) for line in (folder / "chunks.jsonl").read_text(encoding="utf-8").splitlines()]
 
 
 def index_folder(root: Path, model_name: str) -> Path:

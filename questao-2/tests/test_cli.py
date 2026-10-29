@@ -1,8 +1,12 @@
 import os
 import subprocess
 import sys
+from collections.abc import Iterator
 
-from chatbot.cli import disable_tracing_without_key
+import pytest
+
+from chatbot.cli import disable_tracing_without_key, run_chat
+from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError
 
 # Roda o laço da conversa com a configuração de terminal do `main`, mas com uma resposta fixa no lugar
 # do modelo: o teste não depende de chave nem de rede.
@@ -48,3 +52,64 @@ def test_tracing_with_langsmith_key_is_kept() -> None:
 
     assert disable_tracing_without_key(environ) is False
     assert environ["LANGSMITH_TRACING"] == "true"
+
+
+class _FakeTerminal:
+    """Entrada com respostas prontas e saída gravada, no lugar do `input` e do `print`."""
+
+    def __init__(self, *lines: str) -> None:
+        self._lines = list(lines)
+        self.written: list[str] = []
+
+    def read(self, _: str) -> str:
+        if not self._lines:
+            raise EOFError
+        return self._lines.pop(0)
+
+    def write(self, text: str) -> None:
+        self.written.append(text)
+
+
+def test_blank_question_does_not_reach_the_model_and_exit_words_end_the_chat() -> None:
+    # Pergunta em branco viraria uma chamada paga sem pergunta; "SAIR" em maiúsculas também encerra.
+    terminal = _FakeTerminal("   ", "Como criar uma lista?", "SAIR", "pergunta depois de sair")
+    asked: list[str] = []
+
+    def answer(question: str) -> str:
+        asked.append(question)
+        return "resposta"
+
+    run_chat(answer, read=terminal.read, write=terminal.write)
+
+    assert asked == ["Como criar uma lista?"]
+
+
+def test_passing_failure_loses_only_that_question() -> None:
+    # Uma falha passageira da API (rede, limite por minuto) não encerra a conversa.
+    terminal = _FakeTerminal("pergunta que falha", "pergunta seguinte")
+    replies: Iterator[str | Exception] = iter([AnswerUnavailableError("o modelo não respondeu"), "resposta"])
+
+    def answer(_: str) -> str:
+        reply = next(replies)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+    run_chat(answer, read=terminal.read, write=terminal.write)
+
+    assert "\nChatbot: resposta" in terminal.written
+
+
+def test_rejected_key_or_account_ends_the_chat() -> None:
+    # Com a chave recusada, toda pergunta falharia: a conversa acaba, e o erro chega ao `main`, que sai
+    # com a mensagem de configuração e código 1.
+    terminal = _FakeTerminal("primeira pergunta", "segunda pergunta")
+    asked: list[str] = []
+
+    def answer(question: str) -> str:
+        asked.append(question)
+        raise OpenAIAccountError("a OpenAI recusou a chave")
+
+    with pytest.raises(OpenAIAccountError):
+        run_chat(answer, read=terminal.read, write=terminal.write)
+    assert asked == ["primeira pergunta"]

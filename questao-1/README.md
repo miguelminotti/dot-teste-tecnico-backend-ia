@@ -7,7 +7,7 @@ API para cadastrar e consultar livros (título, autor, data de publicação e re
 | Requisito do enunciado | Status |
 | --- | --- |
 | Cadastro de livros com título, autor, data de publicação e resumo | `POST /books` |
-| Consulta de livros por título ou autor | `GET /books?title=&author=`, paginado |
+| Consulta de livros por título ou autor | `GET /books?title=&author=`, paginado; com os dois filtros, o livro precisa casar com ambos |
 | Implementação com Django, Flask ou FastAPI | FastAPI |
 | Endpoints claros e bem documentados | OpenAPI em `/docs`, com descrição, exemplos e respostas de erro |
 | Armazenamento em SQLite | repositório pronto e testado |

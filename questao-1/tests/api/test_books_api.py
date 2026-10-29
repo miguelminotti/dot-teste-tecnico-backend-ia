@@ -226,6 +226,15 @@ def test_search_rejects_parameters_that_would_bypass_pagination(client: TestClie
     assert client.get("/books", params=params).status_code == 422
 
 
+def test_search_rejects_unknown_parameters(client: TestClient) -> None:
+    # Um filtro com nome errado (`?autor=`, `?q=`) era ignorado e devolvia o acervo inteiro com 200, como
+    # se a busca tivesse funcionado. O corpo do cadastro já recusa campo desconhecido; a busca, também.
+    response = client.get("/books", params={"autor": "machado"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["query", "autor"]
+
+
 def test_search_rejects_offset_beyond_the_ceiling(client: TestClient) -> None:
     # Bug: sem teto, um offset acima do inteiro de 64 bits estourava no sqlite3 e virava 500.
     assert client.get("/books", params={"offset": 10**20}).status_code == 422

@@ -17,6 +17,9 @@ wheels/
 # Banco SQLite local
 *.db
 *.sqlite3
+# Arquivos do modo WAL do SQLite, ao lado do banco
+*.db-wal
+*.db-shm
 
 # Segredos
 .env

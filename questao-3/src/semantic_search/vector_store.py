@@ -18,7 +18,7 @@ import faiss
 import numpy as np
 
 from semantic_search.chunking import Chunk
-from semantic_search.embeddings import DEFAULT_MODEL, EmbeddingIndex, Vectors, index_folder, load_index
+from semantic_search.embeddings import DEFAULT_MODEL, EmbeddingIndex, Vectors, index_folder, load_chunks, load_index
 
 _FAISS_FILE = "faiss.index"
 
@@ -80,7 +80,7 @@ class VectorStore:
     @classmethod
     def load(cls, folder: Path) -> "VectorStore":
         data = np.frombuffer((folder / _FAISS_FILE).read_bytes(), dtype=np.uint8)
-        return cls(faiss.deserialize_index(data), load_index(folder).chunks)
+        return cls(faiss.deserialize_index(data), load_chunks(folder))
 
 
 def main() -> None:

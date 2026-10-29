@@ -36,8 +36,13 @@ def connect(database: str | Path, *, check_same_thread: bool = True) -> sqlite3.
     `check_same_thread=False` é para a API: o FastAPI pode abrir a conexão (na dependency) numa
     thread do pool e usá-la (na rota) em outra. É seguro porque cada requisição tem a sua conexão,
     que nunca é usada por duas threads ao mesmo tempo.
+
+    O modo WAL deixa gravar enquanto outras conexões leem. No journal padrão, quem grava espera as
+    leituras abertas terminarem e desiste depois do timeout (5 s): com dezenas de clientes buscando e
+    cadastrando ao mesmo tempo, a API respondia 500 "database is locked".
     """
     connection = sqlite3.connect(database, check_same_thread=check_same_thread)
+    connection.execute("PRAGMA journal_mode=WAL")
     connection.row_factory = sqlite3.Row
     return connection
 

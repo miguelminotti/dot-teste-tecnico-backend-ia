@@ -1,6 +1,8 @@
 from collections.abc import Callable, Sequence
 from typing import Any
 
+import httpx2
+import openai
 import pytest
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.language_models import BaseChatModel, LanguageModelInput
@@ -11,7 +13,7 @@ from langchain_core.tools import BaseTool
 from pydantic import Field
 
 from chatbot.docs_search import DOCS_DOMAINS
-from chatbot.tutor import SYSTEM_PROMPT, Tutor
+from chatbot.tutor import SYSTEM_PROMPT, AnswerUnavailableError, OpenAIAccountError, Tutor
 
 
 class RecordingChatModel(BaseChatModel):
@@ -24,8 +26,9 @@ class RecordingChatModel(BaseChatModel):
     """
 
     calls: list[list[BaseMessage]] = Field(default_factory=list)
-    # Número da chamada (a partir de 1) que falha, para simular a API fora do ar.
+    # Número da chamada (a partir de 1) que falha, para simular a API fora do ar, e o erro levantado.
     fail_on_call: int | None = None
+    failure: Any = Field(default_factory=lambda: RuntimeError("falha simulada"))
     # Conteúdo da resposta em blocos, como a Responses API devolve; sem ele, responde "resposta N".
     reply_blocks: list[str | dict[Any, Any]] | None = None
     # Ferramentas que o `Tutor` ligou ao modelo.
@@ -44,7 +47,7 @@ class RecordingChatModel(BaseChatModel):
     ) -> ChatResult:
         self.calls.append(list(messages))
         if len(self.calls) == self.fail_on_call:
-            raise RuntimeError("falha simulada")
+            raise self.failure
         content = self.reply_blocks if self.reply_blocks is not None else f"resposta {len(self.calls)}"
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content))])
 
@@ -160,3 +163,36 @@ def test_pages_cited_by_the_search_are_listed_after_the_answer() -> None:
     answer = tutor.answer("O que são t-strings?")
 
     assert answer == f"T-strings criam um Template.\n\nFontes:\n- {whatsnew}\n- {pep}"
+
+
+def _openai_error(error_class: type[openai.APIStatusError], status: int, code: str | None = None) -> Exception:
+    request = httpx2.Request("POST", "https://api.openai.com/v1/responses")
+    return error_class("erro simulado", response=httpx2.Response(status, request=request), body={"code": code})
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        _openai_error(openai.AuthenticationError, 401),
+        _openai_error(openai.PermissionDeniedError, 403),
+        _openai_error(openai.RateLimitError, 429, "insufficient_quota"),
+    ],
+    ids=["chave-invalida", "sem-permissao", "sem-saldo"],
+)
+def test_rejected_key_or_account_is_not_reported_as_a_passing_failure(error: Exception) -> None:
+    # Com a chave errada ou sem saldo, nenhuma pergunta vai ser respondida; "tente de novo" faria a
+    # pessoa repetir perguntas que sempre falham, sem saber que o problema está na configuração.
+    tutor = Tutor(RecordingChatModel(fail_on_call=1, failure=error))
+
+    with pytest.raises(OpenAIAccountError):
+        tutor.answer("Como criar uma lista?")
+
+
+def test_rate_limit_is_a_passing_failure() -> None:
+    # Limite de requisições por minuto passa sozinho: a conversa segue, e a próxima pergunta funciona.
+    tutor = Tutor(
+        RecordingChatModel(fail_on_call=1, failure=_openai_error(openai.RateLimitError, 429, "rate_limit_exceeded"))
+    )
+
+    with pytest.raises(AnswerUnavailableError):
+        tutor.answer("Como criar uma lista?")

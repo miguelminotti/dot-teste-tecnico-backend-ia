@@ -87,7 +87,7 @@ def test_returns_at_most_k_papers_when_the_chunks_found_span_more() -> None:
 
 
 def test_results_are_printed_in_utf8_even_when_the_output_encoding_is_not(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Redirecionada para arquivo, a saída do Python no Windows usa o cp1252, e 56 pedaços do corpus têm
+    # Redirecionada para arquivo, a saída do Python no Windows usa o cp1252, e 53 pedaços do corpus têm
     # caracteres fora dele ("≥", letras gregas): a CLI caía com UnicodeEncodeError no meio dos resultados.
     buffer = io.BytesIO()
     monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(buffer, encoding="cp1252"))

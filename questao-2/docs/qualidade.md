@@ -10,9 +10,9 @@ A mesma da [questão 1](../../questao-1/docs/qualidade.md): cada teste protege u
 
 | Arquivo | Regras protegidas |
 | --- | --- |
-| `test_cli.py` | pergunta com acento vinda de pipe chega intacta e a resposta sai em UTF-8; sem a chave do LangSmith, o tracing é desligado, e com ela fica como está |
+| `test_cli.py` | pergunta com acento vinda de pipe chega intacta e a resposta sai em UTF-8; sem a chave do LangSmith, o tracing é desligado, e com ela fica como está; pergunta em branco não chega ao modelo, e as palavras de saída encerram sem diferenciar maiúsculas; falha passageira perde só a pergunta; chave ou conta recusada encerra a conversa |
 | `test_settings.py` | a busca na documentação liga e desliga pela variável, e vazio fica com o padrão (ligada); valor desconhecido é erro, e não busca desligada em silêncio; modelo que não aceita a busca com a busca ligada é erro na subida |
-| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico; com a busca ligada, ela chega ao modelo restrita aos domínios oficiais; sem a busca, nem a ferramenta nem a regra dela chegam ao modelo (o braço de controle do experimento); as páginas citadas pela busca aparecem no fim da resposta, uma vez cada |
+| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico; com a busca ligada, ela chega ao modelo restrita aos domínios oficiais; sem a busca, nem a ferramenta nem a regra dela chegam ao modelo (o braço de controle do experimento); as páginas citadas pela busca aparecem no fim da resposta, uma vez cada; chave inválida, sem permissão ou sem saldo é erro de configuração, e o limite por minuto é falha passageira |
 | `evaluation/test_snippets.py` | só blocos `python` e `py` são executados, na ordem; snippet que roda passa e o que lança exceção falha com a última linha do erro; roda na versão do Python pedida; pacote de fora da biblioteca padrão é pulado, módulo removido da biblioteca padrão é falha; laço infinito falha por tempo limite; o snippet não recebe as chaves da OpenAI e do LangSmith; snippet que imprime acento passa no Windows; bloco que continua o anterior da mesma resposta passa; bloco que falhou não derruba os seguintes; bloco que depende de um pulado é pulado também, e o independente roda; marcação da linguagem em qualquer caixa e `python3`; bloco recuado dentro de item de lista roda; o snippet acha a pasta do usuário |
 | `evaluation/test_run.py` | o nome do dataset não muda com o final de linha do checkout; envio interrompido (Ctrl+C) não deixa dataset vazio para trás; o resumo de uso de um experimento em que toda conversa deu erro não quebra |
 | `evaluation/test_scoring.py` | cobertura contada por ponto-chave, e não por turno; ponto ausente não é erro factual; erro factual reprova mesmo com cobertura total; o comentário nomeia os pontos que faltaram |
@@ -92,3 +92,10 @@ Cada bug tem um teste que o reproduziu antes da correção.
 - **Como apareceu:** na revisão final, apontado pelo revisor como plausível e reproduzido rodando a CLI.
 - **Teste:** `test_tracing_without_langsmith_key_is_turned_off`.
 - **Correção:** sem a chave do LangSmith, a CLI desliga o tracing e avisa numa linha.
+
+### 9. Chave inválida virava "tente de novo"
+
+- **Bug:** com a chave errada, sem permissão ou sem saldo, cada pergunta respondia "Não consegui responder agora (AuthenticationError). Tente de novo." e a conversa seguia, com toda pergunta falhando. A subida só confere se a chave existe, não se ela vale.
+- **Como apareceu:** numa segunda revisão independente, depois da entrega das três questões, simulada com um modelo falso que levanta o erro da OpenAI.
+- **Testes:** `test_rejected_key_or_account_is_not_reported_as_a_passing_failure`, `test_rate_limit_is_a_passing_failure` e `test_rejected_key_or_account_ends_the_chat`.
+- **Correção:** 401, 403 e 429 com `insufficient_quota` viram erro de configuração, e a CLI sai com a mensagem e código 1. O 429 de limite por minuto continua como falha passageira.

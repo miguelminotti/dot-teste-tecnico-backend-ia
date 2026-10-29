@@ -163,6 +163,20 @@ def test_concurrent_adds_of_the_same_book_persist_it_exactly_once(database_file:
         assert len(SqliteBookRepository(reader).search(limit=LIMIT)) == 1
 
 
+def test_add_commits_while_another_connection_is_reading(database_file: Path, make_book: MakeBook) -> None:
+    # No journal padrão do SQLite, quem grava espera as leituras abertas terminarem e desiste depois do
+    # timeout: com dezenas de clientes buscando e cadastrando ao mesmo tempo, a API respondia 500
+    # "database is locked". No modo WAL, leitura e escrita não se bloqueiam.
+    with closing(connect(database_file)) as reader, closing(connect(database_file)) as writer:
+        reader.execute("BEGIN")
+        reader.execute("SELECT * FROM books").fetchall()
+
+        SqliteBookRepository(writer).add(make_book())
+
+        reader.rollback()
+        assert len(SqliteBookRepository(reader).search(limit=LIMIT)) == 1
+
+
 def test_create_schema_twice_keeps_existing_books(
     repository: SqliteBookRepository, connection: sqlite3.Connection, make_book: MakeBook
 ) -> None:
