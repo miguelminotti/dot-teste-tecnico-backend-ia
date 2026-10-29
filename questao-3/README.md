@@ -11,7 +11,7 @@ Sistema de busca semântica: gera embeddings de um conjunto de documentos, guard
 | Embeddings armazenados numa vector store (FAISS ou Milvus) | Índice FAISS de busca exata (`IndexFlatIP`, cosseno), gravado ao lado dos pedaços ([`docs/indexacao.md`](docs/indexacao.md)) |
 | Função de busca que devolve os documentos mais relevantes para uma consulta | `SemanticSearch.search` e a CLI `semantic-search`: os artigos mais relevantes, cada um pelo melhor pedaço, com título, link e trecho ([`docs/busca.md`](docs/busca.md)) |
 | Processo de criação dos embeddings e do armazenamento documentado | pedaços, embeddings e vector store em [`docs/indexacao.md`](docs/indexacao.md) |
-| Exemplos de consultas e resultados relevantes | pendente |
+| Exemplos de consultas e resultados relevantes | 7 buscas reais da CLI, em inglês e português (pelo nome, por paráfrase, por detalhe, por tema e uma livre), conferidas com os rótulos, incluindo os casos em que a busca erra ([`docs/exemplos.md`](docs/exemplos.md)) |
 
 ## Como rodar
 
