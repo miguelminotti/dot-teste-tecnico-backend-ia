@@ -2,7 +2,7 @@
 
 Buscas reais, geradas pela CLI em 2026-10-28 na configuração padrão: o `BAAI/bge-m3` e a busca só com embeddings ([ADR 0001](adr/0001-modelo-de-embeddings-bge-m3.md)). Dois exemplos trocam o modelo ou o método, para mostrar o que os [experimentos](experimentos.md) mediram. As saídas estão como a CLI as imprimiu, sem edição. A busca é determinística: o mesmo índice dá a mesma saída.
 
-As consultas 1 a 6 vêm do [conjunto de avaliação](avaliacao.md), e cada resultado foi conferido com os artigos que o juiz rotulou como relevantes. A 7 é livre, fora do conjunto.
+As consultas 1 a 4 vêm do [conjunto de avaliação](avaliacao.md), e cada resultado foi conferido com os artigos que o juiz rotulou como relevantes. A 5 é livre, fora do conjunto.
 
 Cada resultado traz a posição, a nota (o cosseno entre a consulta e o melhor pedaço do artigo), o título, o link do arXiv e o trecho, com a seção de onde ele veio. O trecho é cortado em 300 caracteres.
 
@@ -36,37 +36,7 @@ uv run semantic-search "AccentCL class-incremental accent classification" --k 3
    contrast, extract a [...]
 ```
 
-## 2. Por paráfrase, em inglês
-
-A consulta `q005` descreve a ideia do artigo sem o nome do método e sem os termos dele ("class-incremental", "classification"): fala em continuar acrescentando categorias de sotaque. O artigo certo vem em 1º, e o trecho é o parágrafo que responde à pergunta: acrescentar sotaques sem retreinar o modelo do zero.
-
-```bash
-uv run semantic-search "How to keep adding new speech accent categories without retraining from scratch" --k 3
-```
-
-```text
-1. [0.654] AccentCL: Robust Accent Classification with Incremental Expansion
-   https://arxiv.org/abs/2610.07426
-   Class-incremental accent expansion: We next evaluate whether the regional accent inventory can be
-   expanded without retraining the full model from scratch. Starting from the five-class base model,
-   we incrementally add two accent classes: first Spanish-accented English, and then Chinese-
-   accented English, yielding a class- [...]
-
-2. [0.577] Mixture of Phonetic Experts Based Low-Rank Adaptation of Conformer Models for Accented English Speech Recognition
-   https://arxiv.org/abs/2610.26888
-   Hybrid Phonetic Routing Mechanism: Crucially, the expert set is shared across all accents. No
-   accent-specific modules are introduced and no accent labels are required at test time; the model
-   adapts to a given utterance purely through its frame-level phonetic routing decisions.
-
-3. [0.567] ReAnchor: Reusing Rejected Verifier States for Diffusion Drafting
-   https://arxiv.org/abs/2610.26531
-   Introduction: Building on this finding, we introduce ReAnchor, a training-free method that reuses
-   verifier hidden states from the discarded post-rejection suffix to reanchor the same pretrained
-   drafter at those later positions. The reanchored blocks are generated in parallel with the
-   baseline draft, each [...]
-```
-
-## 3. Por paráfrase, em português, e o viés de língua do e5
+## 2. Por paráfrase, em português, e o viés de língua do e5
 
 A mesma consulta em português, sobre o artigo em inglês. Com o bge-m3, o artigo certo vem em 1º, com o mesmo trecho da consulta em inglês.
 
@@ -125,38 +95,7 @@ uv run semantic-search "Como continuar adicionando novas categorias de sotaque n
    for NaturalVoices and Brouhaha Lavechin [...]
 ```
 
-## 4. Por um detalhe do corpo do artigo
-
-A consulta `q006` pergunta algo que só um parágrafo responde, e não o resumo. O artigo vem em 1º, e o trecho é exatamente o parágrafo da resposta, da seção *Datasets*. A frase que responde ("The full dataset includes North American (NA), British Isles (BI), [...] accent groups.") começa no caractere 292 do parágrafo, logo depois do corte de 300 caracteres da saída. A busca acertou o trecho, mas a resposta fica escondida pelo corte.
-
-```bash
-uv run semantic-search "What accent groups are in the dataset built for incremental English accent classification?" --k 3
-```
-
-```text
-1. [0.701] AccentCL: Robust Accent Classification with Incremental Expansion
-   https://arxiv.org/abs/2610.07426
-   Datasets: We construct our accent classification dataset from multiple English speech corpora,
-   including CommonVoice, GLOBE, AESRC, UK-Ireland, EdAcc, L2ARCTIC, ARCTIC, EmiliaYODAS, VoxPopuli,
-   and EMIME. We assign each utterance to a regional accent group following our collapsed accent
-   label mapping. [...]
-
-2. [0.569] Mixture of Phonetic Experts Based Low-Rank Adaptation of Conformer Models for Accented English Speech Recognition
-   https://arxiv.org/abs/2610.26888
-   Abstract: Mixture of Phonetic Experts Based Low-Rank Adaptation of Conformer Models for Accented
-   English Speech Recognition. We present Mixture of Phonetic Experts based Low-Rank Adaptation
-   (MoPE-LoRA), a parameter-efficient adaptation framework for accented English speech recognition.
-   Recent mixture- [...]
-
-3. [0.557] SPARC: Spoken Profile Authorship Recognition Corpus
-   https://arxiv.org/abs/2610.25265
-   Speaker Attribute Inference: We aggregate to the speaker level by averaging the predicted
-   probability vectors across all retained utterances from the same speaker and selecting the
-   highest-scoring class for accent and sex; age is averaged directly. Dataset statistics of SPARC
-   are reported in Table 1. We find that there [...]
-```
-
-## 5. Por tema, o caso mais difícil
+## 3. Por tema, o caso mais difícil
 
 A consulta `q091` tem 3 artigos relevantes. O 1º resultado é um deles, e o trecho descreve exatamente o tema ("leverage interaction trajectories to construct and transfer reusable procedural knowledge"). Os outros dois relevantes ficam em 8º e 9º, fora dos 5 primeiros. Os resultados 2 a 5 tratam de memória de agentes, compressão de contexto, agentes na borda e pós-treino: vizinhos do tema, que o juiz não rotulou como relevantes. Temas largos são o ponto fraco medido da busca: os 10 primeiros resultados trazem, em média, cerca de metade dos relevantes.
 
@@ -201,7 +140,7 @@ uv run semantic-search "How can LLM agents learn reusable procedural guidance fr
    preference [...]
 ```
 
-## 6. Busca padrão e busca híbrida
+## 4. Busca padrão e busca híbrida
 
 A consulta `q051`, de detalhe, pergunta por que os pesos de um conjunto de modelos podem ser negativos. Na busca padrão, o artigo certo fica em 2º. Em 1º vem um artigo sobre a avaliação de novidade de ideias, cujo pedaço fala de "weak labels": perto da consulta no sentido, mas sobre outro assunto.
 
@@ -261,7 +200,7 @@ uv run semantic-search "Why allow negative weights for weak experts when weighti
    the centered local advantage, scaled by the [...]
 ```
 
-## 7. Uma consulta livre, em português
+## 5. Uma consulta livre, em português
 
 Fora do conjunto de avaliação, sem rótulo. Três dos cinco artigos tratam de agentes de programação: ANCHOR e SpecGuardBench são benchmarks para eles, e o trecho do OPRD resume como esses agentes são avaliados. O Epi (um agente de pesquisa autônomo) e o LatentRiskBench (riscos de agentes corporativos) tratam de avaliar agentes em geral, e não de programação.
 

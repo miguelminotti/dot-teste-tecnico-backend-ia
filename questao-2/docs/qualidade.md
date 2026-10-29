@@ -6,34 +6,7 @@ O que os testes protegem e o registro dos bugs encontrados. Para rodar: `uv run 
 
 A mesma da [questão 1](../../questao-1/docs/qualidade.md): cada teste protege uma regra ou um caso de borda conhecido, só vale se fica vermelho com a regra quebrada, e todo bug vira teste antes da correção.
 
-## O que cada suíte cobre
-
-| Arquivo | Regras protegidas |
-| --- | --- |
-| `test_cli.py` | pergunta com acento vinda de pipe chega intacta e a resposta sai em UTF-8; sem a chave do LangSmith, o tracing é desligado, e com ela fica como está; pergunta em branco não chega ao modelo, e as palavras de saída encerram sem diferenciar maiúsculas; falha passageira perde só a pergunta; chave ou conta recusada encerra a conversa |
-| `test_settings.py` | a busca na documentação liga e desliga pela variável, e vazio fica com o padrão (ligada); valor desconhecido é erro, e não busca desligada em silêncio; modelo que não aceita a busca com a busca ligada é erro na subida |
-| `test_tutor.py` | a pergunta seguinte chega ao modelo com os turnos anteriores; cada chamada começa com exatamente o que a anterior enviou (o cache de prompt depende disso); pergunta que falhou não entra no histórico; com a busca ligada, ela chega ao modelo restrita aos domínios oficiais; sem a busca, nem a ferramenta nem a regra dela chegam ao modelo (o braço de controle do experimento); as páginas citadas pela busca aparecem no fim da resposta, uma vez cada; chave inválida, sem permissão ou sem saldo é erro de configuração, e o limite por minuto é falha passageira |
-| `evaluation/test_snippets.py` | só blocos `python` e `py` são executados, na ordem; snippet que roda passa e o que lança exceção falha com a última linha do erro; roda na versão do Python pedida; pacote de fora da biblioteca padrão é pulado, módulo removido da biblioteca padrão é falha; laço infinito falha por tempo limite; o snippet não recebe as chaves da OpenAI e do LangSmith; snippet que imprime acento passa no Windows; bloco que continua o anterior da mesma resposta passa; bloco que falhou não derruba os seguintes; bloco que depende de um pulado é pulado também, e o independente roda; marcação da linguagem em qualquer caixa e `python3`; bloco recuado dentro de item de lista roda; o snippet acha a pasta do usuário |
-| `evaluation/test_run.py` | o nome do dataset não muda com o final de linha do checkout; envio interrompido (Ctrl+C) não deixa dataset vazio para trás; o resumo de uso de um experimento em que toda conversa deu erro não quebra |
-| `evaluation/test_scoring.py` | cobertura contada por ponto-chave, e não por turno; ponto ausente não é erro factual; erro factual reprova mesmo com cobertura total; o comentário nomeia os pontos que faltaram |
-| `evaluation/test_usage.py` | tokens do cache cobrados pelo preço de cache (conferido com o custo que o LangSmith registrou); cada busca cobrada à parte dos tokens; o uso do turno soma todas as respostas e conta só os blocos de busca; modelo sem preço é erro, não custo zero; taxa de acerto do cache ponderada por token; percentil devolve um valor que ocorreu |
-
-O juiz não tem teste automatizado: o que ele julga só se confere contra rótulos humanos (calibração, em [avaliacao.md](avaliacao.md#como-o-juiz-decide)). Antes do experimento, ele foi conferido com uma resposta errada de propósito ("use `lista.push`"), reprovada em correção, resposta à pergunta, exemplos e nível de detalhe.
-
-Os testes do `Tutor` usam um modelo falso próprio, que grava as mensagens de cada chamada: o que está em teste é o que vai ao modelo, sem rede nem custo. Os modelos falsos prontos do `langchain-core` não servem: eles respondem, mas descartam as mensagens que recebem, e nenhum falha numa chamada escolhida fora do streaming. Um modelo pronto com um callback do LangChain gravando as mensagens daria o mesmo resultado com código de tamanho parecido, e a falha ainda pediria um iterador que lança exceção, mais difícil de ler.
-
-## Regras quebradas de propósito
-
-Uma por vez; em todas a suíte falhou.
-
-- **Tutor:** não passar o histórico; pôr o turno no histórico antes da resposta; pôr o histórico depois da pergunta; inserir o turno novo no começo do histórico. Este último só o teste do prefixo pega: a conversa continua com todos os turnos, só que em outra ordem, e o cache deixaria de funcionar sem nenhum outro sintoma.
-- **CLI:** desfazer a configuração de UTF-8.
-- **Execução dos snippets:** passar o ambiente inteiro ao snippet; achar o Python sem `--system` (pega o do `.venv`); tirar o `-X utf8`; pular todo módulo ausente como dependência externa; executar blocos de qualquer linguagem. A penúltima escapou na primeira rodada: o teste usava `from tkinter import nao_existe`, que dá `ImportError`, e não `ModuleNotFoundError`, então nunca passava pela regra. Ele foi trocado pelo `import cgi` no 3.14, que é o caso real (módulo removido da biblioteca padrão).
-- **Sequência dos snippets:** rodar cada bloco sozinho; deixar o bloco que falhou entrar no contexto dos seguintes.
-- **Notas do juiz:** contar a cobertura pela média dos turnos; reprovar a precisão factual quando falta um ponto-chave; pôr no comentário os pontos cobertos em vez dos que faltaram.
-- **Métricas de uso:** cobrar o cache pelo preço cheio; dar preço zero a modelo fora da tabela; calcular a taxa de acerto do cache como média das taxas por turno; não cobrar a busca; contar todo bloco da resposta como busca.
-- **Revisão final:** marcação da linguagem sensível à caixa; bloco recuado sem tirar o recuo; bloco pulado de volta no contexto; `NameError` depois de bloco pulado contado como falha; ambiente sem a pasta do usuário; modelo sem busca aceito com a busca ligada; hash dos bytes crus do dataset; `except Exception` no envio do dataset; resumo de uso sem a guarda de lista vazia; tracing que continua ligado sem chave.
-- **Busca na documentação:** tirar o filtro de domínios; pôr a ferramenta ou a regra dela no braço sem busca; descartar as fontes; repetir a mesma fonte; ler um valor desconhecido da variável como desligado; ler `true` como desligado.
+Os testes do `Tutor` usam um modelo falso próprio, que grava as mensagens de cada chamada: o que está em teste é o que vai ao modelo, sem rede nem custo. O juiz não tem teste automatizado: o que ele julga só se confere contra rótulos humanos, e a calibração ainda não foi feita ([avaliacao.md](avaliacao.md#métricas)).
 
 ## Bugs registrados
 

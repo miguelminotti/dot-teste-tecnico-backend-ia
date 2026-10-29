@@ -8,17 +8,9 @@ Um pedaço por parágrafo, mais um com título e resumo por artigo ([`indexacao.
 
 | Tipo | Língua | Consultas | Recall@10 | P@10 | MRR | NDCG@10 | R-prec. | Trecho@10 | MRR trecho |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| named | en | 30 | 1.000 | 0.100 | 0.970 | 0.976 | 0.967 |  |  |
-| named | pt | 30 | 1.000 | 0.100 | 0.978 | 0.983 | 0.967 |  |  |
 | named | ambas | 60 | 1.000 | 0.100 | 0.974 | 0.980 | 0.967 |  |  |
-| paraphrase | en | 30 | 0.950 | 0.140 | 0.900 | 0.890 | 0.775 |  |  |
-| paraphrase | pt | 30 | 0.940 | 0.133 | 0.799 | 0.800 | 0.618 |  |  |
 | paraphrase | ambas | 60 | 0.945 | 0.137 | 0.849 | 0.845 | 0.697 |  |  |
-| detail | en | 29 | 0.986 | 0.110 | 0.983 | 0.973 | 0.934 | 0.828 | 0.543 |
-| detail | pt | 29 | 0.986 | 0.110 | 0.943 | 0.938 | 0.859 | 0.724 | 0.487 |
 | detail | ambas | 58 | 0.986 | 0.110 | 0.963 | 0.955 | 0.897 | 0.776 | 0.515 |
-| topic | en | 10 | 0.489 | 0.360 | 0.900 | 0.566 | 0.419 |  |  |
-| topic | pt | 10 | 0.484 | 0.350 | 0.800 | 0.523 | 0.360 |  |  |
 | topic | ambas | 20 | 0.486 | 0.355 | 0.850 | 0.545 | 0.389 |  |  |
 | todos | en | 99 | 0.929 | 0.141 | 0.945 | 0.908 | 0.844 | 0.828 | 0.543 |
 | todos | pt | 99 | 0.926 | 0.138 | 0.895 | 0.868 | 0.768 | 0.724 | 0.487 |
@@ -33,10 +25,9 @@ Um pedaço por parágrafo, mais um com título e resumo por artigo ([`indexacao.
 
 ### Próximos experimentos, na ordem que os números sugerem
 
-1. **BM25 e busca híbrida com RRF.** Ataca os termos raros (q067) e pode trazer o parágrafo exato nas consultas de detalhe, que repetem palavras do texto. Não deve ajudar o português. Feito: [abaixo](#bm25-e-busca-híbrida).
-2. **Prefixo de contexto no pedaço (título e seção), o *contextual retrieval* do livro.** Um parágrafo solto ("we use the full dataset") não diz de que artigo é, e o prefixo pode levar os pedaços certos ao topo nos detalhes e nos temas.
-3. **Outros modelos (`BAAI/bge-m3`, `Qwen/Qwen3-Embedding-0.6B`).** É onde o viés de língua pode mudar, e a GPU torna o teste barato (o e5-base levou 48 s). Feito só com o bge-m3: [abaixo](#outro-modelo-bge-m3).
-4. **Tamanho do pedaço.** O rótulo por trecho é a frase de evidência, e não o pedaço, e serve para qualquer divisão em que as frases caibam inteiras: com pedaços de 100 palavras, três delas ficariam divididas, e a avaliação recusa o índice ([avaliação](avaliacao.md)).
+1. **BM25 e busca híbrida com RRF,** para os termos raros (q067) e o parágrafo exato dos detalhes. Feito: [abaixo](#bm25-e-busca-híbrida).
+2. **Prefixo de contexto no pedaço (título e seção), o *contextual retrieval*,** para que um parágrafo solto diga de que artigo é. Não feito.
+3. **Outro modelo de embeddings,** onde o viés de língua pode mudar. Feito com o bge-m3: [abaixo](#outro-modelo-bge-m3).
 
 ## BM25 e busca híbrida
 
@@ -67,16 +58,7 @@ Todas as consultas, por língua:
 | BM25 | ambas | 0.776 | 0.727 | 0.716 | 0.640 | 0.707 | 0.413 |
 | Híbrida (RRF) | ambas | 0.916 | 0.892 | 0.857 | 0.763 | 0.793 | 0.496 |
 
-MRR por tipo de consulta:
-
-| Tipo | Embeddings en | BM25 en | Híbrida en | Embeddings pt | BM25 pt | Híbrida pt |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| named | 0.970 | 1.000 | 1.000 | 0.978 | 0.770 | 0.889 |
-| paraphrase | 0.900 | 0.919 | 0.983 | 0.799 | 0.178 | 0.690 |
-| detail | 0.983 | 0.966 | 0.983 | 0.943 | 0.579 | 0.805 |
-| topic | 0.900 | 0.950 | 1.000 | 0.800 | 0.358 | 0.783 |
-
-As tabelas completas, por tipo e língua, estão nos arquivos `evals/results/<método>__intfloat__multilingual-e5-base.json`.
+As tabelas por tipo de consulta estão nos arquivos `evals/results/<método>__intfloat__multilingual-e5-base.json`.
 
 ### O que os números dizem
 
@@ -121,29 +103,12 @@ Ficou só o bge-m3, e não o Qwen3-Embedding-0.6B. A pergunta era se outro model
 | e5-base | Híbrida | ambas | 0.916 | 0.892 | 0.857 | 0.763 | 0.793 | 0.496 |
 | bge-m3 | Híbrida | ambas | 0.926 | 0.912 | 0.877 | 0.786 | 0.810 | 0.515 |
 
-MRR por tipo de consulta, só embeddings:
-
-| Tipo | e5-base en | bge-m3 en | e5-base pt | bge-m3 pt |
-| --- | ---: | ---: | ---: | ---: |
-| named | 0.970 | 1.000 | 0.978 | 1.000 |
-| paraphrase | 0.900 | 0.903 | 0.799 | 0.899 |
-| detail | 0.983 | 0.957 | 0.943 | 0.931 |
-| topic | 0.900 | 0.900 | 0.800 | 0.900 |
-
-| Custo | e5-base | bge-m3 |
-| --- | ---: | ---: |
-| Embeddings do corpus na GPU (RTX 3060) | 48 s | 152 s |
-| Embeddings do corpus na CPU (i7-4790K, estimado por uma amostra de 200 pedaços) | cerca de 22 min | cerca de 85 min |
-| Embedding de uma consulta na GPU (mediana) | 12,5 ms | 23,2 ms |
-| Download do modelo (cache da Hugging Face) | 1,1 GB | 4,3 GB: o repositório traz os pesos em dois formatos, de 2,3 GB cada, e os dois foram baixados |
-| Índice FAISS | 15,5 MB | 20,6 MB |
-
 ### O que os números dizem
 
 - **O bge-m3 desfaz o ímã do português.** Com o e5, o artigo do Manacá ficava em 1º, no lugar do certo, em 10 buscas em português; com o bge-m3, em 1. As consultas em que o português perde para o inglês caem de 14 para 4. Uma queda de 10 para 1 casos de um erro sistemático não é acaso. A q067 ("Rogan–Gladen"), que o e5 punha em 10º, vem em 1º nas duas línguas, só com embeddings.
 - **Nas médias, a diferença está dentro do ruído do conjunto.** Num bootstrap pareado, sorteando as 99 consultas 10 mil vezes, a diferença de MRR (bge-m3 − e5) é de +0,044 em português, com intervalo de 95% de [−0,006; +0,095], e de +0,003 em inglês, com intervalo de [−0,031; +0,039]. No total, o MRR vai de 0,920 para 0,943, e a R-precision de 0,806 para 0,825, com intervalo de [−0,030; +0,067] para a diferença. O conjunto não tem tamanho para separar dois modelos bons por diferenças desse tamanho.
 - **A híbrida continua pior que os embeddings sozinhos em português,** também com o bge-m3: MRR de 0,840 contra 0,939. O problema é o BM25 em português, e não o modelo.
-- **O custo é o dobro na consulta e quase o quádruplo na indexação.** Na GPU isso é pouco (23 ms por consulta, menos de 3 minutos para o corpus). Sem GPU, a indexação passa de cerca de 22 para cerca de 85 minutos nesta máquina.
+- **O custo é o dobro na consulta e quase o quádruplo na indexação** ([indexação](indexacao.md#2-embeddings)). Na GPU isso é pouco (23 ms por consulta, menos de 3 minutos para o corpus). Sem GPU, a indexação passa de cerca de 22 para cerca de 85 minutos nesta máquina.
 
 ### Decisão
 

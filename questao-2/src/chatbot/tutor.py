@@ -9,13 +9,9 @@ from langchain_openai import ChatOpenAI
 from chatbot.docs_search import WEB_SEARCH_TOOL
 from chatbot.settings import Settings
 
-# Prompt mínimo de propósito: cada regra entra quando uma avaliação mostra a falha que ela corrige
-# (docs/avaliacao.md). O bloco ```python é contrato com a avaliação, que extrai e executa os snippets
-# por ele.
-# - "O essencial na própria resposta": o gpt-5.4-mini deixava propriedades e operações básicas como
-#   oferta ("Se quiser, posso mostrar...") e cobria metade dos pontos do exemplo do enunciado.
-# - "A saída em ```text": o gpt-5.4-mini punha a saída do programa em ```python, que não é código.
-# Chaves "{" e "}" aqui seriam lidas como variáveis do template; o texto não deve ter nenhuma.
+# Prompt mínimo: cada regra além do papel, do idioma e da recusa entrou por uma falha medida na
+# avaliação (docs/avaliacao.md). O bloco ```python é contrato com a avaliação, que extrai e executa os
+# snippets por ele. Chaves "{" e "}" aqui seriam lidas como variáveis do template; o texto não deve ter nenhuma.
 SYSTEM_PROMPT = """\
 Você é um professor de programação em Python e responde dúvidas sobre a linguagem.
 
@@ -27,10 +23,8 @@ operações mais usadas. Não deixe o essencial como oferta para depois.
 - Se a pergunta não for sobre programação em Python, diga com educação que só responde sobre Python e \
 convide a pessoa a perguntar algo sobre a linguagem."""
 
-# Regra acrescentada só com a busca ligada. Sem ela, o modelo buscaria em toda pergunta, e a pergunta
-# sobre listas pagaria uma busca (US$ 0,01 mais as páginas lidas) para responder o que ele já sabe.
-# "Se uma sintaxe existe ou é permitida": sem esse caso, o modelo só buscava quando a pergunta citava
-# uma versão, e respondia com certeza, e errado, que `except A, B:` é inválido (o 3.14 passou a aceitar).
+# Regra acrescentada só com a busca ligada. Sem ela, o modelo buscaria em toda pergunta e pagaria uma
+# busca (US$ 0,01 mais as páginas lidas) para responder o que já sabe.
 DOCS_SEARCH_RULE = """
 - Consulte a documentação oficial com a busca antes de responder sobre uma versão específica do \
 Python, um recurso recente, uma biblioteca, ou se uma sintaxe, função ou módulo existe ou é permitido: \
@@ -64,9 +58,8 @@ class Tutor:
         responder = model.bind_tools([WEB_SEARCH_TOOL]) if docs_search else model
         # LCEL: o prompt formata as mensagens, o modelo responde e o último passo extrai o texto.
         self._chain = prompt | responder | _text_with_sources
-        # Histórico numa lista explícita, e não nas classes de histórico do LangChain, deprecadas em
-        # favor da persistência do LangGraph (ADR 0001). Só cresce no fim: resumir, cortar ou
-        # reescrever um turno antigo mudaria o começo da entrada e zeraria o cache dali em diante.
+        # Histórico numa lista explícita (ADR 0001). Só cresce no fim: mudar um turno antigo mudaria o
+        # começo da entrada e zeraria o cache dali em diante.
         self._history: list[BaseMessage] = []
 
     def answer(self, question: str) -> str:

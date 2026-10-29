@@ -14,8 +14,7 @@ DOCS_DOMAINS = (
     "docs.pydantic.dev",
 )
 
-# O filtro de domínios não é aceito em todo modelo: o gpt-4.1-mini recusa a chamada (400), e o
-# gpt-5.4-mini aceita. A busca roda nos servidores da OpenAI, dentro da mesma chamada ao modelo.
+# A busca roda nos servidores da OpenAI, dentro da mesma chamada ao modelo.
 WEB_SEARCH_TOOL: dict[str, Any] = {"type": "web_search", "filters": {"allowed_domains": list(DOCS_DOMAINS)}}
 
 # Modelos em que a API recusa a busca restrita (400): o gpt-4.1-mini não aceita o filtro, e o

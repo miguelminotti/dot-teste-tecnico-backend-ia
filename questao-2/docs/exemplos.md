@@ -303,51 +303,6 @@ Recurso lançado depois do corte de treinamento do modelo: ele buscou na documen
 > - https://docs.python.org/3/reference/expressions.html?highlight=walrus&utm_source=openai
 > - https://docs.python.org/3/library/string.html?highlight=string+formatting&utm_source=openai
 
-## Pergunta com premissa falsa
-
-O tutor corrige a premissa (`push` não existe em lista de Python) em vez de inventar o método, e mostra o que usar no lugar.
-
-**Você:** Como uso lista.push() para adicionar um item numa lista?
-
-**Chatbot:**
-
-> Em Python, **lista.push() não existe**. Esse método é comum em outras linguagens, mas **listas de Python usam `append()`** para adicionar um item ao final.
->
-> ### Exemplo
-> ```python
-> frutas = ["maçã", "banana"]
->
-> frutas.append("laranja")
->
-> print(frutas)
-> ```
->
-> ```text
-> ['maçã', 'banana', 'laranja']
-> ```
->
-> ### O que usar no lugar
-> - `append(item)` → adiciona **um item no final**
-> - `extend(iterável)` → adiciona **vários itens**
-> - `insert(indice, item)` → insere em uma posição específica
->
-> ### Exemplos
-> ```python
-> numeros = [1, 2, 3]
->
-> numeros.append(4)
-> numeros.extend([5, 6])
-> numeros.insert(0, 0)
->
-> print(numeros)
-> ```
->
-> ```text
-> [0, 1, 2, 3, 4, 5, 6]
-> ```
->
-> Se quiser, posso também te mostrar a diferença entre `append`, `extend` e `insert` com mais exemplos.
-
 ## Fora do escopo
 
 Recusa curta e educada, trazendo a conversa de volta para Python, como pede o prompt.
@@ -357,54 +312,3 @@ Recusa curta e educada, trazendo a conversa de volta para Python, como pede o pr
 **Chatbot:**
 
 > Desculpe, eu só respondo sobre Python. Se quiser, posso ajudar com dúvidas sobre a linguagem, sintaxe, módulos, tipagem, PEPs ou exemplos de código em Python.
-
-## Caso de fronteira: o que mudou no Python 3.14
-
-É a pergunta que ficou como limitação conhecida na ADR 0002. Nas duas rodadas da avaliação, o modelo não buscou e respondeu com certeza que a forma é inválida. Nesta execução ele buscou, e a resposta melhorou, mas ficou contraditória: diz que a forma "não é correta" e, no parágrafo seguinte, que o 3.14 a aceita sem `as`. O certo é: até o 3.13 é erro de sintaxe; a partir do 3.14 (PEP 758) é permitida sem `as`; com `as`, os parênteses continuam obrigatórios. O mesmo modelo, com a mesma pergunta, ora busca e ora não: é por isso que o caso pede outra solução que não uma regra de prompt.
-
-**Você:** Posso escrever except ValueError, TypeError: para capturar duas exceções?
-
-**Chatbot:**
-
-> Sim — **mas não exatamente nesse formato**. O jeito correto, na maioria das versões do Python, é usar **parênteses**:
->
-> ```python
-> try:
->     ...
-> except (ValueError, TypeError):
->     ...
-> ```
->
-> Isso captura **qualquer uma** dessas duas exceções. A documentação oficial diz que a expressão do `except` pode ser um tipo de exceção ou uma **tupla de tipos de exceção**. ([docs.python.org](https://docs.python.org/3/reference/compound_stmts.html?highlight=try&utm_source=openai))
->
-> ### E `except ValueError, TypeError:`?
-> Esse formato **não é a forma correta** para capturar duas exceções. Em Python moderno, sem parênteses, isso não representa uma tupla de exceções; a forma aceita é com parênteses. Além disso, a documentação recente indica que, a partir do Python 3.14, os parênteses podem até ser omitidos em alguns casos, mas **somente quando várias exceções são escritas diretamente no cabeçalho e não há `as`** — ainda assim, o formato tradicional e mais claro continua sendo com parênteses. ([docs.python.org](https://docs.python.org/3/reference/compound_stmts.html?highlight=try&utm_source=openai))
->
-> ### Exemplo
-> ```python
-> try:
->     x = int("abc")
-> except (ValueError, TypeError):
->     print("Deu ValueError ou TypeError")
-> ```
->
-> ```text
-> Deu ValueError ou TypeError
-> ```
->
-> ### Observação útil
-> Você também pode separar em dois `except` se quiser tratamento diferente para cada erro:
->
-> ```python
-> try:
->     ...
-> except ValueError:
->     print("Valor inválido")
-> except TypeError:
->     print("Tipo inválido")
-> ```
->
-> Se quiser, posso te mostrar **a diferença entre `except (A, B)` e dois `except` separados**.
->
-> Fontes:
-> - https://docs.python.org/3/reference/compound_stmts.html?highlight=try&utm_source=openai
