@@ -9,9 +9,9 @@ uv run semantic-search "como avaliar agentes de programação" --k 5
 ## Como funciona
 
 1. **A consulta vira um embedding,** com o mesmo modelo dos pedaços e o prefixo de consulta dele (`query: ` no e5).
-2. **O FAISS devolve os pedaços mais parecidos,** pelo cosseno.
+2. **O FAISS devolve os pedaços mais parecidos,** pelo cosseno. Com `--method bm25`, a busca é por termos; com `--method hybrid`, as duas listas são fundidas pelo RRF. O padrão é só embeddings, que mediu melhor no conjunto inteiro ([`experimentos.md`](experimentos.md#bm25-e-busca-híbrida)). A nota mostrada muda com a busca: o cosseno nos embeddings, a nota do BM25 na busca por termos e a do RRF na híbrida (no máximo 2/61, cerca de 0,033, para um pedaço em 1º nas duas listas).
 3. **Os pedaços são agrupados por artigo, e cada artigo vale pelo seu melhor pedaço.** O enunciado pede documentos, e o índice guarda pedaços. A nota do artigo é a do pedaço mais parecido com a consulta, que é também o trecho mostrado no resultado. A alternativa, somar ou tirar a média das notas dos pedaços, favorece artigos longos, com mais pedaços parecidos entre si, e não diz qual trecho responde à consulta.
-4. **A busca garante `k` artigos.** A primeira tentativa busca 10 pedaços por artigo pedido. Quando os mais parecidos se concentram em menos de `k` artigos, o número de pedaços dobra até completar `k` ou chegar ao fim do índice.
+4. **A busca completa `k` artigos.** A primeira tentativa busca 10 pedaços por artigo pedido. Quando os mais parecidos se concentram em menos de `k` artigos, o número de pedaços dobra até completar `k` ou chegar ao fim do índice. Só o BM25 pode devolver menos: ele não traz pedaços sem nenhum termo da consulta.
 
 O resultado é exato, e não uma aproximação da agregação. Um artigo que não aparece entre os pedaços buscados tem todos os pedaços abaixo do último deles e, portanto, nota menor que a de qualquer artigo achado.
 

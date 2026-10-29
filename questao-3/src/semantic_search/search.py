@@ -16,8 +16,11 @@ from sentence_transformers import SentenceTransformer
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import Document, load_documents
-from semantic_search.embeddings import Vectors, embed_queries, index_folder, load_model
+from semantic_search.embeddings import embed_queries, index_folder, load_model
+from semantic_search.retrievers import BM25Retriever, DenseRetriever, HybridRetriever, Query, Retriever
 from semantic_search.vector_store import VectorStore
+
+METHODS = ("dense", "bm25", "hybrid")
 
 # Pedaços buscados por artigo pedido, na primeira tentativa. Um artigo tem em média 54 pedaços, e os mais
 # parecidos com a consulta tendem a vir de poucos artigos; quando não chegam a `k` artigos, a busca dobra.
@@ -35,42 +38,54 @@ class PaperResult:
     excerpt: Chunk
 
 
-def rank_papers(store: VectorStore, query: Vectors, *, k: int, documents: Mapping[str, Document]) -> list[PaperResult]:
-    """Os `k` artigos mais relevantes para a consulta (um vetor), do mais para o menos relevante.
+def rank_papers(retriever: Retriever, query: Query, *, k: int, documents: Mapping[str, Document]) -> list[PaperResult]:
+    """Os `k` artigos mais relevantes para a consulta, do mais para o menos relevante.
 
     Cada artigo vale pelo melhor pedaço. O resultado é exato: um artigo que não aparece entre os `n`
     pedaços buscados tem todos os pedaços abaixo do último deles, e portanto abaixo de cada artigo achado.
+    Vêm menos de `k` quando o buscador acha pedaços de menos artigos, como o BM25 sem termo em comum.
     """
     n = k * _CHUNKS_PER_PAPER
     while True:
         best: dict[str, PaperResult] = {}
-        for hit in store.search(query, min(n, len(store)))[0]:
-            # Os pedaços vêm do mais para o menos parecido: o primeiro de cada artigo é o melhor dele.
+        for hit in retriever.search(query, min(n, len(retriever))):
+            # Os pedaços vêm do mais para o menos relevante: o primeiro de cada artigo é o melhor dele.
             if hit.chunk.paper_id not in best:
                 document = documents[hit.chunk.paper_id]
                 best[hit.chunk.paper_id] = PaperResult(
                     paper_id=document.id, title=document.title, url=document.url, score=hit.score, excerpt=hit.chunk
                 )
-        if len(best) >= k or n >= len(store):
+        if len(best) >= k or n >= len(retriever):
             return list(best.values())[:k]
         n *= 2
 
 
-class SemanticSearch:
-    """A busca por texto: o modelo de embeddings, o índice FAISS e os artigos do corpus."""
+def load_retriever(method: str, folder: Path) -> Retriever:
+    """O buscador de pedaços sobre o índice da pasta: "dense", "bm25" ou "hybrid" (os dois, pelo RRF)."""
+    store = VectorStore.load(folder)
+    dense = DenseRetriever(store)
+    if method == "dense":
+        return dense
+    bm25 = BM25Retriever(store.chunks)
+    return bm25 if method == "bm25" else HybridRetriever([dense, bm25])
 
-    def __init__(self, model: SentenceTransformer, store: VectorStore, documents: Sequence[Document]) -> None:
+
+class SemanticSearch:
+    """A busca por texto: o modelo de embeddings, o buscador de pedaços e os artigos do corpus."""
+
+    def __init__(self, model: SentenceTransformer, retriever: Retriever, documents: Sequence[Document]) -> None:
         self._model = model
-        self._store = store
+        self._retriever = retriever
         self._documents = {document.id: document for document in documents}
 
     @classmethod
-    def load(cls, model_name: str, *, index: Path, corpus: Path) -> "SemanticSearch":
-        store = VectorStore.load(index_folder(index, model_name))
-        return cls(load_model(model_name), store, load_documents(corpus))
+    def load(cls, model_name: str, *, index: Path, corpus: Path, method: str = "dense") -> "SemanticSearch":
+        retriever = load_retriever(method, index_folder(index, model_name))
+        return cls(load_model(model_name), retriever, load_documents(corpus))
 
     def search(self, query: str, k: int = 5) -> list[PaperResult]:
-        return rank_papers(self._store, embed_queries(self._model, [query]), k=k, documents=self._documents)
+        vector = embed_queries(self._model, [query])
+        return rank_papers(self._retriever, Query(text=query, vector=vector), k=k, documents=self._documents)
 
 
 def format_results(results: Sequence[PaperResult]) -> str:
@@ -108,7 +123,8 @@ def main() -> None:
     parser.add_argument("--model", default="intfloat/multilingual-e5-base", help="modelo dos embeddings")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
+    parser.add_argument("--method", choices=METHODS, default="dense", help="busca por embeddings, termos ou híbrida")
     args = parser.parse_args()
 
-    search = SemanticSearch.load(args.model, index=args.index, corpus=args.corpus)
+    search = SemanticSearch.load(args.model, index=args.index, corpus=args.corpus, method=args.method)
     print_results(search.search(args.query, k=args.k))

@@ -72,7 +72,7 @@ Na rodada completa, cada consulta foi lida. As alteradas guardam o texto origina
 uv run semantic-search-eval --model intfloat/multilingual-e5-base
 ```
 
-O código está em `src/semantic_search/evaluation/metrics.py` e `retrieval.py`. Cada consulta roda nas duas línguas, num total de 198 buscas. As médias saem por tipo de consulta e por língua, porque cada tipo testa uma fraqueza diferente. A tabela vai para o terminal, e as notas e os 10 primeiros artigos de cada busca vão para `evals/results/<modelo>.json`, para a análise dos erros. Os resultados estão em [`experimentos.md`](experimentos.md).
+O código está em `src/semantic_search/evaluation/metrics.py` e `retrieval.py`. Cada consulta roda nas duas línguas, num total de 198 buscas. As médias saem por tipo de consulta e por língua, porque cada tipo testa uma fraqueza diferente. A tabela vai para o terminal, e as notas e os 10 primeiros artigos de cada busca vão para `evals/results/<método>__<modelo>.json`, para a análise dos erros. A opção `--method` escolhe a busca: só embeddings (`dense`, o padrão), só termos (`bm25`) ou as duas (`hybrid`). Os resultados estão em [`experimentos.md`](experimentos.md).
 
 **Por artigo,** nos 10 primeiros resultados da [função de busca](busca.md), contra os artigos rotulados pelo juiz:
 

@@ -27,13 +27,67 @@ Um pedaço por parágrafo, mais um com título e resumo por artigo ([`indexacao.
 ### O que os números dizem
 
 - **Nomes novos não foram o ponto fraco esperado.** O livro aponta os termos que o modelo nunca viu como a fraqueza dos embeddings, mas as consultas pelo nome acertam o artigo entre os 10 primeiros em todas as 60 buscas, com MRR de 0,974. O nome costuma estar no título e no resumo, que formam um pedaço, e a consulta repete outras palavras do artigo, uma limitação conhecida do conjunto. A exceção é a q067 ("Rogan–Gladen correction for interactive LLM evaluation"): o artigo certo fica em 10º em inglês e em 3º em português. Rogan–Gladen é uma correção estatística citada no corpo do artigo, um termo raro que a busca por termos casaria pela palavra exata.
-- **A consulta em português perde para a mesma consulta em inglês.** O MRR é menor em português em 14 consultas e maior em 5. A diferença aparece nas paráfrases (MRR de 0,900 para 0,799, R-precision de 0,780 para 0,618), e não nos nomes, que são iguais nas duas línguas. Um artigo sozinho explica boa parte: o do Manacá (2610.20570), sobre um LLM em português brasileiro, fica em 1º, no lugar do certo, em 7 buscas em português. O embedding casa a língua da consulta com o assunto "português". A busca por termos não resolve esse caso, porque a consulta em português não tem palavras em comum com o artigo em inglês.
+- **A consulta em português perde para a mesma consulta em inglês.** O MRR é menor em português em 14 consultas e maior em 5. A diferença aparece nas paráfrases (MRR de 0,900 para 0,799, R-precision de 0,780 para 0,618), e não nos nomes, que são iguais nas duas línguas. Um artigo sozinho explica boa parte: o do Manacá (2610.20570), sobre um LLM em português brasileiro, fica em 1º, no lugar do certo, em 7 buscas em português por artigo, e em 10 contando os temas. O embedding casa a língua da consulta com o assunto "português". A busca por termos não resolve esse caso, porque a consulta em português não tem palavras em comum com o artigo em inglês.
 - **Na consulta de detalhe, o artigo certo vem, mas o parágrafo que responde nem sempre.** Os 10 primeiros trazem 98,6% dos artigos relevantes, e o primeiro relevante costuma vir em 1º (MRR de 0,963). Já o pedaço que contém a resposta está entre os 10 pedaços mais parecidos em só 77,6% das buscas, e longe do topo (MRR de 0,509). Para um RAG, é o trecho que vai para o modelo, não o artigo.
 - **Temas são o pior caso em cobertura.** Recall@10 de 0,483 e R-precision de 0,380: metade dos relevantes fica fora dos 10 primeiros. O primeiro resultado costuma ser relevante (MRR de 0,850). Aqui a medida é a mais frágil: o juiz leu só os resumos, os temas são largos (a q095 tem 18 relevantes), e a fronteira do que é relevante é mais subjetiva.
 
 ### Próximos experimentos, na ordem que os números sugerem
 
-1. **BM25 e busca híbrida com RRF.** Ataca os termos raros (q067) e pode trazer o parágrafo exato nas consultas de detalhe, que repetem palavras do texto. Não deve ajudar o português.
+1. **BM25 e busca híbrida com RRF.** Ataca os termos raros (q067) e pode trazer o parágrafo exato nas consultas de detalhe, que repetem palavras do texto. Não deve ajudar o português. Feito: [abaixo](#bm25-e-busca-híbrida).
 2. **Prefixo de contexto no pedaço (título e seção), o *contextual retrieval* do livro.** Um parágrafo solto ("we use the full dataset") não diz de que artigo é, e o prefixo pode levar os pedaços certos ao topo nos detalhes e nos temas.
 3. **Outros modelos (`BAAI/bge-m3`, `Qwen/Qwen3-Embedding-0.6B`).** É onde o viés de língua pode mudar, e a GPU torna o teste barato (o e5-base levou 50 s).
 4. **Tamanho do pedaço.** O rótulo por trecho não depende da divisão, e a comparação é direta.
+
+## BM25 e busca híbrida
+
+O código está em `src/semantic_search/retrievers.py`. A busca e a avaliação recebem `--method dense|bm25|hybrid`.
+
+```bash
+uv run semantic-search-eval --method hybrid
+```
+
+- **BM25 pelo `bm25s`,** sobre os mesmos pedaços. A biblioteca está em manutenção e depende só do numpy. O `rank-bm25` está parado desde 2022. Parâmetros padrão (k1 = 1,5, b = 0,75). As palavras passam para minúsculas, perdem as stopwords e são reduzidas ao radical com o stemmer Snowball do inglês.
+- **As stopwords são as do inglês e as do português.** Na primeira rodada, só com as do inglês, toda consulta em português casava por "de", "em" e "que", que existem no corpus ("de Vries", o texto em português do artigo do Manacá). Com as duas listas, o MRR da híbrida em português subiu de 0,679 para 0,778. O custo: as siglas "EM" (*exact match*) e "SER" (*speech emotion recognition*), com cerca de 20 ocorrências cada no corpus, viram "em" e "ser" e deixam de casar. Nenhuma consulta de avaliação usa essas siglas.
+- **O BM25 devolve só os pedaços com algum termo da consulta.** O `bm25s` devolve também os de nota 0, em ordem arbitrária, que na híbrida virariam ruído.
+- **A híbrida funde as duas listas pelo RRF, com k = 60,** a constante do artigo original (Cormack et al., 2009) e a que o livro cita. Cada pedaço soma 1 / (60 + posição) em cada lista. O RRF usa só as posições, porque as notas não se comparam (cosseno de um lado, BM25 do outro). A fusão é sobre as listas completas, e não cortadas em *n*: com o corte, um pedaço em (n+1)º nas duas listas ficaria de fora, valendo mais que um que só uma delas pôs em 1º. Com 5,4 mil pedaços, a lista completa custa poucos milissegundos.
+
+### Resultados
+
+Todas as consultas, por língua:
+
+| Busca | Língua | Recall@10 | MRR | NDCG@10 | R-prec. | Trecho@10 | MRR trecho |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Embeddings | en | 0.929 | 0.945 | 0.907 | 0.845 | 0.828 | 0.536 |
+| BM25 | en | 0.936 | 0.955 | 0.919 | 0.854 | 0.966 | 0.598 |
+| Híbrida (RRF) | en | 0.935 | 0.985 | 0.935 | 0.893 | 0.897 | 0.610 |
+| Embeddings | pt | 0.928 | 0.895 | 0.869 | 0.767 | 0.724 | 0.481 |
+| BM25 | pt | 0.600 | 0.489 | 0.501 | 0.413 | 0.448 | 0.218 |
+| Híbrida (RRF) | pt | 0.901 | 0.778 | 0.773 | 0.621 | 0.690 | 0.422 |
+| Embeddings | ambas | 0.929 | 0.920 | 0.888 | 0.806 | 0.776 | 0.509 |
+| BM25 | ambas | 0.768 | 0.722 | 0.710 | 0.633 | 0.707 | 0.408 |
+| Híbrida (RRF) | ambas | 0.918 | 0.881 | 0.854 | 0.757 | 0.793 | 0.516 |
+
+MRR por tipo de consulta:
+
+| Tipo | Embeddings en | BM25 en | Híbrida en | Embeddings pt | BM25 pt | Híbrida pt |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| named | 0.970 | 1.000 | 1.000 | 0.978 | 0.767 | 0.868 |
+| paraphrase | 0.900 | 0.903 | 0.983 | 0.799 | 0.177 | 0.691 |
+| detail | 0.983 | 0.966 | 0.983 | 0.943 | 0.571 | 0.805 |
+| topic | 0.900 | 0.950 | 0.950 | 0.800 | 0.352 | 0.683 |
+
+As tabelas completas, por tipo e língua, estão nos arquivos `evals/results/<método>__intfloat__multilingual-e5-base.json`.
+
+### O que os números dizem
+
+- **Em inglês, a híbrida é a melhor busca em quase tudo.** O MRR vai de 0,945 (embeddings) para 0,985, e a R-precision de 0,845 para 0,893. As paráfrases, onde a busca por termos não tem palavra para casar, sobem de 0,900 para 0,983: as duas listas erram em consultas diferentes, e a fusão acerta as duas. A q067 ("Rogan–Gladen"), que os embeddings punham em 10º, vai para 1º.
+- **O BM25 sozinho, em inglês, já empata ou passa os embeddings.** O MRR é 0,955 e o Trecho@10, 0,966: o parágrafo que responde ao detalhe vem entre os 10 primeiros pedaços em quase todas as buscas. Parte disso é a limitação conhecida do conjunto: as consultas foram escritas a partir do texto e repetem as palavras dele. O número mede um caso favorável ao BM25, não o uso real.
+- **Em português, a híbrida perde para os embeddings sozinhos.** O MRR cai de 0,895 para 0,778. O BM25 em português só casa nomes próprios e palavras iguais nas duas línguas ("LLM", "benchmark"), e no resto traz ruído, que o RRF mistura à lista boa dos embeddings. O ímã do Manacá piora: o artigo fica em 1º, no lugar do certo, em 12 buscas em português, contra 10 só com embeddings, porque o texto dele tem palavras em português ("comecar_com", "min_maiusculas").
+- **No total, os embeddings sozinhos ainda vencem no artigo, e a híbrida vence no trecho.** O MRR das 198 buscas é 0,920 com embeddings e 0,881 com a híbrida. O Trecho@10 é 0,776 com embeddings e 0,793 com a híbrida.
+
+### Decisão
+
+A busca continua só com embeddings por padrão (`--method dense`). A híbrida melhora o inglês e piora o português, e metade das consultas é em português. Os dois caminhos que os números sugerem:
+
+- **Escolher a busca pela língua da consulta:** a híbrida em inglês e os embeddings em português. Com a língua conhecida, como no conjunto de avaliação, as médias das 198 buscas seriam 0,940 de MRR, 0,830 de R-precision e 0,810 de Trecho@10, acima das duas buscas sozinhas. Na prática, isso exige detectar a língua de consultas curtas e feitas quase só de nomes, como "ARMOR-DP para Multilingual BabyLM", em que só "para" é português.
+- **Traduzir a consulta para o inglês antes do BM25:** daria ao BM25 em português as mesmas palavras que ele casa em inglês, ao custo de uma chamada a um modelo de tradução por consulta.

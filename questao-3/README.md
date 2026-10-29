@@ -27,6 +27,7 @@ O corpus vem no repositório; o índice não. Para gerá-lo e buscar:
 uv run semantic-search-embed --model intfloat/multilingual-e5-base
 uv run semantic-search-store --model intfloat/multilingual-e5-base
 uv run semantic-search "como avaliar agentes de programação" --k 5
+uv run semantic-search "Rogan–Gladen correction" --k 3 --method hybrid
 ```
 
 O primeiro comando baixa o modelo (cerca de 1 GB) e leva uns 16 minutos na CPU; com uma GPU NVIDIA, menos de 1 minuto (veja [`docs/indexacao.md`](docs/indexacao.md)).
@@ -41,4 +42,4 @@ A busca é desenvolvida guiada por avaliação: as consultas de teste, com os ar
 uv run semantic-search-eval --model intfloat/multilingual-e5-base
 ```
 
-Na linha de base, só com embeddings, os 10 primeiros resultados trazem em média 92,9% dos artigos relevantes, e o MRR é de 0,920. A busca vai pior com consultas em português, temas largos e o parágrafo exato de um detalhe. Os números, a análise dos erros e os próximos experimentos estão em [`docs/experimentos.md`](docs/experimentos.md).
+Na linha de base, só com embeddings, os 10 primeiros resultados trazem em média 92,9% dos artigos relevantes, e o MRR é de 0,920. A busca vai pior com consultas em português, temas largos e o parágrafo exato de um detalhe. A busca híbrida (embeddings e BM25, fundidos pelo RRF) sobe o MRR em inglês de 0,945 para 0,985, mas derruba o português de 0,895 para 0,778, e por isso não é o padrão. Os números, a análise dos erros e os próximos experimentos estão em [`docs/experimentos.md`](docs/experimentos.md).

@@ -43,6 +43,10 @@ class VectorStore:
     def __len__(self) -> int:
         return len(self._chunks)
 
+    @property
+    def chunks(self) -> list[Chunk]:
+        return list(self._chunks)
+
     @classmethod
     def build(cls, index: EmbeddingIndex) -> "VectorStore":
         norms = np.linalg.norm(index.vectors, axis=1)

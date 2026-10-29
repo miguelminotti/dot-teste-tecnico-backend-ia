@@ -7,6 +7,7 @@ import pytest
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import Document
 from semantic_search.embeddings import EmbeddingIndex, Vectors
+from semantic_search.retrievers import DenseRetriever, Query
 from semantic_search.search import PaperResult, print_results, rank_papers
 from semantic_search.vector_store import VectorStore
 
@@ -16,12 +17,12 @@ def _unit(*rows: list[float]) -> Vectors:
     return vectors / np.linalg.norm(vectors, axis=1, keepdims=True)
 
 
-def _store(paper_ids: list[str], vectors: Vectors) -> VectorStore:
+def _store(paper_ids: list[str], vectors: Vectors) -> DenseRetriever:
     chunks = [
         Chunk(id=f"{paper}#{i}", paper_id=paper, section="s", paragraph=i, text=f"texto {i}")
         for i, paper in enumerate(paper_ids)
     ]
-    return VectorStore.build(EmbeddingIndex(model="m", max_words=200, chunks=chunks, vectors=vectors))
+    return DenseRetriever(VectorStore.build(EmbeddingIndex(model="m", max_words=200, chunks=chunks, vectors=vectors)))
 
 
 def _documents(*paper_ids: str) -> dict[str, Document]:
@@ -38,7 +39,7 @@ def test_each_paper_appears_once_scored_and_excerpted_by_its_best_chunk() -> Non
     store = _store(["A", "B", "A"], _unit([0.0, 1.0], [0.8, 0.6], [1.0, 0.1]))
     query = _unit([1.0, 0.0])
 
-    results = rank_papers(store, query, k=5, documents=_documents("A", "B"))
+    results = rank_papers(store, Query(text="", vector=query), k=5, documents=_documents("A", "B"))
 
     assert [result.paper_id for result in results] == ["A", "B"]
     assert results[0].excerpt.id == "A#2"
@@ -52,7 +53,7 @@ def test_returns_k_papers_even_when_the_best_chunks_all_come_from_one_paper() ->
     vectors = np.vstack([np.column_stack([np.cos(angles), np.sin(angles)]), [[0.0, 1.0]]]).astype(np.float32)
     store = _store(["A"] * 200 + ["B"], vectors)
 
-    results = rank_papers(store, _unit([1.0, 0.0]), k=2, documents=_documents("A", "B"))
+    results = rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=2, documents=_documents("A", "B"))
 
     assert [result.paper_id for result in results] == ["A", "B"]
 
@@ -60,7 +61,7 @@ def test_returns_k_papers_even_when_the_best_chunks_all_come_from_one_paper() ->
 def test_k_larger_than_the_number_of_papers_returns_every_paper() -> None:
     store = _store(["A", "B"], _unit([1.0, 0.0], [0.0, 1.0]))
 
-    results = rank_papers(store, _unit([1.0, 0.0]), k=5, documents=_documents("A", "B"))
+    results = rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=5, documents=_documents("A", "B"))
 
     assert [result.paper_id for result in results] == ["A", "B"]
 
@@ -69,7 +70,7 @@ def test_returns_at_most_k_papers_when_the_chunks_found_span_more() -> None:
     # No corpus, os pedaços da primeira tentativa costumam vir de mais artigos que os `k` pedidos.
     store = _store(["A", "B", "C"], _unit([1.0, 0.0], [0.8, 0.6], [0.0, 1.0]))
 
-    results = rank_papers(store, _unit([1.0, 0.0]), k=2, documents=_documents("A", "B", "C"))
+    results = rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=2, documents=_documents("A", "B", "C"))
 
     assert [result.paper_id for result in results] == ["A", "B"]
 

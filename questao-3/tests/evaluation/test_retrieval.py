@@ -1,7 +1,7 @@
 import pytest
 
 from semantic_search.chunking import Chunk
-from semantic_search.evaluation.retrieval import EvalQuery, QueryResult, score_query, summarize
+from semantic_search.evaluation.retrieval import EvalQuery, QueryResult, papers_to_fetch, score_query, summarize
 
 
 def _query(type_: str, relevant: tuple[str, ...] = ("a",), quote: str | None = None) -> EvalQuery:
@@ -28,12 +28,17 @@ def test_queries_without_evidence_have_no_chunk_scores() -> None:
     assert not any(metric.startswith("chunk_") for metric in scores)
 
 
-def test_paper_ranking_shorter_than_the_relevant_list_is_rejected() -> None:
+def test_topics_with_more_relevant_papers_than_k_fetch_enough_papers_for_the_r_precision() -> None:
     # A R-precision olha as R primeiras posições: com 3 relevantes e só 2 artigos buscados, sairia errada.
-    query = _query("topic", relevant=("a", "b", "c"))
+    assert papers_to_fetch(_query("topic", relevant=("a", "b", "c")), k=2) == 3
+    assert papers_to_fetch(_query("named"), k=2) == 2
 
-    with pytest.raises(ValueError, match="3 artigos"):
-        score_query(query, papers=["a", "b"], chunks=[], k=2)
+
+def test_search_that_finds_no_paper_scores_zero_instead_of_failing() -> None:
+    # O BM25 não acha nada quando a consulta não tem termo em comum com o corpus, como a maioria em português.
+    scores = score_query(_query("detail", quote="frase citada"), papers=[], chunks=[], k=2)
+
+    assert set(scores.values()) == {0.0}
 
 
 def test_paper_mrr_only_looks_at_the_top_k_like_the_other_metrics() -> None:

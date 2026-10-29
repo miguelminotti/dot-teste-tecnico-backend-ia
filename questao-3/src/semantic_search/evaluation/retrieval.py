@@ -27,8 +27,8 @@ from semantic_search.evaluation.metrics import (
     recall_at_k,
     reciprocal_rank,
 )
-from semantic_search.search import rank_papers, use_utf8_output
-from semantic_search.vector_store import VectorStore
+from semantic_search.retrievers import Query, Retriever
+from semantic_search.search import METHODS, load_retriever, rank_papers, use_utf8_output
 
 LANGUAGES = ("en", "pt")
 TYPES = ("named", "paraphrase", "detail", "topic")
@@ -72,17 +72,20 @@ def load_queries(path: Path) -> list[EvalQuery]:
     ]
 
 
+def papers_to_fetch(query: EvalQuery, k: int) -> int:
+    """Artigos a pedir à busca: max(k, R), sendo R o número de relevantes. A R-precision olha as R primeiras
+    posições, e três temas têm mais relevantes que `k`."""
+    return max(k, len(query.relevant))
+
+
 def score_query(query: EvalQuery, *, papers: Sequence[str], chunks: Sequence[Chunk], k: int) -> dict[str, float]:
     """As métricas de uma consulta: por artigo sobre `papers`, e por trecho sobre `chunks` (os `k` pedaços
     buscados) se houver citação.
 
-    `papers` precisa de pelo menos max(k, R) artigos, sendo R o número de relevantes: a R-precision olha as
-    R primeiras posições, e três temas têm mais relevantes que `k`. As outras métricas olham só os `k`
-    primeiros, para que a nota não dependa de quantos artigos vieram.
+    A R-precision olha os R primeiros de `papers`; as outras métricas, só os `k` primeiros, para que a nota
+    não dependa de quantos artigos vieram. Uma lista curta (o BM25 sem termo em comum com a consulta) conta
+    as posições que faltam como erro.
     """
-    needed = max(k, len(query.relevant))
-    if len(papers) < needed:
-        raise ValueError(f"a consulta {query.id} precisa de {needed} artigos na lista, e vieram {len(papers)}")
     relevant = set(query.relevant)
     scores = {
         "recall": recall_at_k(papers, relevant, k),
@@ -130,7 +133,7 @@ def _groups(result: QueryResult) -> list[tuple[str, str]]:
 
 
 def evaluate(
-    store: VectorStore, model_name: str, queries: Sequence[EvalQuery], *, corpus: Path, k: int
+    retriever: Retriever, model_name: str, queries: Sequence[EvalQuery], *, corpus: Path, k: int
 ) -> list[QueryResult]:
     """Roda cada consulta nas duas línguas e devolve as notas de cada uma."""
     documents = {document.id: document for document in load_documents(corpus)}
@@ -138,8 +141,9 @@ def evaluate(
     vectors = embed_queries(load_model(model_name), [query.text[language] for query, language in pairs])
     results = []
     for (query, language), vector in zip(pairs, vectors, strict=True):
-        papers = rank_papers(store, vector[None, :], k=max(k, len(query.relevant)), documents=documents)
-        chunks = [hit.chunk for hit in store.search(vector[None, :], k)[0]]
+        search_query = Query(text=query.text[language], vector=vector[None, :])
+        papers = rank_papers(retriever, search_query, k=papers_to_fetch(query, k), documents=documents)
+        chunks = [hit.chunk for hit in retriever.search(search_query, k)]
         paper_ids = [paper.paper_id for paper in papers]
         results.append(
             QueryResult(
@@ -185,15 +189,17 @@ def main() -> None:
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
     parser.add_argument("--queries", type=Path, default=Path("evals/queries.json"))
     parser.add_argument("--out", type=Path, default=Path("evals/results"))
+    parser.add_argument("--method", choices=METHODS, default="dense", help="busca por embeddings, termos ou híbrida")
     args = parser.parse_args()
 
-    store = VectorStore.load(index_folder(args.index, args.model))
-    results = evaluate(store, args.model, load_queries(args.queries), corpus=args.corpus, k=args.k)
+    retriever = load_retriever(args.method, index_folder(args.index, args.model))
+    results = evaluate(retriever, args.model, load_queries(args.queries), corpus=args.corpus, k=args.k)
     summary = summarize(results)
     counts = count_queries(results)
 
     report = {
         "model": args.model,
+        "method": args.method,
         "k": args.k,
         "summary": [
             {"type": type_, "language": language, "queries": counts[(type_, language)], **metrics}
@@ -201,8 +207,9 @@ def main() -> None:
         ],
         "results": [asdict(result) for result in results],
     }
-    # Um arquivo por modelo, com o nome da pasta do índice: with_suffix cortaria "Qwen3-Embedding-0.6B" no ponto.
-    out = args.out / f"{index_folder(args.out, args.model).name}.json"
+    # Um arquivo por busca e modelo (o BM25 usa os pedaços do índice do modelo), com o nome da pasta do índice:
+    # with_suffix cortaria "Qwen3-Embedding-0.6B" no ponto.
+    out = args.out / f"{args.method}__{index_folder(args.out, args.model).name}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     use_utf8_output()
