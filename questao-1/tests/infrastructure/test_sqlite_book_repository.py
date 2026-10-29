@@ -122,6 +122,19 @@ def test_duplicate_id_raises_domain_error_and_keeps_the_original(
     assert _titles(repository.search(limit=LIMIT)) == ["Dom Casmurro"]
 
 
+def test_other_integrity_violation_is_not_reported_as_a_duplicate(
+    repository: SqliteBookRepository, make_book: MakeBook
+) -> None:
+    # Só a chave primária repetida é "livro já cadastrado". Um CHECK violado é bug do repositório (o
+    # domínio garante os formatos); virar 409 o esconderia atrás de um erro que o cliente trata.
+    book = make_book()
+    # Fora do domínio: o `__post_init__` converteria o instante para UTC.
+    book.created_at = datetime(2026, 10, 28, 9, 0, tzinfo=SAO_PAULO)
+
+    with pytest.raises(sqlite3.IntegrityError, match="CHECK"):
+        repository.add(book)
+
+
 def test_failed_add_does_not_leave_a_transaction_open(database_file: Path, make_book: MakeBook) -> None:
     # Se o erro deixasse a transação aberta, o próximo cadastro na mesma conexão ficaria preso
     # nela e se perderia ao fechar a conexão.
@@ -298,6 +311,15 @@ def test_search_orders_alphabetically_ignoring_case_and_accents(
         repository.add(make_book(title=title))
 
     assert _titles(repository.search(limit=LIMIT)) == ["abacate", "Ábaco", "Abelha"]
+
+
+def test_search_with_the_same_title_orders_by_author(repository: SqliteBookRepository, make_book: MakeBook) -> None:
+    # Mesmo título, autores diferentes: a ordem segue o autor, sem caixa e sem acento (ADR 0005). Os
+    # ids estão ao contrário de propósito, para que desempatar só pelo id dê a ordem errada.
+    repository.add(make_book(title="Poemas", author="Vinicius de Moraes", id=UUID(int=0)))
+    repository.add(make_book(title="Poemas", author="Álvares de Azevedo", id=UUID(int=2**128 - 1)))
+
+    assert [book.author for book in repository.search(limit=LIMIT)] == ["Álvares de Azevedo", "Vinicius de Moraes"]
 
 
 def test_search_breaks_ties_by_id(repository: SqliteBookRepository, make_book: MakeBook) -> None:

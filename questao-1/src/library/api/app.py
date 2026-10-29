@@ -1,10 +1,13 @@
 """Montagem da aplicação FastAPI."""
 
+import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, closing
 
 from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, Response
 
 from library.api.rate_limit import FixedWindowRateLimiter
 from library.api.routes import router
@@ -38,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_requests=settings.rate_limit_requests, window_seconds=settings.rate_limit_window_seconds
     )
     app.include_router(router)
+    app.add_exception_handler(RequestValidationError, _request_validation_error)
     app.add_exception_handler(BookAlreadyExistsError, _book_already_exists)
     app.add_exception_handler(DomainError, _domain_error)
     return app
@@ -45,6 +49,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 # Erros de domínio viram respostas HTTP aqui, num lugar só, para as rotas não precisarem de
 # try/except. O Starlette escolhe o handler da classe mais específica, então o 409 vence o 422.
+
+
+def _request_validation_error(_: Request, error: Exception) -> Response:
+    # O mesmo 422 do FastAPI, serializado em ASCII. O FastAPI devolve o valor recebido em `input`, e um
+    # surrogate solto ("\ud800" no JSON) não existe em UTF-8: a resposta padrão caía com 500. Em ASCII,
+    # ele volta escapado, e os acentos também (`é`), o que qualquer leitor de JSON entende igual.
+    errors = error.errors() if isinstance(error, RequestValidationError) else []
+    body = json.dumps({"detail": jsonable_encoder(errors)}, ensure_ascii=True)
+    return Response(content=body, status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, media_type="application/json")
 
 
 def _book_already_exists(_: Request, error: Exception) -> JSONResponse:

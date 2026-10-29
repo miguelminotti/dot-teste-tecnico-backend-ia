@@ -77,3 +77,11 @@ Os bugs 8 e 9 foram encontrados numa segunda revisão independente, depois da en
 - **Bug:** `GET /books?autor=machado` (ou `?q=`) ignorava o parâmetro e respondia 200 com o acervo inteiro, como se a busca tivesse funcionado. O corpo do cadastro já recusava campo desconhecido.
 - **Teste:** `test_search_rejects_unknown_parameters`.
 - **Correção:** a busca recusa parâmetro desconhecido com 422, no mesmo formato dos outros erros de validação.
+
+### 10. Um surrogate solto no corpo derrubava o cadastro com 500
+
+- **Bug:** `{"title": "abc\ud800", ...}` é JSON válido, mas `\ud800` sozinho não é texto UTF-8. O pydantic recusava o campo, e o 422 padrão do FastAPI devolve o valor recebido em `input`; ao gerar a resposta com ele, a API caía com 500. Achado na terceira revisão independente.
+- **Teste:** `test_lone_surrogate_in_the_body_is_rejected_with_422`.
+- **Correção:** o 422 de validação é serializado em ASCII, com o mesmo conteúdo; o surrogate volta escapado.
+
+Na mesma revisão, duas regras quebradas à mão não fizeram a suíte falhar: a ordem por autor entre livros de mesmo título (ADR 0005) e o CHECK violado que estoura como está, sem virar "livro já cadastrado" (ADR 0004). As duas funcionavam, mas sem teste; ganharam `test_search_with_the_same_title_orders_by_author` e `test_other_integrity_violation_is_not_reported_as_a_duplicate`.

@@ -5,6 +5,7 @@ do estado deixado por outro. O `TestClient` usado como context manager executa o
 cria o schema, como na subida real.
 """
 
+import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -142,6 +143,19 @@ def test_validation_errors_have_one_shape_and_point_to_the_field(client: TestCli
     [error] = response.json()["detail"]
     assert error["loc"] == ["body", "title"]
     assert error["msg"]
+
+
+def test_lone_surrogate_in_the_body_is_rejected_with_422(client: TestClient) -> None:
+    # Bug: "\ud800" é um escape JSON válido, mas não é texto UTF-8. O pydantic recusava o campo, e o
+    # 422 devolve o valor recebido em `input`; ao gerar a resposta com ele, a API caía com 500.
+    body = book_payload(title="abc")
+    raw = json.dumps(body).replace('"abc"', '"abc\\ud800"').encode()
+
+    response = client.post("/books", content=raw, headers={"content-type": "application/json"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "title"]
+    assert all_books(client) == []
 
 
 def test_openapi_documents_only_the_errors_the_api_can_return(client: TestClient) -> None:
