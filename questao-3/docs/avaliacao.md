@@ -30,7 +30,7 @@ Cada consulta:
 }
 ```
 
-**Relevância em dois níveis.** `relevant` lista os artigos relevantes, e é com ela que se mede a busca por artigo. Nas consultas de detalhe, `evidence` traz a frase do artigo que responde, copiada sem mudança (o script confere). É com ela que se mede a busca por trecho: um pedaço recuperado é relevante se contém a frase. O rótulo não depende de como o texto for dividido, e o mesmo conjunto serve para comparar tamanhos de pedaço.
+**Relevância em dois níveis.** `relevant` lista os artigos relevantes, e é com ela que se mede a busca por artigo. Nas consultas de detalhe, `evidence` traz a frase do artigo que responde, copiada sem mudança (o script confere). É com ela que se mede a busca por trecho: um pedaço recuperado é relevante se contém a frase. O rótulo é a frase, e não um pedaço: o mesmo conjunto serve para comparar tamanhos de pedaço, desde que cada frase caiba inteira num pedaço. As frases têm até 132 palavras. Com o teto de 200 palavras, todas cabem; com 100, três ficariam divididas entre dois pedaços. Por isso a avaliação confere, antes de rodar, que cada frase está inteira em algum pedaço do índice, e recusa o índice se não estiver: sem isso, a consulta tiraria 0 por trecho em silêncio, e a comparação sairia torta contra os pedaços menores.
 
 ## Como foi gerado
 
@@ -85,7 +85,7 @@ O código está em `src/semantic_search/evaluation/metrics.py` e `retrieval.py`.
 | NDCG@10 | a ordem dos relevantes, com desconto pela posição, dividida pela da ordem ideal. Com mais relevantes que 10, a ordem ideal enche os 10 primeiros, e a busca perfeita tira 1 |
 | R-precision | a precisão nas R primeiras posições, sendo R o número de relevantes. Três temas têm de 14 a 18 relevantes, e a cobertura em 10 não chega a 1 nem com a busca perfeita; a R-precision chega |
 
-**Por trecho,** só nas 29 consultas de detalhe, sobre os 10 pedaços mais parecidos com a consulta, sem agrupar por artigo. O pedaço relevante é o que contém a citação de evidência, com o espaço entre as palavras normalizado, como na geração. Cada uma das 29 citações está em exatamente um dos 5.398 pedaços, no parágrafo certo (conferido).
+**Por trecho,** só nas 29 consultas de detalhe, sobre os 10 pedaços mais parecidos com a consulta, sem agrupar por artigo. O pedaço relevante é o que contém a citação de evidência, com o espaço entre as palavras normalizado, como na geração. Cada uma das 29 citações está em exatamente um dos 5.032 pedaços, no parágrafo certo (conferido).
 
 | Métrica | O que mede |
 | --- | --- |

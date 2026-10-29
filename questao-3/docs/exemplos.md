@@ -203,52 +203,62 @@ uv run semantic-search "How can LLM agents learn reusable procedural guidance fr
 
 ## 6. Busca padrão e busca híbrida
 
-A consulta `q013` usa o nome da ideia central do artigo, "cross-model review". Na busca padrão, o artigo certo fica em 2º. Em 1º e 3º vêm pedaços curtíssimos ("Verification. A separate LLM checks each candidate...", "LLM pass 2: cross-group merge."), que se parecem com a consulta por terem poucas palavras, quase todas dela.
+A consulta `q051`, de detalhe, pergunta por que os pesos de um conjunto de modelos podem ser negativos. Na busca padrão, o artigo certo fica em 2º. Em 1º vem um artigo sobre a avaliação de novidade de ideias, cujo pedaço fala de "weak labels": perto da consulta no sentido, mas sobre outro assunto.
 
 ```bash
-uv run semantic-search "cross-model review in LLM verification" --k 3
+uv run semantic-search "Why allow negative weights for weak experts when weighting LLM ensemble votes without labels?" --k 3
 ```
 
 ```text
-1. [0.666] DeclineCraft: A RAG Abstention Benchmark for Jointly Measuring Combined Retrieval and Parametric Knowledge
-   https://arxiv.org/abs/2610.28340
-   Scenario and Question Generation: Verification. A separate LLM checks each candidate against
-   C_{\text{pre}} (Section 3.3).
+1. [0.610] Old Ideas, Novel Problems: The Instability of LLM-Based Novelty Evaluation
+   https://arxiv.org/abs/2610.02022
+   Weak labels for generated ideas.: The lower-novelty side of Human+Generated carries no observed
+   novelty label. Its labels rest instead on a weak-labeling assumption: a top-decile ICLR
+   submission whose reviewers agree is original is more novel than an idea produced in a single
+   scaffold-free, tool-free pass of a deliberately [...]
 
-2. [0.661] When Does a Second Model Help? Cross-Model Review in LLM Verification
-   https://arxiv.org/abs/2610.01471
-   Abstract: When Does a Second Model Help? Cross-Model Review in LLM Verification. Large language
-   models now generate code, documentation, and analyses, and are increasingly used to review such
-   output. We ask when a second review by a different model helps. Building on the author's earlier
-   preprints, [...]
+2. [0.597] A Jury, Not an Electorate: Label-Free Reliability Estimation for Ensembles of Language Models
+   https://arxiv.org/abs/2610.21085
+   Abstract: A Jury, Not an Electorate: Label-Free Reliability Estimation for Ensembles of Language
+   Models. An ensemble of language models is a jury, not an electorate. The answers are testimony
+   from witnesses of unknown reliability, and the question is not what the majority said but who is
+   credible. Most [...]
 
-3. [0.657] Measure Before You Train: Typed Decision Models vs. a Classical Baseline vs. a Generative LLM for Routing a Personal Multilingual Inbox
-   https://arxiv.org/abs/2610.32955
-   3 The System: LLM pass 2: cross-group merge.
+3. [0.575] ANCHOR: Assessing Naturalistic Constraint Hierarchies and Ordering in Repository-Grounded Agentic Coding
+   https://arxiv.org/abs/2610.16859
+   Judge Validation: Evaluators were given the checklist question, the explicit pass condition, and
+   the same evidence excerpt provided to the LLM judge, but no access to the judge’s output, in
+   order to avoid anchoring. The majority label across the five evaluators was used as the human
+   consensus, and inter- [...]
 ```
 
-Na busca híbrida, o BM25 casa os termos "cross-model" e "review", que o título do artigo certo tem, e o RRF o leva ao 1º lugar. A nota passa a ser a do RRF, que chega no máximo a 2/61, cerca de 0,033, para um pedaço em 1º nas duas listas. A híbrida não é o padrão porque, em português, o BM25 traz mais ruído que acerto ([experimentos](experimentos.md#bm25-e-busca-híbrida)).
+Na busca híbrida, o BM25 casa os termos da pergunta ("negative", "weights", "experts", "ensemble", "votes") e põe o artigo certo em 1º na lista dele, e o RRF o leva ao 1º lugar. A nota passa a ser a do RRF, que chega no máximo a 2/61, cerca de 0,033, para um pedaço em 1º nas duas listas. A híbrida não é o padrão porque, em português, o BM25 traz mais ruído que acerto ([experimentos](experimentos.md#bm25-e-busca-híbrida)).
 
 ```bash
-uv run semantic-search "cross-model review in LLM verification" --k 3 --method hybrid
+uv run semantic-search "Why allow negative weights for weak experts when weighting LLM ensemble votes without labels?" --k 3 --method hybrid
 ```
 
 ```text
-1. [0.033] When Does a Second Model Help? Cross-Model Review in LLM Verification
-   https://arxiv.org/abs/2610.01471
-   Abstract: When Does a Second Model Help? Cross-Model Review in LLM Verification. Large language
-   models now generate code, documentation, and analyses, and are increasingly used to review such
-   output. We ask when a second review by a different model helps. Building on the author's earlier
-   preprints, [...]
+1. [0.032] A Jury, Not an Electorate: Label-Free Reliability Estimation for Ensembles of Language Models
+   https://arxiv.org/abs/2610.21085
+   Abstract: A Jury, Not an Electorate: Label-Free Reliability Estimation for Ensembles of Language
+   Models. An ensemble of language models is a jury, not an electorate. The answers are testimony
+   from witnesses of unknown reliability, and the question is not what the majority said but who is
+   credible. Most [...]
 
-2. [0.030] DeclineCraft: A RAG Abstention Benchmark for Jointly Measuring Combined Retrieval and Parametric Knowledge
-   https://arxiv.org/abs/2610.28340
-   Scenario and Question Generation: Verification. A separate LLM checks each candidate against
-   C_{\text{pre}} (Section 3.3).
+2. [0.021] Old Ideas, Novel Problems: The Instability of LLM-Based Novelty Evaluation
+   https://arxiv.org/abs/2610.02022
+   Weak labels for generated ideas.: The lower-novelty side of Human+Generated carries no observed
+   novelty label. Its labels rest instead on a weak-labeling assumption: a top-decile ICLR
+   submission whose reviewers agree is original is more novel than an idea produced in a single
+   scaffold-free, tool-free pass of a deliberately [...]
 
-3. [0.027] Measure Before You Train: Typed Decision Models vs. a Classical Baseline vs. a Generative LLM for Routing a Personal Multilingual Inbox
-   https://arxiv.org/abs/2610.32955
-   3 The System: LLM pass 2: cross-group merge.
+3. [0.020] Residual Advantage: Student-Relative Teacher Guidance for RL with Verifiable Rewards
+   https://arxiv.org/abs/2610.11519
+   Combining with verifier feedback: Let c_{t}\geq 0 be the actor’s relative weights on the
+   response’s positions, summing to one (c_{t}=1/M for token-mean reduction over M positions), and
+   let \overline{A}^{d}=\sum_{t}c_{t}A_{t}^{d} be the response mean of the local advantages. RA adds
+   the centered local advantage, scaled by the [...]
 ```
 
 ## 7. Uma consulta livre, em português

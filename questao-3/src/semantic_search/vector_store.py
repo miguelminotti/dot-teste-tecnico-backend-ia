@@ -70,12 +70,17 @@ class VectorStore:
         ]
 
     def save(self, folder: Path) -> None:
-        """Grava só o índice FAISS; os pedaços ficam no chunks.jsonl da mesma pasta, gravado pelo save_index."""
-        faiss.write_index(self._faiss_index, str(folder / _FAISS_FILE))
+        """Grava só o índice FAISS; os pedaços ficam no chunks.jsonl da mesma pasta, gravado pelo save_index.
+
+        O índice passa por bytes, e o arquivo, pelo Python: no Windows, o write_index e o read_index do FAISS
+        não abrem caminho com acento, como o de um usuário "C:\\Users\\João".
+        """
+        (folder / _FAISS_FILE).write_bytes(faiss.serialize_index(self._faiss_index).tobytes())
 
     @classmethod
     def load(cls, folder: Path) -> "VectorStore":
-        return cls(faiss.read_index(str(folder / _FAISS_FILE)), load_index(folder).chunks)
+        data = np.frombuffer((folder / _FAISS_FILE).read_bytes(), dtype=np.uint8)
+        return cls(faiss.deserialize_index(data), load_index(folder).chunks)
 
 
 def main() -> None:

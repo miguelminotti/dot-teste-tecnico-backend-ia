@@ -1,3 +1,4 @@
+import argparse
 import io
 import sys
 
@@ -8,7 +9,7 @@ from semantic_search.chunking import Chunk
 from semantic_search.corpus import Document
 from semantic_search.embeddings import EmbeddingIndex, Vectors
 from semantic_search.retrievers import DenseRetriever, Query
-from semantic_search.search import PaperResult, print_results, rank_papers
+from semantic_search.search import PaperResult, positive_int, print_results, rank_papers
 from semantic_search.vector_store import VectorStore
 
 
@@ -64,6 +65,16 @@ def test_k_larger_than_the_number_of_papers_returns_every_paper() -> None:
     results = rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=5, documents=_documents("A", "B"))
 
     assert [result.paper_id for result in results] == ["A", "B"]
+
+
+def test_k_below_one_is_rejected() -> None:
+    # Sem a checagem, o FAISS caía com um AssertionError sem mensagem.
+    store = _store(["A"], _unit([1.0, 0.0]))
+
+    with pytest.raises(ValueError, match="pelo menos 1"):
+        rank_papers(store, Query(text="", vector=_unit([1.0, 0.0])), k=0, documents=_documents("A"))
+    with pytest.raises(argparse.ArgumentTypeError):
+        positive_int("0")
 
 
 def test_returns_at_most_k_papers_when_the_chunks_found_span_more() -> None:

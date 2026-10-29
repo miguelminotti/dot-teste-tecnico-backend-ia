@@ -26,7 +26,7 @@ Cada resultado traz o título, o link do arXiv, a nota e o trecho, com a seção
    dataset. In our [...]
 ```
 
-A saída sai sempre em UTF-8. Redirecionada para um arquivo, a saída do Python no Windows usa o cp1252, que não tem alguns caracteres dos artigos ("≥", "∎", letras gregas). São 56 dos 5.398 pedaços, e a busca caía com `UnicodeEncodeError` quando um deles aparecia no resultado.
+A saída sai sempre em UTF-8. Redirecionada para um arquivo, a saída do Python no Windows usa o cp1252, que não tem alguns caracteres dos artigos ("≥", "∎", letras gregas). São 53 dos 5.032 pedaços, e a busca caía com `UnicodeEncodeError` quando um deles aparecia no resultado.
 
 ## Para usar no código
 

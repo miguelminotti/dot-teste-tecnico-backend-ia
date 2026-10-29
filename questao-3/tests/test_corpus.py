@@ -44,6 +44,23 @@ def test_paragraph_belongs_only_to_its_own_section() -> None:
     assert "Subsection text." not in " ".join(sections[0].paragraphs)
 
 
+def test_list_items_stay_inside_their_paragraph_and_do_not_repeat() -> None:
+    # O LaTeXML põe um ltx_para dentro de cada item de lista, e a lista dentro de outro ltx_para: contados
+    # os dois, cada item entrava duas vezes (368 parágrafos repetidos no corpus).
+    html = """
+    <article class="ltx_document"><section class="ltx_section" id="S1">
+      <h2 class="ltx_title ltx_title_section">Introduction</h2>
+      <div class="ltx_para"><p class="ltx_p">Our contributions:</p><ul class="ltx_itemize">
+        <li class="ltx_item"><div class="ltx_para"><p class="ltx_p">First item.</p></div></li>
+        <li class="ltx_item"><div class="ltx_para"><p class="ltx_p">Second item.</p></div></li>
+      </ul></div>
+      <div class="ltx_para"><p class="ltx_p">Next paragraph.</p></div>
+    </section></article>
+    """
+
+    assert extract_sections(html)[0].paragraphs == ("Our contributions: First item. Second item.", "Next paragraph.")
+
+
 def test_references_appendix_footnotes_figures_and_tables_are_left_out() -> None:
     # Referências trariam os títulos de outros artigos para dentro deste, e a busca o devolveria por
     # assunto que ele só cita. Tabelas viram números soltos sem o cabeçalho. As subseções de apêndice e

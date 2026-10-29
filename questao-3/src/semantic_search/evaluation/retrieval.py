@@ -18,7 +18,7 @@ from pathlib import Path
 
 from semantic_search.chunking import Chunk
 from semantic_search.corpus import load_documents
-from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_model
+from semantic_search.embeddings import DEFAULT_MODEL, embed_queries, index_folder, load_index, load_model
 from semantic_search.evaluation.metrics import (
     contains_quote,
     ndcg_at_k,
@@ -28,7 +28,7 @@ from semantic_search.evaluation.metrics import (
     reciprocal_rank,
 )
 from semantic_search.retrievers import Query, Retriever
-from semantic_search.search import METHODS, load_retriever, rank_papers, use_utf8_output
+from semantic_search.search import METHODS, load_retriever, positive_int, rank_papers, use_utf8_output
 
 LANGUAGES = ("en", "pt")
 TYPES = ("named", "paraphrase", "detail", "topic")
@@ -70,6 +70,21 @@ def load_queries(path: Path) -> list[EvalQuery]:
         )
         for query in data["queries"]
     ]
+
+
+def check_evidence_indexed(queries: Sequence[EvalQuery], chunks: Sequence[Chunk]) -> None:
+    """Recusa o índice em que a citação de evidência de alguma consulta não está inteira em nenhum pedaço.
+
+    Com pedaços menores, uma citação longa fica dividida entre dois: a consulta tiraria 0 por trecho em
+    silêncio, e a comparação entre tamanhos de pedaço sairia torta contra os menores.
+    """
+    missing = [
+        query.id
+        for query in queries
+        if query.quote is not None and not any(contains_quote(chunk.text, query.quote) for chunk in chunks)
+    ]
+    if missing:
+        raise ValueError(f"citações de evidência sem pedaço que as contenha inteiras: {', '.join(missing)}")
 
 
 def papers_to_fetch(query: EvalQuery, k: int) -> int:
@@ -184,7 +199,7 @@ def format_summary(summary: dict[tuple[str, str], dict[str, float]], counts: dic
 def main() -> None:
     parser = argparse.ArgumentParser(description="Mede a busca nas consultas de avaliação.")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
-    parser.add_argument("--k", type=int, default=10, help="posições avaliadas")
+    parser.add_argument("--k", type=positive_int, default=10, help="posições avaliadas")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))
     parser.add_argument("--queries", type=Path, default=Path("evals/queries.json"))
@@ -192,8 +207,11 @@ def main() -> None:
     parser.add_argument("--method", choices=METHODS, default="dense", help="busca por embeddings, termos ou híbrida")
     args = parser.parse_args()
 
-    retriever = load_retriever(args.method, index_folder(args.index, args.model))
-    results = evaluate(retriever, args.model, load_queries(args.queries), corpus=args.corpus, k=args.k)
+    folder = index_folder(args.index, args.model)
+    queries = load_queries(args.queries)
+    check_evidence_indexed(queries, load_index(folder).chunks)
+    retriever = load_retriever(args.method, folder)
+    results = evaluate(retriever, args.model, queries, corpus=args.corpus, k=args.k)
     summary = summarize(results)
     counts = count_queries(results)
 

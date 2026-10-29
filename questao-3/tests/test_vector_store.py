@@ -49,14 +49,18 @@ def test_vectors_without_unit_norm_are_rejected() -> None:
         VectorStore.build(_embedding_index(vectors))
 
 
-def test_saved_store_comes_back_with_the_same_hits(tmp_path: Path) -> None:
+def test_saved_store_comes_back_with_the_same_hits_even_in_a_folder_with_accents(tmp_path: Path) -> None:
+    # No Windows, o write_index e o read_index do FAISS não abrem caminho com acento, como o de um usuário
+    # "C:\Users\João".
+    folder = tmp_path / "pasta_ação"
+    folder.mkdir()
     embedding_index = _embedding_index(_unit([0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.6, 0.8, 0.0]))
     store = VectorStore.build(embedding_index)
     query = _unit([1.0, 0.2, 0.0], [0.0, 0.1, 1.0])
 
-    save_index(embedding_index, tmp_path)
-    store.save(tmp_path)
-    loaded = VectorStore.load(tmp_path)
+    save_index(embedding_index, folder)
+    store.save(folder)
+    loaded = VectorStore.load(folder)
 
     assert loaded.search(query, k=3) == store.search(query, k=3)
 

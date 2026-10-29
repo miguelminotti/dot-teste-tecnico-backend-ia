@@ -162,11 +162,13 @@ def extract_sections(html: str) -> list[Section]:
         if level is None:
             continue
         heading = section.find(["h2", "h3", "h4", "h5", "h6"], recursive=False)
-        # Só os parágrafos desta seção: os da subseção também estão dentro dela no HTML.
+        # Só os parágrafos desta seção: os da subseção também estão dentro dela no HTML. E só os de fora: o
+        # LaTeXML põe um ltx_para em cada item de lista, dentro do ltx_para que contém a lista, e o texto do
+        # item já entra no parágrafo de fora.
         paragraphs = [
             _clean(paragraph.get_text(" "))
             for paragraph in section.find_all(class_="ltx_para")
-            if paragraph.find_parent("section") is section
+            if paragraph.find_parent("section") is section and _outer_paragraph(paragraph, section)
         ]
         sections.append(
             Section(
@@ -176,6 +178,12 @@ def extract_sections(html: str) -> list[Section]:
             )
         )
     return sections
+
+
+def _outer_paragraph(paragraph: Tag, section: Tag) -> bool:
+    """O parágrafo não está dentro de outro parágrafo da mesma seção (como o item de uma lista)."""
+    parent = paragraph.find_parent(class_="ltx_para")
+    return parent is None or parent.find_parent("section") is not section
 
 
 def _clean(text: str) -> str:

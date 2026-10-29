@@ -45,6 +45,8 @@ def rank_papers(retriever: Retriever, query: Query, *, k: int, documents: Mappin
     pedaços buscados tem todos os pedaços abaixo do último deles, e portanto abaixo de cada artigo achado.
     Vêm menos de `k` quando o buscador acha pedaços de menos artigos, como o BM25 sem termo em comum.
     """
+    if k < 1:
+        raise ValueError(f"k precisa ser pelo menos 1, e veio {k}")
     n = k * _CHUNKS_PER_PAPER
     while True:
         best: dict[str, PaperResult] = {}
@@ -104,6 +106,14 @@ def format_results(results: Sequence[PaperResult]) -> str:
     return "\n".join(lines)
 
 
+def positive_int(value: str) -> int:
+    """Tipo do argparse para `--k`: um inteiro a partir de 1, com mensagem de uso no lugar de um traceback."""
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError(f"precisa ser pelo menos 1, e veio {number}")
+    return number
+
+
 def use_utf8_output() -> None:
     """Passa a saída para UTF-8: redirecionada para arquivo, a saída do Python no Windows usa o cp1252, que
     não tem caracteres que aparecem nos artigos ("≥", letras gregas)."""
@@ -119,7 +129,7 @@ def print_results(results: Sequence[PaperResult]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Busca os artigos mais relevantes para uma consulta.")
     parser.add_argument("query", help="a consulta, em inglês ou português")
-    parser.add_argument("--k", type=int, default=5, help="quantos artigos devolver")
+    parser.add_argument("--k", type=positive_int, default=5, help="quantos artigos devolver")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="modelo dos embeddings")
     parser.add_argument("--index", type=Path, default=Path("data/index"))
     parser.add_argument("--corpus", type=Path, default=Path("data/corpus.jsonl"))

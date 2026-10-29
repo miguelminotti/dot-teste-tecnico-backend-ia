@@ -108,7 +108,7 @@
       "evidence": {
         "paper": "2610.07426",
         "section": "Datasets",
-        "paragraph": 25,
+        "paragraph": 22,
         "quote": "The full dataset includes North American (NA), British Isles (BI), Australasian (AUS), South Asian (SA), Southeast Asian (SEA), Spanish (SPA), and Chinese (CHN) accent groups."
       },
       "needs_review": false,
@@ -290,7 +290,7 @@
       "evidence": {
         "paper": "2610.01471",
         "section": "Domain Specialization (H5)",
-        "paragraph": 57,
+        "paragraph": 54,
         "quote": "For code artifacts, CCR outperforms all XMR conditions; one possible explanation is that the generating model shares an understanding of programming patterns and code structure that an external model lacks. For documents, the pattern reverses, and it holds for every condition, not only those in the table: all six cross-model conditions (F1 30.1–42.1%) score above all four same-model conditions (17.4–24.5%)."
       },
       "needs_review": false,
@@ -343,7 +343,7 @@
       "evidence": {
         "paper": "2610.02486",
         "section": "Training objectives and the RLCD estimator",
-        "paragraph": 12,
+        "paragraph": 9,
         "quote": "The reward part of the update for one item is \\hat{g}=\\frac{1}{G\\sigma^{2}}\\sum_{g=1}^{G}\\frac{R^{(g)}-\\bar{R}}{d}\\,\\varepsilon^{(g)}, where \\varepsilon^{(g)} is the g -th noise draw, \\sigma its scale (annealed from 0.4 to 0.1), R^{(g)} its reward, \\bar{R} the mean reward of the item’s G draws, and d the standard deviation of the centred rewards in the minibatch."
       },
       "needs_review": false,
@@ -445,7 +445,7 @@
       "evidence": {
         "paper": "2610.04642",
         "section": "Probing model internals.",
-        "paragraph": 10,
+        "paragraph": 7,
         "quote": "Applied to truthfulness the technique has been productive. SAPLMA (Azaria and Mitchell, 2023) classifies statement truth from hidden states; semantic entropy probes (Kossen et al., 2024) predict a sampled uncertainty measure from one pass, extracting at the second-last response token or the last prompt token; HalluRAG (Ridder and Schilling, 2024) trains multi-layer classifiers for RAG and reports a sharp cross-dataset drop. MIND (Su et al., 2024) detects during generation, HaloScope (Du et al., 2024) without labels. ReDeEP (Sun et al., 2025) and LUMINA (Yeh et al., 2026) go further into mechanism, scoring how much a response draws on retrieved context against parametric knowledge, and report the strongest RAGTruth numbers among internals-based methods."
       },
       "needs_review": false,
@@ -546,7 +546,7 @@
       "evidence": {
         "paper": "2610.27002",
         "section": "C. Four complementary experiments",
-        "paragraph": 36,
+        "paragraph": 32,
         "quote": "We merge each trained adapter into the shared pretrained Whisper Small model before decoding."
       },
       "needs_review": false,
@@ -676,7 +676,7 @@
       "evidence": {
         "paper": "2610.09976",
         "section": "Decoding-Time Distribution Changes Affect Downstream Detection",
-        "paragraph": 9,
+        "paragraph": 6,
         "quote": "As shown in Fig. 1 (a,b), stronger perturbations generally reduce detector AUROC but also increase generation perplexity. Second, we vary \\tau without logit perturbation. Fig. 1 (c,d) shows a similar pattern: higher temperatures can improve evasion while increasing perplexity."
       },
       "needs_review": false,
@@ -776,7 +776,7 @@
       "evidence": {
         "paper": "2610.04403",
         "section": "Vocabulary size does not predict fragility; scale does",
-        "paragraph": 117,
+        "paragraph": 104,
         "quote": "They find that across different model families (Llama-2, Yi) and different tasks (MMLU, PIQA, HellaSwag, ARC), larger models flip fewer individual answers under quantization than smaller ones, while noting that the residual rate stays non-negligible: Llama-2-70B still flips 3 – 8\\% of answers at 4-bit."
       },
       "needs_review": false,
@@ -833,7 +833,7 @@
       "evidence": {
         "paper": "2610.21165",
         "section": "State Transitions: Retrieval, Injection, and Intermediate States",
-        "paragraph": 44,
+        "paragraph": 40,
         "quote": "Retrieved memory is not equivalent to information the model has used: it affects generation only after selection, compression, formatting, and injection into the attention path."
       },
       "needs_review": false,
@@ -953,7 +953,7 @@
       "evidence": {
         "paper": "2610.02022",
         "section": "Results",
-        "paragraph": 34,
+        "paragraph": 31,
         "quote": "The effect of the same prompt change also depends on the judge and the data. Switching from P3 to P4 already shifts strict-accuracy on Human-Only by 21 points for claude-opus-4-6, but only about 7 for gpt-5.4. On Human+Generated, the shift grows for both judges, and gpt-5.4 becomes the more sensitive one (52.6 points). Which judge looks robust thus depends on the data, and validating on human-authored ideas can understate how much a prompt matters on generated ones."
       },
       "needs_review": false,
@@ -1113,7 +1113,7 @@
       "evidence": {
         "paper": "2610.26531",
         "section": "Compatibility with drafter variants.",
-        "paragraph": 30,
+        "paragraph": 27,
         "quote": "We further evaluate ReAnchor on three DFlash-based variants, Domino, DSpark, and Draft-OPD, with different training and prediction mechanisms. At T=0, ReAnchor improves both \\tau and end-to-end speedup in all 48 comparisons, with average gains of 11.8% and 9.8%, respectively (Table 3). At T=1, the improvements remain consistent, increasing \\tau in all 48 comparisons and speedup in 45, with average gains of 11.5% and 8.1%. These results demonstrate that ReAnchor generalizes across different drafting mechanisms without additional training or variant-specific modifications."
       },
       "needs_review": false,
@@ -1325,7 +1325,7 @@
       "evidence": {
         "paper": "2610.06778",
         "section": "TwiceTold: humans writing from AI plans.",
-        "paragraph": 22,
+        "paragraph": 15,
         "quote": "To fill this gap, we create TwiceTold, a dataset with 50 stories written from scratch by humans given only the outline of a 500-word story generated by GPT-5.6 Sol (see § for more details). Prose detectors should label these stories as human, while idea detectors should label them as AI. We also include the 50 original AI stories, which all detectors should label as AI."
       },
       "needs_review": false,
@@ -1431,7 +1431,7 @@
       "evidence": {
         "paper": "2610.27301",
         "section": "The gain comes from picking words.",
-        "paragraph": 19,
+        "paragraph": 16,
         "quote": "A prespecified test keeps the LLMLingua-2 scores and changes only the unit kept. Picking words instead of whole sentences raises hidden-question accuracy at 25% by +11.7 points (MultiRC, gpt-6-luna), +4.6 (MultiRC, open-decider) and +19.1 (FEVER)."
       },
       "needs_review": false,
@@ -1551,7 +1551,7 @@
       "evidence": {
         "paper": "2610.32955",
         "section": "6 Results",
-        "paragraph": 34,
+        "paragraph": 16,
         "quote": "A three-level scale phrased as “how urgent” is part of the problem: rephrasing it as “what should the recipient do with this email” lifts Tev1 4B from 0.45 to 0.56 and Nimble 9B from 0.41 to 0.46, still below the majority class; the switches, phrased as actions, fare better (Table 3: Tev1 4B on a T4 reaches 0.79 / macro-F1 0.74 on needs-reply)."
       },
       "needs_review": false,
@@ -1611,7 +1611,7 @@
       "evidence": {
         "paper": "2610.31833",
         "section": "Noise vs persistent incoherence",
-        "paragraph": 19,
+        "paragraph": 16,
         "quote": "The two residual measures can disagree sharply. GLM and Gemini have the same mean residual (0.26) and similar rewording noise (0.53 and 0.50), but GLM’s persistent residual is 0.11 [0, 0.25] while Gemini’s is 0.28 [0.10, 0.40]. GLM’s residuals scatter around zero as the wording changes, so its incoherence is mostly instability that averaging several samples would reduce. Gemini’s residuals vary as much with wording, but around nonzero values that persist, so its judgments are inconsistent and re-asking does not remove the inconsistency."
       },
       "needs_review": false,

@@ -1,7 +1,14 @@
 import pytest
 
 from semantic_search.chunking import Chunk
-from semantic_search.evaluation.retrieval import EvalQuery, QueryResult, papers_to_fetch, score_query, summarize
+from semantic_search.evaluation.retrieval import (
+    EvalQuery,
+    QueryResult,
+    check_evidence_indexed,
+    papers_to_fetch,
+    score_query,
+    summarize,
+)
 
 
 def _query(type_: str, relevant: tuple[str, ...] = ("a",), quote: str | None = None) -> EvalQuery:
@@ -49,6 +56,16 @@ def test_paper_mrr_only_looks_at_the_top_k_like_the_other_metrics() -> None:
     scores = score_query(query, papers=["x", "y", "a"], chunks=[], k=2)
 
     assert scores["mrr"] == 0.0
+
+
+def test_evaluation_refuses_an_index_without_the_chunk_of_some_evidence_quote() -> None:
+    # Com pedaços menores, uma citação longa não cabe em nenhum: a consulta tiraria 0 por trecho em silêncio,
+    # e a comparação de tamanhos de pedaço sairia torta contra os menores.
+    queries = [_query("detail", quote="frase citada inteira"), _query("named")]
+
+    check_evidence_indexed(queries, [_chunk(0, "aqui está a frase citada inteira.")])
+    with pytest.raises(ValueError, match="q"):
+        check_evidence_indexed(queries, [_chunk(0, "aqui está a frase citada"), _chunk(1, "inteira.")])
 
 
 def test_summary_averages_each_group_over_the_queries_that_have_the_metric() -> None:

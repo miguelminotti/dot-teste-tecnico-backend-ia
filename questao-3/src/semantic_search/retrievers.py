@@ -96,7 +96,7 @@ class HybridRetriever:
     Cada pedaço soma 1 / (RRF_K + posição) em cada lista em que aparece. O RRF usa só as posições, e não as
     notas, que não se comparam entre buscadores (cosseno de um lado, BM25 do outro). A fusão é feita sobre
     as listas completas: cortadas em `n`, um pedaço em (n+1)º nas duas ficaria de fora, valendo mais que um
-    que só uma delas pôs em 1º. Com 5,4 mil pedaços, a lista completa custa poucos milissegundos.
+    que só uma delas pôs em 1º. Com 5 mil pedaços, a lista completa custa poucos milissegundos.
     """
 
     def __init__(self, retrievers: Sequence[Retriever], *, k: int = RRF_K) -> None:

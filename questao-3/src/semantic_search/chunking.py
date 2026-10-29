@@ -30,15 +30,17 @@ class Chunk:
 
 
 def chunk_documents(documents: Sequence[Document], *, max_words: int = DEFAULT_MAX_WORDS) -> list[Chunk]:
-    """Um pedaço com título e resumo por artigo, e um por parágrafo do corpo.
+    """O título com o resumo, e cada parágrafo do corpo, viram um pedaço cada.
 
-    O parágrafo é a unidade natural do texto; o que passa de `max_words` é dividido entre frases, para que
-    o fim não seja cortado em silêncio pelo limite de tokens do modelo.
+    O parágrafo é a unidade natural do texto; o que passa de `max_words` (o parágrafo, ou o título com o
+    resumo) é dividido entre frases, para que o fim não seja cortado pelo limite de tokens do modelo.
     """
     chunks = []
     for document in documents:
+        # Título terminado em "?" ou "!" não ganha outro ponto ("Do models agree?. We...").
+        title = document.title if document.title.endswith((".", "?", "!")) else f"{document.title}."
         pieces: list[tuple[str, int | None, str]] = [
-            ("Abstract", None, piece) for piece in _pack(f"{document.title}. {document.abstract}", max_words)
+            ("Abstract", None, piece) for piece in _pack(f"{title} {document.abstract}", max_words)
         ]
         paragraphs = [(section.heading, text) for section in document.sections for text in section.paragraphs]
         for index, (heading, text) in enumerate(paragraphs):

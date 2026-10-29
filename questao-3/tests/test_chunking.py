@@ -47,6 +47,23 @@ def test_long_paragraph_is_split_between_sentences_without_losing_text() -> None
     assert {chunk.paragraph for chunk in chunks} == {0}
 
 
+def test_sentence_longer_than_the_cap_stays_whole_in_its_own_chunk() -> None:
+    # Cortar no meio da frase separaria palavras que só fazem sentido juntas; a frase longa fica sozinha.
+    long_sentence = "Uma " + " ".join(["palavra"] * 30) + "."
+    paragraph = f"Frase curta antes. {long_sentence} Frase curta depois."
+
+    chunks = chunk_documents([_document(paragraph)], max_words=20)[1:]
+
+    assert [chunk.text for chunk in chunks] == ["Frase curta antes.", long_sentence, "Frase curta depois."]
+
+
+def test_title_ending_in_punctuation_is_not_followed_by_another_period() -> None:
+    # Sete títulos do corpus terminam em "?", e o pedaço do resumo começava com "...Specifications?. For".
+    document = Document(id="2610.00001", title="Do models agree?", abstract="Um resumo.", sections=())
+
+    assert chunk_documents([document])[0].text == "Do models agree? Um resumo."
+
+
 def test_sentence_split_does_not_break_abbreviations_or_numbers() -> None:
     # "et al." e "e.g." aparecem em quase todo artigo; quebrar ali separaria uma citação da frase dela.
     text = "As shown by Chen et al. (2025), accuracy rose to 0.87 on average. Other tasks, e.g. QA, did not. Done."

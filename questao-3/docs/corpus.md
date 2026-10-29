@@ -23,7 +23,7 @@ uv run semantic-search-corpus
 | Parte do artigo | Tratamento | Por quê |
 | --- | --- | --- |
 | Título e resumo | dos metadados do OAI | o título do HTML traz notas grudadas ("Thanks: ...") |
-| Corpo | seções e subseções na ordem, com o nível; cada parágrafo só na sua seção | a estrutura guia a divisão em pedaços; no HTML, o parágrafo da subseção também está dentro da seção pai e entraria duplicado |
+| Corpo | seções e subseções na ordem, com o nível; cada parágrafo só na sua seção, e cada lista dentro do parágrafo que a contém | a estrutura guia a divisão em pedaços; no HTML, o parágrafo da subseção também está dentro da seção pai, e cada item de lista é um parágrafo dentro de outro: contados os dois, entrariam duplicados |
 | Referências | fora | trariam títulos de outros artigos para dentro deste |
 | Apêndices | fora | são sobretudo detalhes de experimento e hiperparâmetros |
 | Figuras e tabelas | fora | tabelas viram números soltos sem o cabeçalho; figuras às vezes trazem caixas de prompt sem contexto |
@@ -57,9 +57,13 @@ Um artigo por linha (JSONL):
 | | |
 | --- | --- |
 | Artigos | 100 (97 sob CC BY 4.0, 3 sob CC0) |
-| Palavras no corpo | 437.724; por artigo, de 1.910 a 16.118, mediana 3.990 |
+| Palavras no corpo | 425.581; por artigo, de 1.910 a 15.580, mediana 3.913 |
 | Seções | 2.637 |
-| Parágrafos | 5.038; mediana de 76 palavras, 95% com até 188 |
+| Parágrafos | 4.672; mediana de 80 palavras, 95% com até 191 |
+
+### Correção dos itens de lista
+
+A primeira versão do corpus guardava cada item de lista duas vezes: dentro do parágrafo que contém a lista, e de novo sozinho, porque o LaTeXML põe um parágrafo dentro de cada item. Eram 366 parágrafos repetidos em 60 artigos, cerca de 3% das palavras, achados na revisão final. A extração foi corrigida, com teste. O HTML baixado não estava mais à mão, e baixá-lo de novo poderia trazer versões mais novas dos artigos. Por isso o corpus versionado foi corrigido aplicando a mesma regra ao texto guardado: numa seção, sai o parágrafo cujo texto já está num parágrafo anterior. Conferida contra a extração corrigida sobre o HTML de 8 artigos, entre eles os 5 com mais itens repetidos, a regra deu exatamente o mesmo resultado. As posições de parágrafo de 14 evidências das [consultas de avaliação](avaliacao.md) foram atualizadas, achando cada citação no texto corrigido.
 
 ## Licença e atribuição
 
