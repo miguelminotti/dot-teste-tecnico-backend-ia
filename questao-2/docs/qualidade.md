@@ -72,3 +72,16 @@ Cada bug tem um teste que o reproduziu antes da correção.
 - **Como apareceu:** numa segunda revisão independente, depois da entrega das três questões, simulada com um modelo falso que levanta o erro da OpenAI.
 - **Testes:** `test_rejected_key_or_account_is_not_reported_as_a_passing_failure`, `test_rate_limit_is_a_passing_failure` e `test_rejected_key_or_account_ends_the_chat`.
 - **Correção:** 401, 403 e 429 com `insufficient_quota` viram erro de configuração, e a CLI sai com a mensagem e código 1. O 429 de limite por minuto continua como falha passageira.
+
+### 10. Modelo sem acesso e contexto estourado também viravam "tente de novo"
+
+- **Bug:** a correção do bug 9 cobriu a chave e a conta, mas não a requisição. Com um `CHATBOT_MODEL` a que a chave não tem acesso (404 `model_not_found`) ou com o histórico maior que o contexto do modelo (400), cada pergunta respondia "Não consegui responder agora (NotFoundError). Tente de novo.", sem o motivo, e nenhuma tentativa passava: o histórico só cresce.
+- **Como apareceu:** na terceira revisão independente, com o mesmo modelo falso.
+- **Testes:** `test_request_the_api_will_always_reject_is_not_reported_as_a_passing_failure` e `test_request_the_api_will_always_reject_ends_the_chat`.
+- **Correção:** 400, 404 e 422 encerram a conversa com a mensagem da API ("The model ... does not exist", "... context window"), que diz o que mudar.
+
+### 11. A suíte falhava sem o Python 3.14
+
+- **Bug:** o teste do módulo removido da biblioteca padrão roda no 3.14, que o `uv sync` não instala. Numa máquina sem ele, `uv run pytest` falhava com "Python 3.14 não encontrado", e os portões de qualidade não passavam para quem clonou o repositório.
+- **Como apareceu:** na terceira revisão independente, simulando a máquina sem o 3.14 com `UV_PYTHON_PREFERENCE=only-managed`.
+- **Correção:** sem o 3.14, o teste é pulado com o comando que o instala no motivo.

@@ -41,6 +41,11 @@ class OpenAIAccountError(Exception):
     ser respondida até a configuração mudar."""
 
 
+class RequestRejectedError(Exception):
+    """A OpenAI recusou a requisição em si (modelo inexistente ou sem acesso, histórico maior que o contexto,
+    parâmetro inválido): a mesma pergunta, nesta conversa, recebe sempre o mesmo erro."""
+
+
 class Tutor:
     """Uma conversa com o tutor: responde perguntas de Python lembrando os turnos anteriores.
 
@@ -70,6 +75,12 @@ class Tutor:
                 raise OpenAIAccountError(
                     f"a OpenAI recusou a chave ou a conta ({type(error).__name__}): confira a OPENAI_API_KEY e o "
                     "saldo da conta"
+                ) from error
+            if isinstance(error, openai.BadRequestError | openai.NotFoundError | openai.UnprocessableEntityError):
+                # 400, 404 e 422 não passam com o tempo. A mensagem da API diz o motivo ("the model ... does
+                # not exist", "exceeds the context window"), que o nome da classe sozinho não diz.
+                raise RequestRejectedError(
+                    f"a OpenAI recusou a requisição ({type(error).__name__}: {error.message})"
                 ) from error
             # O cliente da OpenAI já tentou de novo nas falhas passageiras; aqui a falha é definitiva
             # para esta pergunta, e a conversa pode seguir.

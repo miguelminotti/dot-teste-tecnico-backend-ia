@@ -13,7 +13,7 @@ from langchain_core.tools import BaseTool
 from pydantic import Field
 
 from chatbot.docs_search import DOCS_DOMAINS
-from chatbot.tutor import SYSTEM_PROMPT, AnswerUnavailableError, OpenAIAccountError, Tutor
+from chatbot.tutor import SYSTEM_PROMPT, AnswerUnavailableError, OpenAIAccountError, RequestRejectedError, Tutor
 
 
 class RecordingChatModel(BaseChatModel):
@@ -165,9 +165,11 @@ def test_pages_cited_by_the_search_are_listed_after_the_answer() -> None:
     assert answer == f"T-strings criam um Template.\n\nFontes:\n- {whatsnew}\n- {pep}"
 
 
-def _openai_error(error_class: type[openai.APIStatusError], status: int, code: str | None = None) -> Exception:
+def _openai_error(
+    error_class: type[openai.APIStatusError], status: int, code: str | None = None, message: str = "erro simulado"
+) -> Exception:
     request = httpx2.Request("POST", "https://api.openai.com/v1/responses")
-    return error_class("erro simulado", response=httpx2.Response(status, request=request), body={"code": code})
+    return error_class(message, response=httpx2.Response(status, request=request), body={"code": code})
 
 
 @pytest.mark.parametrize(
@@ -185,6 +187,26 @@ def test_rejected_key_or_account_is_not_reported_as_a_passing_failure(error: Exc
     tutor = Tutor(RecordingChatModel(fail_on_call=1, failure=error))
 
     with pytest.raises(OpenAIAccountError):
+        tutor.answer("Como criar uma lista?")
+
+
+@pytest.mark.parametrize(
+    ("error", "reason"),
+    [
+        (_openai_error(openai.NotFoundError, 404, "model_not_found", "The model `gpt-x` does not exist"), "gpt-x"),
+        (
+            _openai_error(openai.BadRequestError, 400, "context_length_exceeded", "Input exceeds the context window"),
+            "context window",
+        ),
+    ],
+    ids=["modelo-sem-acesso", "contexto-estourado"],
+)
+def test_request_the_api_will_always_reject_is_not_reported_as_a_passing_failure(error: Exception, reason: str) -> None:
+    # Bug: modelo sem acesso e histórico maior que o contexto viravam "tente de novo", sem o motivo. Os
+    # dois falham igual a cada tentativa; a mensagem da API é o que diz à pessoa o que mudar.
+    tutor = Tutor(RecordingChatModel(fail_on_call=1, failure=error))
+
+    with pytest.raises(RequestRejectedError, match=reason):
         tutor.answer("Como criar uma lista?")
 
 

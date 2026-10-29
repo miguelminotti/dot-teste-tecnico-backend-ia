@@ -6,7 +6,7 @@ import sys
 from collections.abc import Callable, MutableMapping
 
 from chatbot.settings import Settings
-from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError, create_tutor
+from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError, RequestRejectedError, create_tutor
 
 # Palavras que encerram a conversa, comparadas sem diferenciar maiúsculas.
 _EXIT_COMMANDS = frozenset({"sair", "exit", "quit"})
@@ -59,6 +59,10 @@ def main() -> None:
     except OpenAIAccountError as error:
         # A subida só confere se a chave existe; se ela vale, só a primeira pergunta diz.
         sys.exit(f"Erro de configuração: {error}")
+    except RequestRejectedError as error:
+        # Modelo sem acesso pede outro CHATBOT_MODEL; contexto estourado pede uma conversa nova. Nos dois
+        # casos, repetir a pergunta daria o mesmo erro.
+        sys.exit(f"Conversa encerrada: {error}")
 
 
 def disable_tracing_without_key(environ: MutableMapping[str, str] = os.environ) -> bool:

@@ -6,7 +6,7 @@ from collections.abc import Iterator
 import pytest
 
 from chatbot.cli import disable_tracing_without_key, run_chat
-from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError
+from chatbot.tutor import AnswerUnavailableError, OpenAIAccountError, RequestRejectedError
 
 # Roda o laço da conversa com a configuração de terminal do `main`, mas com uma resposta fixa no lugar
 # do modelo: o teste não depende de chave nem de rede.
@@ -98,6 +98,21 @@ def test_passing_failure_loses_only_that_question() -> None:
     run_chat(answer, read=terminal.read, write=terminal.write)
 
     assert "\nChatbot: resposta" in terminal.written
+
+
+def test_request_the_api_will_always_reject_ends_the_chat() -> None:
+    # Modelo sem acesso ou contexto estourado: repetir a pergunta dá o mesmo erro. A conversa acaba, e o
+    # `main` sai com a mensagem da API.
+    terminal = _FakeTerminal("primeira pergunta", "segunda pergunta")
+    asked: list[str] = []
+
+    def answer(question: str) -> str:
+        asked.append(question)
+        raise RequestRejectedError("o modelo não existe")
+
+    with pytest.raises(RequestRejectedError):
+        run_chat(answer, read=terminal.read, write=terminal.write)
+    assert asked == ["primeira pergunta"]
 
 
 def test_rejected_key_or_account_ends_the_chat() -> None:

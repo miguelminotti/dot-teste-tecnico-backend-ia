@@ -1,6 +1,13 @@
+import subprocess
+
 import pytest
 
 from chatbot.evaluation.snippets import SnippetStatus, extract_python_blocks, run_answer_snippets, run_snippet
+
+
+def _python_installed(version: str) -> bool:
+    found = subprocess.run(["uv", "python", "find", "--system", version], capture_output=True)
+    return found.returncode == 0
 
 
 def test_extracts_only_python_blocks_in_order() -> None:
@@ -43,6 +50,9 @@ def test_third_party_import_is_skipped_not_failed() -> None:
     assert result.detail == "depende de pydantic"
 
 
+# O `uv sync` instala só o 3.12 do projeto; o 3.14 é instalado à mão para o experimento (README). Sem ele,
+# o teste não tem onde rodar, e falhar aqui acusaria a máquina, não o executor.
+@pytest.mark.skipif(not _python_installed("3.14"), reason="sem Python 3.14; instale com: uv python install 3.14")
 def test_module_removed_from_the_standard_library_is_a_failure() -> None:
     # O `cgi` saiu da biblioteca padrão no 3.13. Um modelo treinado em código antigo ainda o usa, e o
     # snippet quebra na versão nova: é erro do snippet, não dependência externa a pular.
